@@ -33,6 +33,14 @@ work and when to revisit it.
 
 ## PadMint itself
 
+- **v0.5.1**: KartPad on a Mac. With KartPad 0.8.0, PadMint offers KartPad's Mac copy
+  again on Apple Silicon Macs (**This Mac**), using PadMint's own build tools (no
+  Homebrew), and builds KartPad for iPhone and iPad on Intel Macs (with Xcode and its
+  iOS platform). A recipe can say a program is needed only for some targets, so
+  building KartPad for Android on a Mac doesn't ask for Xcode. When PadMint holds back
+  a game's device on purpose, step 3 shows it dimmed and marked **Not yet**, with the
+  devices to choose instead.
+
 - **v0.5.0**: easier for someone new. The README starts with direct Mac, Windows and
   Linux download links (the ZIPs are now named `PadMint-macos.zip` and so on), and the
   Mac no longer needs a Terminal step first. On a Mac, each card says how much setup

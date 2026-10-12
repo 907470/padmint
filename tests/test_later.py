@@ -42,21 +42,34 @@ class LaterTests(unittest.TestCase):
         self.assertEqual(everything, set(manifest.catalog()))
 
     def test_a_device_held_back_is_shown_on_the_computer_that_would_make_it(self):
-        # KartPad's Mac copy isn't offered yet: an Apple Silicon Mac says so in step 3,
-        # instead of only showing Android and iPhone/iPad (Discord, 12 Oct 2026).
+        # A Mac copy PadMint holds back (KartPad's, before 0.8.0) is shown dimmed in step 3 on
+        # an Apple Silicon Mac, instead of only Android and iPhone/iPad (Discord, 12 Oct 2026).
         from padmint import cli
-        for host, held in (("macos-arm64", ["macos"]), ("macos-x86_64", []), ("windows-x86_64", [])):
-            with self.subTest(host=host), mock.patch.object(cli, "host_id", return_value=host), \
+        entry = json.loads((manifest.CATALOG / "kartpad.json").read_text())
+        entry["player_targets"] = [target for target in entry["player_targets"] if target != "macos"]
+        entry["unoffered_targets"] = {"macos": "held back for this test"}
+        with tempfile.TemporaryDirectory() as folder:
+            Path(folder, "kartpad.json").write_text(json.dumps(entry))
+            with mock.patch.object(manifest, "CATALOG", Path(folder)), \
                     mock.patch.object(cli, "on_android", return_value=False):
-                kartpad = {game["id"]: game for game in ui.player_data("en")["games"]}["kartpad"]
-            self.assertEqual([item["id"] for item in kartpad["held"]], held)
-        self.assertEqual(kartpad["held"], [])
-        with mock.patch.object(cli, "host_id", return_value="macos-arm64"), \
-                mock.patch.object(cli, "on_android", return_value=False):
-            kartpad = {game["id"]: game for game in ui.player_data("es")["games"]}["kartpad"]
+                for host, held in (("macos-arm64", ["macos"]), ("macos-x86_64", []), ("windows-x86_64", [])):
+                    with self.subTest(host=host), mock.patch.object(cli, "host_id", return_value=host):
+                        kartpad = ui.player_data("en")["games"][0]
+                        self.assertEqual([item["id"] for item in kartpad["held"]], held)
+                with mock.patch.object(cli, "host_id", return_value="macos-arm64"):
+                    kartpad = ui.player_data("es")["games"][0]
         self.assertEqual(kartpad["held"][0]["label"], "Este Mac")
         self.assertEqual(kartpad["held"][0]["text"],
                          "PadMint todavía no crea KartPad para Mac. Para jugar ahora, elige Android o iPhone/iPad.")
+
+    def test_kartpad_offers_this_mac_on_apple_silicon_only(self):
+        from padmint import cli
+        for host, has_mac in (("macos-arm64", True), ("macos-x86_64", False), ("windows-x86_64", False)):
+            with self.subTest(host=host), mock.patch.object(cli, "host_id", return_value=host), \
+                    mock.patch.object(cli, "on_android", return_value=False):
+                kartpad = {game["id"]: game for game in ui.player_data("en")["games"]}["kartpad"]
+            self.assertEqual("macos" in [p["id"] for p in kartpad["platforms"]], has_mac)
+            self.assertEqual(kartpad["held"], [])
 
 
 if __name__ == "__main__":

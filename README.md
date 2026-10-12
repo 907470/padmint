@@ -133,9 +133,9 @@ need. For each game's exact versions, hosts and known problems, see
    incomplete file). Some games ask for the file inside the app instead; the page says so.
 3. **3. Where will you play?** Choose the device you will play on, whichever
    computer you are using. **This Mac** appears for games with a Mac copy, on an
-   Apple Silicon Mac: that copy plays on the Mac that builds it. When PadMint
-   doesn't make a game's Mac copy yet (KartPad today), **This Mac** is dimmed and
-   marked **Not yet**, with the devices you can choose instead.
+   Apple Silicon Mac: that copy plays on the Mac that builds it. If PadMint
+   doesn't make a game's Mac copy yet, **This Mac** is dimmed and marked
+   **Not yet**, with the devices you can choose instead.
 4. **What PadMint will do on this computer** lists everything before it starts.
    **Before you start (one time only)** marks each program **found** or **not found**
    and says how to get it: Xcode from the App Store, and one Homebrew line with a
@@ -295,12 +295,10 @@ PadMint yet; the game's page has the latest.
 <details>
 <summary><strong>Can I play KartPad on my Mac?</strong></summary>
 
-Not through PadMint yet: it offers KartPad for Android and iPhone/iPad only.
-KartPad's Mac copy is coming back to PadMint with the next KartPad and PadMint
-releases. On an Apple Silicon Mac, KartPad's last Mac download,
-[0.7.13](https://github.com/chrissotraidis/kartpad/releases/tag/v0.7.13), still
-plays the original game but won't get updates, so it can't use newer Retro
-Rewind versions.
+Yes, on a Mac with Apple Silicon (M1 or newer) with Xcode: choose KartPad and
+**This Mac**. PadMint builds KartPad from your disc and saves the app in your
+Downloads folder. On an Intel Mac, PadMint builds KartPad for iPhone and iPad
+(experimental), but the Mac app itself needs Apple Silicon.
 
 </details>
 <details>
