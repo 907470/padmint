@@ -1,12 +1,12 @@
 # PadMint status
 
-Updated **10 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **12 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
 **Scope today ([D15](docs/DECISIONS.md#d15-any-device-from-any-computer-is-the-goal-off-mac-work-is-paused-owner-decision-5-oct-2026)):**
 PadMint makes the builds that exist work well: iPhone/iPad copies on an Apple
-Silicon Mac for every buildable game, Mac copies for CTRPad and HaloPad, and
+Silicon Mac for every buildable game, Mac copies for CTRPad, HaloPad and KartPad, and
 KartPad's existing Android and off-Mac routes. Windows players use ready-to-play
 downloads where a game publishes them (BlueWake). Building any game for any device
 from any computer is the long-term goal and is paused; D15 records the remaining
@@ -16,8 +16,8 @@ work and when to revisit it.
 
 - **KartPad for Android is a ready-to-play download** (the APK has the game code
   built in) on [KartPad's releases](https://github.com/chrissotraidis/kartpad/releases/latest).
-  On Android, PadMint makes the `KartPad game data` folder. KartPad for iPhone and
-  iPad is built with PadMint; the release's `ios-for-padmint.ipa` has no game in it
+  On Android, PadMint makes the `KartPad game data` folder. KartPad for iPhone, iPad
+  and Mac is built with PadMint; the release's `ios-for-padmint.ipa` has no game in it
   and is only for PadMint. The 0.7.9–0.7.13 ready-to-play iPhone/iPad and Mac
   downloads won't get updates.
 - **HaloPad's Xbox edition** can also be built without a Mac, on GitHub's free Mac
@@ -32,6 +32,14 @@ work and when to revisit it.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.1**: KartPad on a Mac. With KartPad 0.8.0, PadMint offers KartPad's Mac copy
+  again on Apple Silicon Macs (**This Mac**), using PadMint's own build tools (no
+  Homebrew), and builds KartPad for iPhone and iPad on Intel Macs (with Xcode and its
+  iOS platform). A recipe can say a program is needed only for some targets, so
+  building KartPad for Android on a Mac doesn't ask for Xcode. When PadMint holds back
+  a game's device on purpose, step 3 shows it dimmed and marked **Not yet**, with the
+  devices to choose instead.
 
 - **v0.5.0**: easier for someone new. The README starts with direct Mac, Windows and
   Linux download links (the ZIPs are now named `PadMint-macos.zip` and so on), and the
