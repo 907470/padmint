@@ -60,7 +60,8 @@ if sys.argv[1] == 'tools':
     def test_relative_app_path_is_resolved_before_changing_directory(self):
         result, calls = self.run_check(app="base app.ipa")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls[-1]['args'][-1], str(self.root / 'base app.ipa'))
+        self.assertEqual(Path(calls[-1]['args'][-1]).resolve(),
+                         (self.root / 'base app.ipa').resolve())
 
     def test_tool_failure_prevents_build_and_success_message(self):
         result, calls = self.run_check(fail=23)
