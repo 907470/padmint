@@ -16,6 +16,9 @@ if [ $# -lt 3 ] || [ $# -gt 5 ]; then
   exit 2
 fi
 game=$1 platform=$2 game_file=$3 checkout=${4:-} app=${5:-}
+if [ -n "$app" ]; then
+  app="$(cd "$(dirname "$app")" && pwd)/$(basename "$app")"
+fi
 player_python=/usr/bin/python3
 padmint_root=$(cd "$(dirname "$0")/.." && pwd)
 check_folder=$(mktemp -d "${TMPDIR:-/tmp}/padmint-player-check.XXXXXX")

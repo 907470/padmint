@@ -43,7 +43,7 @@ if sys.argv[1] == 'tools':
         if app:
             args.append(app)
         env = dict(os.environ, TEST_LOG=str(self.log), TMPDIR=str(self.root), FAIL_TOOLS=str(fail))
-        result = subprocess.run(args, env=env, capture_output=True, text=True)
+        result = subprocess.run(args, cwd=self.root, env=env, capture_output=True, text=True)
         calls = [json.loads(row) for row in self.log.read_text().splitlines()]
         return result, calls
 
@@ -56,6 +56,11 @@ if sys.argv[1] == 'tools':
         self.assertEqual(calls[1]['args'][-2:], ['--app', '/tmp/base app $(no-shell).ipa'])
         for call in calls:
             self.assertEqual(call['args'][call['args'].index('--target') + 1], 'ios')
+
+    def test_relative_app_path_is_resolved_before_changing_directory(self):
+        result, calls = self.run_check(app="base app.ipa")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls[-1]['args'][-1], str(self.root / 'base app.ipa'))
 
     def test_tool_failure_prevents_build_and_success_message(self):
         result, calls = self.run_check(fail=23)
