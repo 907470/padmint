@@ -48,6 +48,7 @@ class LaterTests(unittest.TestCase):
         entry = json.loads((manifest.CATALOG / "kartpad.json").read_text())
         entry["player_targets"] = [target for target in entry["player_targets"] if target != "macos"]
         entry["unoffered_targets"] = {"macos": "held back for this test"}
+        entry["player_next"].pop("macos", None)
         with tempfile.TemporaryDirectory() as folder:
             Path(folder, "kartpad.json").write_text(json.dumps(entry))
             with mock.patch.object(manifest, "CATALOG", Path(folder)), \
