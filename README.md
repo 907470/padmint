@@ -47,7 +47,7 @@ an easy one:
 | Tag on the page | Games | What you need |
 |---|---|---|
 | **Easiest** | KartPad for Android (Mario Kart Wii) | Any Windows, Mac or Linux computer, an Android phone, and the **European** Mario Kart Wii disc. Install the ready-to-play app; PadMint makes its game data. |
-| **Needs Xcode** | BlueWake (Wind Waker, US disc), SunPad (Super Mario Sunshine, US disc), KartPad for iPhone (European disc), AgePad (Age of Empires II from Steam) | A Mac with Apple Silicon (M1 or newer) and [Xcode](https://apps.apple.com/app/xcode/id497799835), free from the App Store. PadMint downloads everything else. |
+| **Needs Xcode** | BlueWake (Wind Waker, US disc), SunPad (Super Mario Sunshine, US disc), KartPad for iPhone and Mac (European disc), AgePad (Age of Empires II from Steam) | A Mac with Apple Silicon (M1 or newer) and [Xcode](https://apps.apple.com/app/xcode/id497799835), free from the App Store. PadMint downloads everything else. |
 | **Needs Xcode + Homebrew** | Most other games | The same, plus one Homebrew line that the page shows you, with a Copy button. |
 
 Your game file must be the version the page names, for example **Only the US
@@ -110,7 +110,7 @@ them all, or the tabs to narrow the list.
 
 | Group on the page | What it means | What you need |
 |---|---|---|
-| **Build with PadMint** | PadMint builds the game on your computer from your game file, then tells you how to install it | For iPhone and iPad, and for Mac copies (CTRPad): a **Mac with Apple Silicon (M1 or newer)** with [Xcode](https://apps.apple.com/app/xcode/id497799835). KartPad also builds for Android on any Windows, Mac or Linux computer |
+| **Build with PadMint** | PadMint builds the game on your computer from your game file, then tells you how to install it | For iPhone and iPad, and for Mac copies (CTRPad, HaloPad, KartPad): a **Mac with Apple Silicon (M1 or newer)** with [Xcode](https://apps.apple.com/app/xcode/id497799835). KartPad also builds for Android on any Windows, Mac or Linux computer |
 | **Download** | The game's app has no game files in it, so there is nothing to build: download it and add your own files in the app | Any computer to sideload an iPad or iPhone app with your own Apple ID |
 | **Not available yet** | Listed so you can find it. Choosing it says why it isn't available and links to the game's page | — |
 
@@ -432,7 +432,7 @@ Builds run on the platforms each game marks *verified* or *experimental*;
 `list` shows the rest as *planned*. KartPad's Android game data builds on
 Windows, Linux and macOS (x64 and ARM64) and, experimentally, on an Android
 phone; iPhone/iPad builds need an Apple Silicon Mac, except KartPad, which
-also builds experimentally on Windows or Linux. See [STATUS.md](STATUS.md)
+also builds experimentally on Windows, Linux or an Intel Mac. See [STATUS.md](STATUS.md)
 for what has been verified on each.
 
 The [catalog](catalog/) lists every public game: the ones PadMint builds, the
