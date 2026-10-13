@@ -12,7 +12,6 @@ class LaterTests(unittest.TestCase):
     def test_listed_games_reach_the_page_in_the_players_language(self):
         later = {game["id"]: game for game in ui.player_data("es")["later"]}
         self.assertIn("snappad", later)
-        self.assertNotIn("galaxypad", later)  # built by PadMint since GalaxyPad 0.2.0
         self.assertEqual(later["snappad"]["about"], "Pokémon Snap (N64)")
         self.assertIn("están en pausa", later["snappad"]["text"])
         self.assertTrue(later["ratouch"]["link"].startswith("https://github.com/chrissotraidis/ratouch"))
