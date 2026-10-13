@@ -38,8 +38,8 @@ if sys.argv[1] == 'tools':
                         "--allow-empty"], check=True)
         self.log = self.root / "calls.jsonl"
 
-    def run_check(self, checkout=True, app=None, fail=0):
-        args = ["/bin/bash", str(self.root / "scripts/player-check.sh"), "fixture", "ios", "disc with spaces.iso"]
+    def run_check(self, checkout=True, app=None, fail=0, game_file="disc with spaces.iso"):
+        args = ["/bin/bash", str(self.root / "scripts/player-check.sh"), "fixture", "ios", game_file]
         if checkout:
             args.append(str(self.checkout))
         if app:
@@ -75,6 +75,20 @@ if sys.argv[1] == 'tools':
         result, calls = self.run_check()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn('--app', calls[-1]['args'])
+
+    def test_game_chosen_in_the_app_passes_no_game_file(self):
+        for checkout in (True, False):
+            with self.subTest(checkout=checkout):
+                self.log.unlink(missing_ok=True)
+                result, calls = self.run_check(checkout=checkout, game_file="-")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertNotIn('--disc', calls[-1]['args'])
+                self.assertNotIn('-', calls[-1]['args'])
+
+    def test_game_file_is_passed_when_given(self):
+        result, calls = self.run_check()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls[-1]['args'][calls[-1]['args'].index('--disc') + 1], 'disc with spaces.iso')
 
     def test_published_release_uses_make_with_empty_home(self):
         result, calls = self.run_check(checkout=False)

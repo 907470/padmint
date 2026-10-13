@@ -1,27 +1,19 @@
 {
   "schema_version": 1,
   "id": "galaxypad",
+  "repo_url": "https://github.com/chrissotraidis/galaxypad",
   "name": "GalaxyPad",
   "game": "Super Mario Galaxy (Wii)",
-  "plays_on": [
-    "iphone",
-    "ipad",
-    "mac"
+  "player_targets": [
+    "ios"
   ],
-  "repo_url": "https://github.com/chrissotraidis/galaxypad",
+  "game_ids": [
+    "RMGE01"
+  ],
+  "free_space_gb": 20,
+  "player_game_file": "in-app",
+  "player_help": "https://github.com/chrissotraidis/galaxypad#get-galaxypad",
   "reviewed_revision": null,
-  "player_help": "https://github.com/chrissotraidis/galaxypad",
-  "notes": "Listed so players can find it: nothing to build or download through PadMint yet.",
-  "later": {
-    "text": "Its previews aren't public right now. Its page has the latest news.",
-    "translations": {
-      "es": {
-        "text": "Sus versiones de prueba no están publicadas por ahora. Su página tiene las últimas novedades."
-      },
-      "pt": {
-        "text": "As versões de prévia não estão públicas no momento. A página dele tem as últimas novidades."
-      }
-    }
-  },
+  "notes": "Manifest owned by the game repository: the pinned runtime, the New engine and the app, built with no game file; players import their WBFS image in the app.",
   "manifest": null
 }
