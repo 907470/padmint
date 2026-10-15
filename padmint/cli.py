@@ -1359,6 +1359,23 @@ def held_here(entry):
     return [target for target in (entry.get("unoffered_targets") or {}) if here.get(target)]
 
 
+def unavailable_devices(entry, platforms, lang=None):
+    """Explain disabled choices in both the window and terminal without enabling them."""
+    say = (lambda key, **fields: phrase(key, lang, **fields)) if lang else t
+    name = (entry.get("manifest") or {}).get("name") or entry.get("name", entry.get("id", "game"))
+    devices = [{"id": p, "label": platform_label(p, lang), "tag": say("w_held_tag"),
+                "text": say("held_text", name=name, device=say(f"platform_{p}"),
+                            others=say("held_or").join(say(f"w_short_{q}") if f"w_short_{q}" in MESSAGES else q
+                                                       for q in platforms))}
+               for p in held_here(entry)]
+    advertised = set(entry.get("player_targets", [])) | set(entry.get("unoffered_targets", {}))
+    if host_id() == "macos-x86_64" and "macos" in advertised:
+        devices.append({"id": "macos", "label": platform_label("macos", lang),
+                        "tag": say("w_needs_apple_silicon"),
+                        "text": say("mac_requires_apple_silicon", name=name)})
+    return devices
+
+
 def platform_label(platform_name, lang=None):
     """How the menu names a device: an iPhone copy needs this Mac, or is experimental elsewhere."""
     key = {"android": "android", "ios": "ios_mac" if host_id() == "macos-arm64" else "ios_off_mac",
@@ -1444,6 +1461,8 @@ def start(ask=input, stream=None):
         if game in dict(downloads()):
             return download_steps(game, stream)
     name, platforms = next((name, platforms) for id_, name, platforms in games if id_ == game)
+    for device in unavailable_devices(catalog()[game], platforms):
+        print(device["text"], file=stream)
     target = choose(t("make_it_for"), [(p, platform_label(p)) for p in platforms], ask, stream)
     ready = catalog()[game].get("ready_to_play")
     if ready and target in ready.get("platforms", platforms):

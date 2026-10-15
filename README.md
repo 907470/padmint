@@ -30,6 +30,11 @@
 Use these links, not GitHub's green **Code** button: that one downloads PadMint's
 source code, which is for developers.
 
+**Updating PadMint?** Close its running window, download the ZIP again, extract
+it and open the launcher in the **new folder**. The game list comes with that
+folder; refreshing the browser or opening the old folder keeps the old list.
+Keep your disc images, completed builds, caches and saves.
+
 **2. Keep the small window open.** It is PadMint working. Your web browser opens
 the PadMint page; if it doesn't, open the `http://127.0.0.1…` address the
 window shows. The page comes from your own computer, not a website.
@@ -295,10 +300,29 @@ PadMint yet; the game's page has the latest.
 <details>
 <summary><strong>Can I play KartPad on my Mac?</strong></summary>
 
-Yes, on a Mac with Apple Silicon (M1 or newer) with Xcode: choose KartPad and
-**This Mac**. PadMint builds KartPad from your disc and saves the app in your
-Downloads folder. On an Intel Mac, PadMint builds KartPad for iPhone and iPad
+Yes, with PadMint **0.5.1 or newer**, on a Mac with Apple Silicon (M1 or newer)
+and Xcode: choose **Mario Kart Wii**, then **This Mac** under **Where will you
+play?** PadMint builds KartPad from your disc and saves the app in your Downloads
+folder. On an Intel Mac, PadMint builds KartPad for iPhone and iPad
 (experimental), but the Mac app itself needs Apple Silicon.
+
+**Only seeing iPhone/iPad and Android?** Download the latest
+[PadMint for Mac](https://github.com/chrissotraidis/padmint/releases/latest/download/PadMint-macos.zip)
+and open `PadMint.command` from the newly extracted folder. Check **Apple menu
+→ About This Mac**: **Chip: Apple M…** is supported; an Intel processor isn't
+supported for playing KartPad on Mac.
+
+PadMint **0.5.2** can also mistake an Apple Silicon Mac for Intel when it runs
+under Rosetta. On an Apple Silicon Mac, close PadMint's Terminal window, open
+Terminal, type `cd ` (with a space), drag the newly extracted PadMint folder
+from Finder into Terminal and press Return. Then run:
+
+```sh
+arch -arm64 /bin/bash ./PadMint.command
+```
+
+This starts PadMint natively. Keep your disc images, builds, caches and saves;
+none need deleting to restore the Mac option.
 
 </details>
 <details>
