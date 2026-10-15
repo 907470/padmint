@@ -141,7 +141,7 @@ def plan(game, platform_name, lang, disc=None):
     steps, note, _guide = cli.next_step_text({"id": game, **entry}, platform_name, preview, lang)
     install = {"steps": steps, "note": note} if steps else None
     return {"repo": entry["repo_url"], "tools": items, "tools_folder": str(tools.tools_root()),
-            "app": bool(target.get("published_app")), "space_gb": entry.get("free_space_gb"),
+            "app": bool(target.get("published_app")), "space_gb": cli.player_free_space(entry, platform_name),
             "folder": str(cli.player_folder()), "needs": needs, "mac_setup": mac_setup, "install": install,
             "output": phrase(key, lang, name=name) if key in MESSAGES else "",
             "inputs": [item for item in manifest.get("inputs", []) if item.get("when", "build") == "build"]}

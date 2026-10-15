@@ -557,7 +557,7 @@ def execute(args, repo, disc):
         atomic_json(attempt / "record.json", record)
         emit("build_" + status, exit_code=code)
         if status == "failed":
-            space = (catalog().get(getattr(args, "game", None)) or {}).get("free_space_gb")
+            space = player_free_space(catalog().get(getattr(args, "game", None)) or {}, target_name)
             print_log_tail(attempt / "backend.log", needed_gb=space)
         print(f"Build record: {attempt / 'record.json'}")
         return code if code >= 0 else 128 - code
@@ -768,9 +768,13 @@ def default_jobs(cores=None, memory=None):
     return max(1, min(cores, by_memory, 16))
 
 
+def player_free_space(entry, platform_name=None):
+    """The first player build's budget, with an override for a larger target."""
+    return entry.get("free_space_gb_by_target", {}).get(platform_name, entry.get("free_space_gb", 0))
+
+
 def check_free_space(folder, needed_gb):
-    """A game's catalog entry may name the free space its first build needs
-    (KartPad: about 4 GB of tools plus 11 GB of build files)."""
+    """Check the catalog's first-build budget before downloading fresh source."""
     if not needed_gb:
         return
     existing = next(path for path in [folder, *folder.parents] if path.exists())
@@ -829,7 +833,7 @@ def _make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results
         require_programs(manifest, platform_name, disc)  # before the source download, not after it
     report("release", state="done", repo=entry["repo_url"], version=release[0] if release else ref)
     home = tools.tools_root().parent
-    source, ref, assets = release_source(game, ref, release=release)
+    source, ref, assets = release_source(game, ref, release=release, platform_name=platform_name)
     report("source", state="done", repo=entry["repo_url"], version=ref, folder=str(source))
     manifest, _source = manifest_for(game, source)
     # Explicit refs skip release preflight/network lookup; both paths must
@@ -1149,7 +1153,7 @@ def doctor(game, target_name, repo=None, stream=None):
         for tool in player_requirements(manifest, target_name):  # the player installs these; PadMint can't
             ok, detail = check_program(tool)
             report(ok, label(tool), detail if ok or detail == tool["note"] else f"{detail}; {tool['note']}")
-        needed = catalog()[game].get("free_space_gb", 0)
+        needed = player_free_space(catalog()[game], target_name)
         home = tools.tools_root().parent
         existing = next(path for path in [home, *home.parents] if path.exists())
         free = shutil.disk_usage(existing).free / (1 << 30)
@@ -1617,7 +1621,7 @@ def fetch_source(game, source, ref):
     print(f"{game} source in {source}", flush=True)
 
 
-def release_source(game, ref=None, release=None):
+def release_source(game, ref=None, release=None, platform_name=None):
     """The game's source at ref (default: its latest release), downloaded once and reused:
     (folder, ref, release assets). The recipe players build with lives in it."""
     entry = catalog().get(game)
@@ -1629,7 +1633,7 @@ def release_source(game, ref=None, release=None):
         ref, assets = release if release is not None else latest_release(entry["repo_url"])
     source = home / "games" / f"{game}-{re.sub(r'[^A-Za-z0-9._-]', '_', ref)}"
     if not source_complete(source):
-        check_free_space(home, entry.get("free_space_gb", 0))
+        check_free_space(home, player_free_space(entry, platform_name))
         report("source", state="running", repo=entry["repo_url"], version=ref)
         fetch_source(game, source, ref)
     return source, ref, assets
@@ -1809,7 +1813,7 @@ def main(argv=None):
                 repo = args.repo.expanduser().resolve()
                 where = f"your checkout {repo}"
             else:
-                repo, ref, _assets = release_source(args.game)
+                repo, ref, _assets = release_source(args.game, platform_name=args.target)
                 where = f"{args.game} {ref}, its latest release"
             manifest, origin = manifest_for(args.game, repo)
             print(f"Recipe: {where}" if origin == "repository" else

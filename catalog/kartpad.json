@@ -26,6 +26,9 @@
     "RMCP01"
   ],
   "free_space_gb": 16,
+  "free_space_gb_by_target": {
+    "macos": 60
+  },
   "ios_off_mac": true,
   "reviewed_revision": null,
   "notes": "Players: padmint make kartpad android|ios (the published or repository recipe is authoritative). The fallback iOS target uses KartPad 0.7.15's game-pack builder with experimental Intel Mac support; its Android target remains KartPad 0.7.2's.",

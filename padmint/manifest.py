@@ -320,6 +320,11 @@ def catalog():
         if not isinstance(space, int) or isinstance(space, bool) or space < 0 or (targets and space < 1):
             raise ValueError(f"catalog/{path.name}: free_space_gb is a whole number of GB"
                              + (", required for games with player_targets" if targets else ""))
+        target_space = entry.get("free_space_gb_by_target", {})
+        if not isinstance(target_space, dict) or not all(
+                target in targets and isinstance(amount, int) and not isinstance(amount, bool) and amount > 0
+                for target, amount in target_space.items()):
+            raise ValueError(f"catalog/{path.name}: free_space_gb_by_target maps player_targets to positive whole GB")
         if entry.get("manifest") is not None:
             validate_manifest(entry["manifest"])
             if entry["manifest"]["id"] != entry["id"]:

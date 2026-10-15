@@ -178,9 +178,14 @@ computers with the reason.
 To offer the game in guided setup, add `player_targets` and a positive whole
 number for `free_space_gb`. Measure the first player build, including downloaded
 tools, fetched sources, temporary build files and the exported output; allow
-headroom. The catalog estimate is used by player `doctor` and the initial source
-download check. The recipe's `requirements.disk_gb` applies to checkout `doctor`
-and may allow more room for development builds.
+headroom. If targets need different amounts, add an optional
+`free_space_gb_by_target` map, for example `{"macos": 60}`; unlisted targets use
+`free_space_gb`. Only targets in `player_targets` may have overrides. The same
+estimate appears in the window, player `doctor`, the initial source download
+check and disk-full guidance. Cached source keeps the existing resume behavior;
+the initial budget is not required again after downloading it. The recipe's
+`requirements.disk_gb` applies to checkout `doctor` and may allow more room for
+development builds.
 
 For tools the player must install, set `player: true` and an actionable `note`
 on the recipe requirement. Probe the tool or SDK the backend actually uses;

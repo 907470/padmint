@@ -116,7 +116,7 @@ class HostPreflightTests(unittest.TestCase):
         self.assertEqual(self.make(), 1)
         self.latest.assert_called_once()
         self.published.assert_called_once_with("somepad", release=self.release)
-        self.source.assert_called_once_with("somepad", None, release=self.release)
+        self.source.assert_called_once_with("somepad", None, release=self.release, platform_name="ios")
         self.app.assert_called_once_with("SomePad-v1.0.0-ios-unsigned.ipa", self.release[1],
                                          Path("/synthetic/apps/somepad"))
 
@@ -124,7 +124,7 @@ class HostPreflightTests(unittest.TestCase):
         self.assertEqual(self.make(ref="codex/candidate"), 1)
         self.latest.assert_not_called()
         self.published.assert_not_called()
-        self.source.assert_called_once_with("somepad", "codex/candidate", release=None)
+        self.source.assert_called_once_with("somepad", "codex/candidate", release=None, platform_name="ios")
         self.manifest.assert_called_once_with("somepad", Path("/synthetic/source"))
         self.execute.assert_called_once()
 
