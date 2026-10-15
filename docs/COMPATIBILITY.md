@@ -120,11 +120,11 @@ the next steps below are kept for when it resumes.
 | MaskPad, StarshipPad, PaperPad, BrawlerPad, BarrelPad, BellPad, BallPad | Mac only | Follow SpaghettiPad #29. StarshipPad's merged recipe fix (#22) waits on its tracker row |
 | CTRPad | Mac only (iPhone/iPad app and Mac app) | Follow SpaghettiPad #29 |
 | AgePad | Mac only by design: it packages the Mac edition from Steam | None planned off a Mac |
+| GalaxyPad | Mac only: its 0.2.0 recipe builds an unsigned iPhone/iPad IPA with the New engine and no game file; players import their own USA `RMGE01` revision 0 WBFS in the app. Its Old engine's routine research was retired so the source passes the release gate (GalaxyPad docs/OLD-ENGINE-DEPRECATION.md) | A player check of the published release and a sideloaded device check of a PadMint-built IPA |
 | Ottsel | Mac only: its v0.1.0 recipe builds an unsigned iPhone/iPad IPA or a Mac app, plus a game-data folder, from the player's USA `SCUS-97124` Black Label Jak and Daxter disc (other versions are refused). On 12 October 2026 `scripts/player-check.sh ottsel ios` passed from the published v0.1.0 release, and a Mac build made an app that plays the intro | A sideloaded device check of a PadMint-built IPA |
 
 **Listed, not available yet** (the page's "Not available yet" section, with
-where each stands and a link): GalaxyPad (118 address-named references need a
-decision), F0X (decompiled-context patch lines need a decision), EctoPad (needs a
+where each stands and a link): F0X (decompiled-context patch lines need a decision), EctoPad (needs a
 bootstrap script first), RAtouch (license-notice review before PadMint lists its
 install steps), UTP (owner decision on official builds), OpenRCT2 Touch (no iPad
 download) and SnapPad (downloads paused).

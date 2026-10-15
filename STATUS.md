@@ -1,6 +1,6 @@
 # PadMint status
 
-Updated **12 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **13 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
@@ -32,6 +32,11 @@ work and when to revisit it.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.2**: GalaxyPad. PadMint builds GalaxyPad 0.2.0 for iPhone and iPad on an
+  Apple Silicon Mac with Xcode, with no game file during the build: players import
+  their own Super Mario Galaxy WBFS image in the app. `scripts/player-check.sh` takes
+  `-` as the game file for games like this, whose game is chosen in the app.
 
 - **v0.5.1**: KartPad on a Mac. With KartPad 0.8.0, PadMint offers KartPad's Mac copy
   again on Apple Silicon Macs (**This Mac**), using PadMint's own build tools (no

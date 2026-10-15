@@ -4,6 +4,7 @@
 #   scripts/player-check.sh GAME PLATFORM GAME_FILE              the game's latest release
 #   scripts/player-check.sh GAME PLATFORM GAME_FILE CHECKOUT [APP]  a clean checkout; APP is its compatible base app
 #
+# GAME_FILE is - for games whose players choose their game in the app, not during the build.
 # Players start PadMint.command, which runs Apple's /usr/bin/python3 (3.9), with nothing
 # downloaded yet. A maintainer's `python3 -m padmint` usually runs a newer Python with warm
 # caches, and passes builds that fail for players (padmint#142). This uses Apple's Python and
@@ -33,14 +34,21 @@ if [ -n "$checkout" ]; then
   # preparation for a checkout, still inside this check's empty PadMint folder.
   PADMINT_HOME="$check_folder/padmint" "$player_python" -m padmint tools "$game" \
     --repo "$check_folder/source" --target "$platform"
-  build_args=(--repo "$check_folder/source" --revision "$revision" --target "$platform" --disc "$game_file")
+  build_args=(--repo "$check_folder/source" --revision "$revision" --target "$platform")
+  if [ "$game_file" != - ]; then
+    build_args+=(--disc "$game_file")
+  fi
   if [ -n "$app" ]; then
     build_args+=(--app "$app")
   fi
   PADMINT_HOME="$check_folder/padmint" "$player_python" -m padmint build "$game" \
     "${build_args[@]}"
 else
+  make_args=(--out "$check_folder/out")
+  if [ "$game_file" != - ]; then
+    make_args+=(--disc "$game_file")
+  fi
   PADMINT_HOME="$check_folder/padmint" "$player_python" -m padmint make "$game" "$platform" \
-    --disc "$game_file" --out "$check_folder/out"
+    "${make_args[@]}"
 fi
 echo "Player check passed. Delete $check_folder when you are done with it."
