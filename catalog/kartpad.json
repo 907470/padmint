@@ -96,21 +96,21 @@
       "steps": [
         "Open {file}, move the KartPad app to your Applications folder and open it. The first time, macOS says it can't check the app: choose Done, then System Settings → Privacy & Security → Open Anyway.",
         "Updating? Quit KartPad and replace the app in Applications; your settings and saves stay.",
-        "First time only: when KartPad asks for game data, choose your extracted Mario Kart Wii DATA folder (in Dolphin: right-click the game, Properties → Filesystem, right-click the disc, Extract Entire Disc). For Retro Rewind, see the full guide below."
+        "First time only: when KartPad asks for game data, choose your extracted Mario Kart Wii DATA folder (in Dolphin: right-click the game, Properties → Filesystem, right-click the disc, Extract Entire Disc). For Retro Rewind setup, follow the Mac guide: https://github.com/chrissotraidis/kartpad/blob/main/docs/INSTALL_MACOS.md"
       ],
       "translations": {
         "es": {
           "steps": [
             "Abre {file}, mueve la app KartPad a tu carpeta Aplicaciones y ábrela. La primera vez, macOS dice que no puede comprobar la app: elige OK y luego Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente.",
             "¿Actualizas? Cierra KartPad y reemplaza la app en Aplicaciones; tus ajustes y partidas se conservan.",
-            "Solo la primera vez: cuando KartPad pida los datos del juego, elige la carpeta DATA extraída de tu Mario Kart Wii (en Dolphin: clic derecho en el juego, Propiedades → Sistema de archivos, clic derecho en el disco, Extraer todo el disco). Para Retro Rewind, consulta la guía completa de abajo."
+            "Solo la primera vez: cuando KartPad pida los datos del juego, elige la carpeta DATA extraída de tu Mario Kart Wii (en Dolphin: clic derecho en el juego, Propiedades → Sistema de archivos, clic derecho en el disco, Extraer todo el disco). Para configurar Retro Rewind, sigue la guía para Mac: https://github.com/chrissotraidis/kartpad/blob/main/docs/INSTALL_MACOS.md"
           ]
         },
         "pt": {
           "steps": [
             "Abra {file}, mova o app KartPad para a pasta Aplicativos e abra-o. Na primeira vez, o macOS diz que não pode verificar o app: escolha OK e depois Ajustes do Sistema → Privacidade e Segurança → Abrir Mesmo Assim.",
             "Atualizando? Feche o KartPad e substitua o app em Aplicativos; seus ajustes e saves ficam.",
-            "Só na primeira vez: quando o KartPad pedir os dados do jogo, escolha a pasta DATA extraída do seu Mario Kart Wii (no Dolphin: clique direito no jogo, Propriedades → Sistema de Arquivos, clique direito no disco, Extrair Disco Inteiro). Para o Retro Rewind, veja o guia completo abaixo."
+            "Só na primeira vez: quando o KartPad pedir os dados do jogo, escolha a pasta DATA extraída do seu Mario Kart Wii (no Dolphin: clique direito no jogo, Propriedades → Sistema de Arquivos, clique direito no disco, Extrair Disco Inteiro). Para configurar o Retro Rewind, siga o guia para Mac: https://github.com/chrissotraidis/kartpad/blob/main/docs/INSTALL_MACOS.md"
           ]
         }
       }
