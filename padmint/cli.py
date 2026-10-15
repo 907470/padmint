@@ -1770,7 +1770,17 @@ def homebrew_on_path(environ=None):
     if sys.platform != "darwin":
         return
     parts = [part for part in environ.get("PATH", "").split(os.pathsep) if part]
-    extra = [folder for folder in HOMEBREW_BINS if folder not in parts and Path(folder).is_dir()]
+    extra = []
+    for folder in HOMEBREW_BINS:
+        if folder in parts:
+            continue
+        try:
+            if Path(folder).is_dir():
+                extra.append(folder)
+        except OSError:
+            # Optional tools may be absent or inaccessible. Neither should stop
+            # games that use PadMint's own tools from starting.
+            continue
     if extra:
         environ["PATH"] = os.pathsep.join(parts + extra)
 
