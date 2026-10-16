@@ -3,7 +3,7 @@
 Public recipe snapshot: **4 October 2026**, rechecked against each game's latest release
 recipe with PadMint **v0.3.5** (KartPad rechecked at v0.7.9: same hosts as v0.7.8).
 SquirrelPad v0.1.0 was added on **8 October 2026** for PadMint **v0.4.11**.
-KartPad rows describe KartPad **v0.8.0** with PadMint **v0.5.1**. The
+KartPad rows describe KartPad **v0.8.2** with PadMint **v0.5.3**. The
 daily Catalog check (`scripts/audit-catalog.py`) compares the live catalog with each
 latest release; trust its output over this table when they differ.
 The table describes the recipe shipped with each game's latest public release.
@@ -25,8 +25,8 @@ PadMint download does not make a Mac-only game recipe portable.
 ## Current player recipes
 
 Every release link is the exact version checked. macOS targets marked planned
-are omitted. KartPad's declared macOS target is included for completeness;
-guided setup offers its Android and iOS targets only.
+are omitted. Guided setup offers KartPad's Mac target on Apple Silicon, alongside
+its Android and iOS targets. Intel Macs show why the Mac target is unavailable.
 
 | Project and release | Output | Mac ARM64 | Windows x64 / ARM64 | Linux x64 / ARM64 |
 |---|---|---|---|---|
@@ -44,9 +44,9 @@ guided setup offers its Android and iOS targets only.
 | [DinoPad v0.2.0](https://github.com/chrissotraidis/dinopad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [GoldenPad v0.2.2](https://github.com/chrissotraidis/goldenpad/releases/tag/v0.2.2) | iOS IPA | Experimental | Planned / Unavailable | Planned / Unavailable |
 | [HarkinianPad v0.2.0](https://github.com/chrissotraidis/harkinianpad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [KartPad v0.8.0](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.0) | iOS IPA | Experimental | Experimental / Experimental | Experimental / Experimental |
-| [KartPad v0.8.0](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.0) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [KartPad v0.8.0](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.0) | Android game pack | Experimental | Experimental / Experimental | Experimental / Experimental |
+| [KartPad v0.8.2](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.2) | iOS IPA | Experimental | Experimental / Experimental | Experimental / Experimental |
+| [KartPad v0.8.2](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.2) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [KartPad v0.8.2](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.2) | Android game pack | Experimental | Experimental / Experimental | Experimental / Experimental |
 | [MaskPad v0.2.0](https://github.com/chrissotraidis/maskpad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [MeleePad v0.2.1](https://github.com/chrissotraidis/meleepad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [Ottsel v0.1.0](https://github.com/chrissotraidis/ottsel/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |

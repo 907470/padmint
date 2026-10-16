@@ -86,12 +86,15 @@ def start_note(launcher):
         "3. On the page, choose your game and follow the steps. It tells you what it will",
         "   download before it starts, and how to install your copy when it finishes.",
         "   Close the small window when you are done.", "",
+        "Updating PadMint? Close its running window, download the latest ZIP, extract it",
+        "and open the launcher in the NEW folder. The old folder keeps the old game list.",
+        "Keep your disc images, completed builds, caches and saves.", "",
         "The app folder is PadMint itself: you don't need to open it.", "",
         "Guide: https://github.com/chrissotraidis/padmint#quick-start",
         "Help: https://discord.gg/xwHfUD2bxW", "",
-        "Español: " + es + " Se abre una ventana pequeña (déjala abierta) y la página de PadMint en tu navegador: elige tu juego y sigue los pasos.",
+        "Español: " + es + " Se abre una ventana pequeña (déjala abierta) y la página de PadMint en tu navegador: elige tu juego y sigue los pasos. Para actualizar, cierra PadMint, descarga y extrae el ZIP más reciente y abre PadMint desde la carpeta NUEVA. La carpeta anterior conserva la lista anterior. Conserva tus imágenes de disco, compilaciones, cachés y partidas guardadas.",
         "",
-        "Português: " + pt + " Abre uma janela pequena (deixe-a aberta) e a página do PadMint no seu navegador: escolha o seu jogo e siga os passos.",
+        "Português: " + pt + " Abre uma janela pequena (deixe-a aberta) e a página do PadMint no seu navegador: escolha o seu jogo e siga os passos. Para atualizar, feche o PadMint, baixe e extraia o ZIP mais recente e abra o PadMint na pasta NOVA. A pasta antiga mantém a lista antiga. Mantenha suas imagens de disco, compilações, caches e jogos salvos.",
         "",
     ]
     newline = "\r\n" if launcher.endswith(".cmd") else "\n"

@@ -386,6 +386,12 @@ MESSAGES = {
     "w_short_windows": {"en": "Windows", "es": "Windows", "pt": "Windows"},
     # A device the game's recipe can make but PadMint doesn't offer yet (catalog unoffered_targets).
     "w_held_tag": {"en": "Not yet", "es": "Todavía no", "pt": "Ainda não"},
+    "w_needs_apple_silicon": {"en": "Requires Apple Silicon", "es": "Requiere Apple Silicon",
+                              "pt": "Requer Apple Silicon"},
+    "mac_requires_apple_silicon": {
+        "en": "{name} for Mac requires Apple Silicon (M1 or newer). It cannot run on an Intel Mac. You can build a copy for another device listed here.",
+        "es": "{name} para Mac requiere Apple Silicon (M1 o posterior). No funciona en un Mac Intel. Puedes crear una copia para otro dispositivo de esta lista.",
+        "pt": "O {name} para Mac requer Apple Silicon (M1 ou mais recente). Ele não funciona em um Mac Intel. Você pode criar uma cópia para outro dispositivo desta lista."},
     "held_text": {"en": "PadMint doesn't make {name} for {device} yet. To play it now, choose {others}.",
                   "es": "PadMint todavía no crea {name} para {device}. Para jugar ahora, elige {others}.",
                   "pt": "O PadMint ainda não cria o {name} para {device}. Para jogar agora, escolha {others}."},
@@ -525,6 +531,12 @@ MESSAGES = {
                       "pt": "Cancelar guarda o que já foi feito, então a próxima tentativa é mais rápida."},
     "w_source": {"en": "PadMint source code", "es": "Código fuente de PadMint", "pt": "Código-fonte do PadMint"},
     "w_report": {"en": "Report a problem", "es": "Informar un problema", "pt": "Relatar um problema"},
+    "w_update": {"en": "Update PadMint", "es": "Actualizar PadMint", "pt": "Atualizar o PadMint"},
+    "w_device_help": {"en": "Missing a device?", "es": "¿Falta un dispositivo?", "pt": "Falta um dispositivo?"},
+    "w_update_help": {
+        "en": "The device list comes with this PadMint download. To update it, close PadMint, download the latest ZIP and open PadMint from the newly extracted folder. Your existing builds and downloads stay where they are.",
+        "es": "La lista de dispositivos viene con esta descarga de PadMint. Para actualizarla, cierra PadMint, descarga el ZIP más reciente y abre PadMint desde la carpeta recién extraída. Tus compilaciones y descargas existentes permanecen donde están.",
+        "pt": "A lista de dispositivos vem com este download do PadMint. Para atualizá-la, feche o PadMint, baixe o ZIP mais recente e abra o PadMint na pasta recém-extraída. Suas compilações e downloads existentes continuam onde estão."},
     "w_local_note": {"en": "This page is served by PadMint on this computer (127.0.0.1).",
                      "es": "Esta página la sirve PadMint en esta computadora (127.0.0.1).",
                      "pt": "Esta página é servida pelo PadMint neste computador (127.0.0.1)."},

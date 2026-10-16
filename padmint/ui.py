@@ -66,12 +66,7 @@ def player_data(lang):
                       "platforms": [{"id": p, "label": cli.platform_label(p, lang),
                                      "short": phrase(f"w_short_{p}", lang) if f"w_short_{p}" in MESSAGES else p}
                                     for p in platforms],
-                      "held": [{"id": p, "label": cli.platform_label(p, lang),
-                                "text": phrase("held_text", lang, name=name, device=phrase(f"platform_{p}", lang),
-                                               others=phrase("held_or", lang).join(
-                                                   phrase(f"w_short_{q}", lang) if f"w_short_{q}" in MESSAGES else q
-                                                   for q in platforms))}
-                               for p in cli.held_here(entry)],
+                      "held": cli.unavailable_devices(entry, platforms, lang),
                       "files": [str(path) for path in files[:8]],
                       "setup": setup_level(entry, platforms),
                       "ready": ({"text": localized(entry["ready_to_play"], "text", lang),
@@ -146,7 +141,7 @@ def plan(game, platform_name, lang, disc=None):
     steps, note, _guide = cli.next_step_text({"id": game, **entry}, platform_name, preview, lang)
     install = {"steps": steps, "note": note} if steps else None
     return {"repo": entry["repo_url"], "tools": items, "tools_folder": str(tools.tools_root()),
-            "app": bool(target.get("published_app")), "space_gb": entry.get("free_space_gb"),
+            "app": bool(target.get("published_app")), "space_gb": cli.player_free_space(entry, platform_name),
             "folder": str(cli.player_folder()), "needs": needs, "mac_setup": mac_setup, "install": install,
             "output": phrase(key, lang, name=name) if key in MESSAGES else "",
             "inputs": [item for item in manifest.get("inputs", []) if item.get("when", "build") == "build"]}
@@ -594,7 +589,8 @@ html{scrollbar-color:color-mix(in srgb,var(--muted) 45%,transparent) transparent
 <p class="state" id="fileState"></p></section>
 <section class="card hidden" id="inApp"><h2 data-t="step2"></h2><p id="inAppText" class="muted"></p></section>
 
-<section class="card hidden" id="deviceBox"><h2 data-t="step3"></h2><div class="grid" id="devices"></div><p class="muted small hidden" id="heldNote"></p></section>
+<section class="card hidden" id="deviceBox"><h2 data-t="step3"></h2><div class="grid" id="devices"></div><p class="muted small hidden" id="heldNote"></p>
+<details class="small"><summary data-t="device_help"></summary><p data-t="update_help"></p><a href="https://github.com/chrissotraidis/padmint/releases/latest" target="_blank" rel="noopener" data-t="update"></a></details></section>
 
 <section class="card banner hidden" id="readyBox"><h2 data-t="ready_title"></h2><p id="readyText"></p><div class="row"><a class="btn main" id="readyLink" target="_blank"></a></div><p class="muted small" data-t="ready_or"></p></section>
 
@@ -612,7 +608,7 @@ html{scrollbar-color:color-mix(in srgb,var(--muted) 45%,transparent) transparent
 <section class="card"><details id="logBox"><summary><span data-t="log"></span> <span class="muted" id="lineCount"></span></summary>
 <pre id="tail"></pre><button class="btn" id="copy" data-t="copy_log"></button></details></section>
 </main>
-<footer><span data-t="local_note"></span><span><a href="https://github.com/chrissotraidis/padmint" target="_blank" data-t="source"></a> · <a id="reportLink" href="https://github.com/chrissotraidis/padmint/issues" target="_blank" data-t="report"></a></span></footer>
+<footer><span data-t="local_note"></span><span><a href="https://github.com/chrissotraidis/padmint/releases/latest" target="_blank" rel="noopener" data-t="update"></a> · <a href="https://github.com/chrissotraidis/padmint" target="_blank" data-t="source"></a> · <a id="reportLink" href="https://github.com/chrissotraidis/padmint/issues" target="_blank" data-t="report"></a></span></footer>
 </div>
 <script>
 const T="__TOKEN__";let D=__DATA__,S=D.text;const H={"Content-Type":"application/json","X-PadMint-Token":T};
@@ -699,7 +695,7 @@ function choose(id){++fileRequest;reading=false;sel=id;file=null;dev=null;$("fil
   $("files").replaceChildren(...g.files.map(f=>{const b=el("button",null,"btn file");b.append(el("b",base(f)),el("span","→","muted"));b.title=f;b.onclick=()=>useFile(f);return b}))}
  else{$("inAppText").textContent=fill("file_in_app",{name:g.name});$("inApp").classList.remove("hidden")}
  $("deviceBox").classList.remove("hidden");$("devices").replaceChildren(...g.platforms.map(p=>{const b=el("button",null,"pick");b.append(el("b",p.label));b.onclick=()=>pickDevice(p.id);b.dataset.id=p.id;return b}),
-  ...(g.held||[]).map(h=>{const b=el("button",null,"pick");b.append(el("b",h.label),el("span",S.held_tag));b.disabled=true;b.setAttribute("aria-describedby","heldNote");return b}));
+  ...(g.held||[]).map(h=>{const b=el("button",null,"pick");b.append(el("b",h.label),el("span",h.tag));b.disabled=true;b.setAttribute("aria-describedby","heldNote");return b}));
  const held=g.held||[];$("heldNote").classList.toggle("hidden",!held.length);if(held.length){const l=el("a",fill("later_link",{name:g.name}));l.href=g.page;l.target="_blank";$("heldNote").replaceChildren(held.map(h=>h.text).join(" ")+" ",l)}
  if(g.platforms.length==1)pickDevice(g.platforms[0].id);($("fileBox").classList.contains("hidden")?$("deviceBox"):$("fileBox")).scrollIntoView({behavior:"smooth"});ready()}
 let planRequest=0;

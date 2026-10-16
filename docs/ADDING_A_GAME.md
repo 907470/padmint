@@ -178,9 +178,14 @@ computers with the reason.
 To offer the game in guided setup, add `player_targets` and a positive whole
 number for `free_space_gb`. Measure the first player build, including downloaded
 tools, fetched sources, temporary build files and the exported output; allow
-headroom. The catalog estimate is used by player `doctor` and the initial source
-download check. The recipe's `requirements.disk_gb` applies to checkout `doctor`
-and may allow more room for development builds.
+headroom. If targets need different amounts, add an optional
+`free_space_gb_by_target` map, for example `{"macos": 60}`; unlisted targets use
+`free_space_gb`. Only targets in `player_targets` may have overrides. The same
+estimate appears in the window, player `doctor`, the initial source download
+check and disk-full guidance. Cached source keeps the existing resume behavior;
+the initial budget is not required again after downloading it. The recipe's
+`requirements.disk_gb` applies to checkout `doctor` and may allow more room for
+development builds.
 
 For tools the player must install, set `player: true` and an actionable `note`
 on the recipe requirement. Probe the tool or SDK the backend actually uses;
@@ -202,15 +207,33 @@ does not validate file contents or replace input hashes.
 
 ## 3. Promote it
 
-1. On an Apple Silicon Mac, run `scripts/player-check.sh GAME PLATFORM GAME_FILE CHECKOUT`
+1. From PadMint's current `main` on an Apple Silicon Mac, run
+   `scripts/player-check.sh GAME PLATFORM GAME_FILE CHECKOUT`
    before tagging, and `scripts/player-check.sh GAME PLATFORM GAME_FILE` after publishing
    and before announcing. It builds the way a player's PadMint does: Apple's Python 3.9
    (what `PadMint.command` runs), an empty PadMint folder and a fresh copy of the source.
    `python3 -m padmint build` from your own checkout usually runs a newer Python with
    warm caches, so its success does not show that players can build. The record shows
    each stage, the output check and the release gate result.
+   For changes to Mac startup, targets, recipes or completion instructions, also
+   test the newly extracted candidate Mac ZIP through `PadMint.command` and its
+   page. Check native Apple Silicon, an actual Rosetta parent restarting natively,
+   and real Intel showing an explicit reason for unsupported targets while
+   retaining supported choices. `scripts/check-macos-launch.py` covers these
+   startup checks; it does not build or play a game.
+   Complete **Make my copy** with an isolated empty PadMint folder, then repeat
+   with the same folder, unchanged game checkout and inputs. Verify cache reuse,
+   a new output, and preservation of the first output and existing player data.
 2. After a complete build, set `status` to `experimental`; after a build is
    accepted on a device, mark the host `verified` and pin `reviewed_revision`.
+   Match acceptance to the change: follow affected completion instructions from
+   missing game data through import, check changed controls or gameplay in the
+   relevant profiles, and check clean quit/relaunch when persistence is affected.
+   A focused installer, target-selection or controls fix does not require finishing
+   a full race. Record CI, build/package, import/relaunch, gameplay, audio and
+   performance results separately, including checks not performed. A fault in an
+   affected flow blocks its acceptance; a successful build alone does not establish
+   gameplay support or justify promoting an untested host.
 3. Before anything is published, every public file must pass
    `python3 -m padmint audit`. Personal builds are never published.
 4. Run `PADMINT_HOME=$(mktemp -d) python3 scripts/audit-catalog.py` after changing a

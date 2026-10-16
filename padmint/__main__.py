@@ -1,6 +1,10 @@
 import os
 import signal
 
+from .macos_startup import prefer_native_macos
+
+prefer_native_macos()
+
 from .cli import main
 
 if os.name == "nt":

@@ -12,7 +12,15 @@ permissions:
 
 jobs:
   tests:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            machine: arm64
+          - os: macos-15-intel
+            machine: x86_64
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -20,3 +28,5 @@ jobs:
         run: |
           /usr/bin/python3 --version
           /usr/bin/python3 -B -m unittest discover -s tests
+      - name: Check the extracted Mac launcher and real host menu
+        run: /usr/bin/python3 -B scripts/check-macos-launch.py --expect-machine ${{ matrix.machine }}

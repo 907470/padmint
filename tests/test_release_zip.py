@@ -61,6 +61,21 @@ class ReleaseZipTests(unittest.TestCase):
                         self.assertTrue(target in names or any(
                             member.startswith(target + "/") for member in names), target)
 
+    def test_packaged_update_help_explains_why_an_old_folder_keeps_old_choices(self):
+        with zipfile.ZipFile(self.zip) as bundle:
+            note = bundle.read("PadMint-vX/Start here.txt").decode()
+            guide = bundle.read("PadMint-vX/app/README.md").decode()
+        # The menu catalog ships inside PadMint. Updating a game or refreshing
+        # the browser cannot add a target absent from an older PadMint folder.
+        self.assertIn("NEW folder", note)
+        self.assertIn("old folder keeps the old game list", note)
+        self.assertIn("Keep your disc images, completed builds, caches and saves", note)
+        self.assertIn("**new folder**", guide)
+        self.assertIn("refreshing the browser", guide)
+        for term in ("This Mac", "Apple Silicon", "Intel Mac", "Rosetta"):
+            with self.subTest(term=term):
+                self.assertIn(term, guide)
+
     @unittest.skipUnless(shutil.which("ditto"), "macOS only: ditto is what Finder uses to unzip")
     def test_finder_style_unzip_keeps_the_launcher_executable(self):
         out = self.root / "unzipped"

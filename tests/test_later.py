@@ -1,7 +1,11 @@
 """Games listed so players can find them, with nothing to build or download yet."""
 import json
 import tempfile
+import threading
 import unittest
+import urllib.error
+import urllib.request
+from http.server import ThreadingHTTPServer
 from pathlib import Path
 from unittest import mock
 
@@ -48,11 +52,12 @@ class LaterTests(unittest.TestCase):
         entry["player_targets"] = [target for target in entry["player_targets"] if target != "macos"]
         entry["unoffered_targets"] = {"macos": "held back for this test"}
         entry["player_next"].pop("macos", None)
+        entry.pop("free_space_gb_by_target", None)
         with tempfile.TemporaryDirectory() as folder:
             Path(folder, "kartpad.json").write_text(json.dumps(entry))
             with mock.patch.object(manifest, "CATALOG", Path(folder)), \
                     mock.patch.object(cli, "on_android", return_value=False):
-                for host, held in (("macos-arm64", ["macos"]), ("macos-x86_64", []), ("windows-x86_64", [])):
+                for host, held in (("macos-arm64", ["macos"]), ("macos-x86_64", ["macos"]), ("windows-x86_64", [])):
                     with self.subTest(host=host), mock.patch.object(cli, "host_id", return_value=host):
                         kartpad = ui.player_data("en")["games"][0]
                         self.assertEqual([item["id"] for item in kartpad["held"]], held)
@@ -69,7 +74,66 @@ class LaterTests(unittest.TestCase):
                     mock.patch.object(cli, "on_android", return_value=False):
                 kartpad = {game["id"]: game for game in ui.player_data("en")["games"]}["kartpad"]
             self.assertEqual("macos" in [p["id"] for p in kartpad["platforms"]], has_mac)
-            self.assertEqual(kartpad["held"], [])
+            if host == "macos-x86_64":
+                self.assertEqual([p["id"] for p in kartpad["held"]], ["macos"])
+                self.assertEqual(kartpad["held"][0]["tag"], "Requires Apple Silicon")
+                self.assertIn("cannot run on an Intel Mac", kartpad["held"][0]["text"])
+                self.assertEqual([p["id"] for p in kartpad["platforms"]], ["android", "ios"])
+            else:
+                self.assertEqual(kartpad["held"], [])
+
+    def test_every_advertised_mac_copy_is_available_or_explained_on_a_mac(self):
+        # Use the shipped catalog, not a fixture with only mobile targets. This protects
+        # every game from disappearing choices when host policy or the catalog changes.
+        from padmint import cli
+        advertised = {game for game, entry in manifest.catalog().items()
+                      if "macos" in entry.get("player_targets", [])}
+        self.assertIn("kartpad", advertised)
+        for host in ("macos-arm64", "macos-x86_64"):
+            with self.subTest(host=host), mock.patch.object(cli, "host_id", return_value=host), \
+                    mock.patch.object(cli, "on_android", return_value=False):
+                data = ui.player_data("en")
+            available = {game["id"]: game for game in data["games"]}
+            elsewhere = {game["id"]: game for game in data["later"]}
+            for game in advertised:
+                with self.subTest(host=host, game=game):
+                    if game in available:
+                        choices = available[game]["platforms"] + available[game]["held"]
+                        self.assertEqual(sum(p["id"] == "macos" for p in choices), 1)
+                        for choice in available[game]["held"]:
+                            self.assertTrue(choice["text"])
+                            self.assertTrue(choice["tag"])
+                    else:
+                        self.assertIn("Apple Silicon", elsewhere[game]["text"])
+
+    def test_intel_explanation_is_translated(self):
+        from padmint import cli
+        for lang in ("en", "es", "pt"):
+            with self.subTest(lang=lang), mock.patch.object(cli, "host_id", return_value="macos-x86_64"), \
+                    mock.patch.object(cli, "on_android", return_value=False):
+                kartpad = next(g for g in ui.player_data(lang)["games"] if g["id"] == "kartpad")
+            self.assertIn("Intel", kartpad["held"][0]["text"])
+            self.assertIn("Apple Silicon", kartpad["held"][0]["tag"])
+
+    def test_intel_mac_choice_cannot_start_a_build_even_with_a_direct_request(self):
+        from padmint import cli
+        server = ThreadingHTTPServer(("127.0.0.1", 0), ui.make_handler("test-token", ui.Builds()))
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        with mock.patch.object(cli, "host_id", return_value="macos-x86_64"), \
+                mock.patch.object(cli, "on_android", return_value=False), \
+                mock.patch.object(ui.Builds, "start") as build:
+            for route, body in (("/api/plan?game=kartpad&platform=macos", None),
+                                ("/api/make", json.dumps({"game": "kartpad", "platform": "macos"}).encode())):
+                request = urllib.request.Request(base + route, data=body,
+                                                 headers={"X-PadMint-Token": "test-token"})
+                with self.subTest(route=route), self.assertRaises(urllib.error.HTTPError) as error:
+                    urllib.request.urlopen(request, timeout=5)
+                self.assertEqual(error.exception.code, 400)
+                error.exception.close()
+        build.assert_not_called()
 
 
 if __name__ == "__main__":

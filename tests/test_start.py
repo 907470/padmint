@@ -55,6 +55,26 @@ class StartTests(unittest.TestCase):
             _code, make = self.run_start(["1", str(disc), folder], "macos-x86_64")
         self.assertEqual(make.call_args.args[:2], ("kartpad", "android"))
 
+    def test_intel_terminal_explains_the_mac_choice_before_selecting_a_device(self):
+        catalog = {"kartpad": dict(CATALOG["kartpad"], player_targets=["android", "ios", "macos"],
+                                   ios_intel_mac=True)}
+        with tempfile.TemporaryDirectory() as folder:
+            disc = Path(folder) / "disc.iso"
+            disc.write_bytes(b"x")
+            stream = io.StringIO()
+            replies = iter(["2", str(disc)])
+            with mock.patch.object(cli, "catalog", return_value=catalog), \
+                    mock.patch.object(cli, "host_id", return_value="macos-x86_64"), \
+                    mock.patch.object(cli, "on_android", return_value=False), \
+                    mock.patch.dict("os.environ", {"PADMINT_LANG": "en"}), \
+                    mock.patch.object(cli, "make", return_value=0) as make:
+                cli.start(lambda _prompt: next(replies), stream)
+        shown = stream.getvalue()
+        self.assertIn("KartPad for Mac requires Apple Silicon", shown)
+        self.assertIn("cannot run on an Intel Mac", shown)
+        self.assertNotIn("3. This Mac", shown)
+        self.assertEqual(make.call_args.args[:2], ("kartpad", "ios"))
+
     def test_windows_and_linux_offer_iphone_for_games_marked_ios_off_mac(self):
         marked = dict(CATALOG, kartpad=dict(CATALOG["kartpad"], ios_off_mac=True))
         for host in ("windows-x86_64", "linux-arm64"):
