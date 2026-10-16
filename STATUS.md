@@ -1,6 +1,6 @@
 # PadMint status
 
-Updated **13 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **16 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
@@ -32,6 +32,13 @@ work and when to revisit it.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.3**: clearer KartPad setup on Mac. PadMint restarts natively when opened
+  through Rosetta on Apple Silicon, restoring **This Mac**. Intel Macs show why
+  that copy is unavailable while retaining supported choices. KartPad's Mac plan
+  now shows its 60 GB disk budget (mobile copies remain 16 GB), and completion
+  links directly to the Mac installation guide. Update guidance explains how to
+  open the new ZIP without deleting existing builds, caches or saves.
 
 - **v0.5.2**: GalaxyPad. PadMint builds GalaxyPad 0.2.0 for iPhone and iPad on an
   Apple Silicon Mac with Xcode, with no game file during the build: players import

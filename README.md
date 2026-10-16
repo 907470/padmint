@@ -300,7 +300,7 @@ PadMint yet; the game's page has the latest.
 <details>
 <summary><strong>Can I play KartPad on my Mac?</strong></summary>
 
-Yes, with PadMint **0.5.1 or newer**, on a Mac with Apple Silicon (M1 or newer)
+Yes, with the latest PadMint (**0.5.3**), on a Mac with Apple Silicon (M1 or newer)
 and Xcode: choose **Mario Kart Wii**, then **This Mac** under **Where will you
 play?** PadMint builds KartPad from your disc and saves the app in your Downloads
 folder. On an Intel Mac, PadMint builds KartPad for iPhone and iPad
@@ -312,17 +312,11 @@ and open `PadMint.command` from the newly extracted folder. Check **Apple menu
 → About This Mac**: **Chip: Apple M…** is supported; an Intel processor isn't
 supported for playing KartPad on Mac.
 
-PadMint **0.5.2** can also mistake an Apple Silicon Mac for Intel when it runs
-under Rosetta. On an Apple Silicon Mac, close PadMint's Terminal window, open
-Terminal, type `cd ` (with a space), drag the newly extracted PadMint folder
-from Finder into Terminal and press Return. Then run:
-
-```sh
-arch -arm64 /bin/bash ./PadMint.command
-```
-
-This starts PadMint natively. Keep your disc images, builds, caches and saves;
-none need deleting to restore the Mac option.
+PadMint **0.5.3** automatically restarts natively on Apple Silicon when launched
+through Rosetta. This fixes the missing **This Mac** option that could occur in
+0.5.2. On Intel Macs, PadMint explains why the Mac copy is unavailable and keeps
+the supported iPhone/iPad and Android choices. Keep your disc images, builds,
+caches and saves; none need deleting to restore the Mac option.
 
 </details>
 <details>

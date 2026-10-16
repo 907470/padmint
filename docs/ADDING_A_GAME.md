@@ -226,11 +226,14 @@ does not validate file contents or replace input hashes.
    a new output, and preservation of the first output and existing player data.
 2. After a complete build, set `status` to `experimental`; after a build is
    accepted on a device, mark the host `verified` and pin `reviewed_revision`.
-   Follow the completion instructions from missing game data through import,
-   offline gameplay in each advertised profile, clean quit and relaunch with
-   retained saves/settings. Record CI, build/package, import/relaunch, gameplay,
-   audio and performance results separately. A fault or unfinished check blocks
-   acceptance of that flow; a successful build does not satisfy it.
+   Match acceptance to the change: follow affected completion instructions from
+   missing game data through import, check changed controls or gameplay in the
+   relevant profiles, and check clean quit/relaunch when persistence is affected.
+   A focused installer, target-selection or controls fix does not require finishing
+   a full race. Record CI, build/package, import/relaunch, gameplay, audio and
+   performance results separately, including checks not performed. A fault in an
+   affected flow blocks its acceptance; a successful build alone does not establish
+   gameplay support or justify promoting an untested host.
 3. Before anything is published, every public file must pass
    `python3 -m padmint audit`. Personal builds are never published.
 4. Run `PADMINT_HOME=$(mktemp -d) python3 scripts/audit-catalog.py` after changing a

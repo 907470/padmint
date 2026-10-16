@@ -25,8 +25,8 @@ PadMint download does not make a Mac-only game recipe portable.
 ## Current player recipes
 
 Every release link is the exact version checked. macOS targets marked planned
-are omitted. KartPad's declared macOS target is included for completeness;
-guided setup offers its Android and iOS targets only.
+are omitted. Guided setup offers KartPad's Mac target on Apple Silicon, alongside
+its Android and iOS targets. Intel Macs show why the Mac target is unavailable.
 
 | Project and release | Output | Mac ARM64 | Windows x64 / ARM64 | Linux x64 / ARM64 |
 |---|---|---|---|---|
