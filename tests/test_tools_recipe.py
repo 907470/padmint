@@ -22,7 +22,7 @@ class ToolsRecipeTests(unittest.TestCase):
 
     def test_without_a_checkout_the_latest_release_recipe_is_used_and_named(self):
         source, recipe, install, text = self.run_tools("repository")
-        source.assert_called_once_with("kartpad")
+        source.assert_called_once_with("kartpad", platform_name="android")
         self.assertEqual(recipe.call_args.args, ("kartpad", Path("/h/games/kartpad-v0.7.2")))
         self.assertEqual(install.call_args.args[0], ["android-ndk", "dotnet"])
         self.assertIn("Recipe: kartpad v0.7.2, its latest release", text)
