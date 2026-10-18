@@ -10,7 +10,7 @@
   "game_ids": [
     "GM8E01"
   ],
-  "free_space_gb": 20,
+  "free_space_gb": 8,
   "player_game_file": "in-app",
   "before_build": {
     "commands": [
@@ -68,7 +68,7 @@
       }
     },
     "requirements": {
-      "disk_gb": 20,
+      "disk_gb": 8,
       "tools": [
         {
           "name": "git",
