@@ -11,15 +11,16 @@
   "repo_url": "https://github.com/chrissotraidis/snappad",
   "reviewed_revision": null,
   "player_help": "https://github.com/chrissotraidis/snappad",
-  "notes": "padmint.json is on an open PR branch until merged. Public downloads are paused; listed so players can find it.",
+  "notes": "Listed so players can find it, with why it isn't offered: public downloads paused.",
   "later": {
-    "text": "Public downloads are paused. If you already have it installed, keep it: your saves stay.",
+    "status": "paused",
+    "text": "Public downloads are paused and the earlier test builds were withdrawn, so there's nothing to download or build here right now. If SnapPad is already on your device, keep it: your saves stay.",
     "translations": {
       "es": {
-        "text": "Las descargas públicas están en pausa. Si ya lo tienes instalado, consérvalo: tus partidas se quedan."
+        "text": "Las descargas públicas están en pausa y las versiones de prueba anteriores se retiraron, así que ahora mismo no hay nada que descargar ni crear aquí. Si ya tienes SnapPad en tu dispositivo, consérvalo: tus partidas se quedan."
       },
       "pt": {
-        "text": "Os downloads públicos estão pausados. Se você já o tem instalado, mantenha-o: seus saves ficam."
+        "text": "Os downloads públicos estão pausados e as versões de teste anteriores foram retiradas, então não há nada para baixar ou criar aqui agora. Se o SnapPad já está no seu aparelho, mantenha-o: seus saves ficam."
       }
     }
   },

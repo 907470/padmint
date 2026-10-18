@@ -11,15 +11,16 @@
   "repo_url": "https://github.com/chrissotraidis/ectopad",
   "reviewed_revision": null,
   "player_help": "https://github.com/chrissotraidis/ectopad#getting-started",
-  "notes": "Listed so players can find it: nothing to build or download through PadMint yet.",
+  "notes": "Listed so players can find it, with why it isn't offered: no public build yet.",
   "later": {
-    "text": "No download yet. You can build it yourself from source on a Mac with Xcode and your own game; its page has the steps.",
+    "status": "in_development",
+    "text": "Still in development: there's no download yet. You can build it yourself on a Mac with Xcode and your own copy of the game; its page has the steps.",
     "translations": {
       "es": {
-        "text": "Todavía no hay descarga. Puedes crearlo tú mismo desde el código fuente en una Mac con Xcode y tu propio juego; su página tiene los pasos."
+        "text": "Todavía en desarrollo: aún no hay descarga. Puedes crearlo tú mismo en un Mac con Xcode y tu propia copia del juego; su página tiene los pasos."
       },
       "pt": {
-        "text": "Ainda não há download. Você pode criá-lo a partir do código-fonte em um Mac com Xcode e o seu próprio jogo; a página dele tem os passos."
+        "text": "Ainda em desenvolvimento: ainda não há download. Você pode criá-lo num Mac com Xcode e sua própria cópia do jogo; a página dele tem os passos."
       }
     }
   },

@@ -10,15 +10,16 @@
   "repo_url": "https://github.com/chrissotraidis/utp",
   "reviewed_revision": null,
   "player_help": "https://github.com/chrissotraidis/utp#release-status",
-  "notes": "Listed so players can find it: nothing to build or download through PadMint yet.",
+  "notes": "Listed so players can find it, with why it isn't offered: previews retired while a new version is made.",
   "later": {
-    "text": "Its previews aren't public right now. Its page has the latest news.",
+    "status": "rebuilding",
+    "text": "The earlier previews were retired while a new version is made. Its page has the latest news.",
     "translations": {
       "es": {
-        "text": "Sus versiones de prueba no están publicadas por ahora. Su página tiene las últimas novedades."
+        "text": "Las versiones preliminares anteriores se retiraron mientras se prepara una nueva. Su página tiene las últimas noticias."
       },
       "pt": {
-        "text": "As versões de prévia não estão públicas no momento. A página dele tem as últimas novidades."
+        "text": "As prévias anteriores foram retiradas enquanto uma nova versão é feita. A página dele tem as últimas notícias."
       }
     }
   },

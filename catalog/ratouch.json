@@ -10,15 +10,16 @@
   "repo_url": "https://github.com/chrissotraidis/ratouch",
   "reviewed_revision": null,
   "player_help": "https://github.com/chrissotraidis/ratouch#install-status",
-  "notes": "Listed so players can find it: nothing to build or download through PadMint yet.",
+  "notes": "Listed so players can find it, with why it isn't offered: unsigned alpha not yet tested on a physical iPad.",
   "later": {
-    "text": "Its public alpha and install steps are on its page: an unsigned IPA you sign and sideload yourself. PadMint doesn't list install steps for it yet.",
+    "status": "alpha",
+    "text": "An early alpha is on its page as an unsigned IPA for people who sign and sideload apps themselves. It hasn't been tested on a real iPad yet, so PadMint doesn't offer it.",
     "translations": {
       "es": {
-        "text": "Su alfa pública y los pasos de instalación están en su página: una IPA sin firmar que firmas e instalas tú mismo. PadMint todavía no muestra pasos de instalación para él."
+        "text": "Hay una alfa temprana en su página como IPA sin firmar, para quien firma e instala apps por su cuenta. Todavía no se ha probado en un iPad real, por eso PadMint no la ofrece."
       },
       "pt": {
-        "text": "A alfa pública e os passos de instalação estão na página dele: um IPA sem assinatura que você mesmo assina e instala. O PadMint ainda não mostra os passos de instalação dele."
+        "text": "Há uma alfa inicial na página dele como IPA sem assinatura, para quem assina e instala apps por conta própria. Ainda não foi testada num iPad real, por isso o PadMint não a oferece."
       }
     }
   },
