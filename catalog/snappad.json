@@ -10,7 +10,7 @@
   "game_ids": [
     "NPFE"
   ],
-  "free_space_gb": 25,
+  "free_space_gb": 6,
   "before_build": {
     "commands": [
       "brew install cmake ninja jq ripgrep uv rust gcc",
@@ -65,7 +65,7 @@
       }
     },
     "requirements": {
-      "disk_gb": 25,
+      "disk_gb": 6,
       "tools": [
         {
           "name": "git",
