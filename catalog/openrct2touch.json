@@ -7,7 +7,7 @@
   "player_targets": [
     "ios"
   ],
-  "free_space_gb": 15,
+  "free_space_gb": 8,
   "player_game_file": "in-app",
   "before_build": {
     "commands": [
@@ -56,7 +56,7 @@
       }
     },
     "requirements": {
-      "disk_gb": 15,
+      "disk_gb": 8,
       "tools": [
         {
           "name": "git",
