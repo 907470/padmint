@@ -952,13 +952,13 @@ function vstat(){const a=$("vstat"),newer=!!V.padmint&&cmpv(V.padmint,D.version)
  a.textContent=newer?fill("pm_update",{version:V.padmint})+" · "+S.up_short+" ›":V.padmint?"✓ v"+D.version:S.checking;a.title=V.padmint&&!newer?S.up_to_date:"";
  a.onclick=newer?openUpdate:null}
 const cmpv=(a,b)=>{const x=a.replace(/^v/,"").split(".").map(Number),y=b.replace(/^v/,"").split(".").map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d}return 0};
-let shelfAll=false;
+let shelfAll=false,shelfSig="";
 function shelf(){const items=(D.library||[]).filter(l=>all().some(x=>x.id==l.id)),busy=!!sel||!$("progress").classList.contains("hidden");
  $("shelf").classList.toggle("hidden",busy||!items.length);$("welcome").classList.toggle("hidden",busy||!!items.length||!D.games.length);
- if(busy||!items.length)return;const fresh=items.filter(l=>latest(l.id)&&latest(l.id)!=l.version).length;$("shelfNote").textContent=V.done?(fresh?(fresh==1?S.update_ready:fill("updates_ready",{count:fresh})):"✓ "+S.all_current):S.checking;
- const shown=shelfAll?items:items.slice(0,5);$("shelfMore").classList.toggle("hidden",items.length<=5);$("shelfMore").textContent=shelfAll?S.show_less:fill("show_all",{count:items.length});$("shelfList").classList.toggle("settled",V.done&&$("shelfList").children.length>0);
+ if(busy||!items.length)return;const sig=JSON.stringify([items,V.done&&V.games,shelfAll,D.lang]);if(sig==shelfSig)return;shelfSig=sig;const fresh=items.filter(l=>latest(l.id)&&latest(l.id)!=l.version).length;$("shelfNote").textContent=V.done?(fresh?(fresh==1?S.update_ready:fill("updates_ready",{count:fresh})):"✓ "+S.all_current):S.checking;
+ const shown=shelfAll?items:items.slice(0,5);$("shelfMore").classList.toggle("hidden",items.length<=5);$("shelfMore").textContent=shelfAll?S.show_less:fill("show_all",{count:items.length});$("shelfList").classList.toggle("settled",$("shelfList").children.length>0);
  $("shelfList").replaceChildren(...shown.map((l,i)=>{const x=all().find(y=>y.id==l.id),r=el("div",null,"lib");r.style.setProperty("--c",colorOf(x));r.style.setProperty("--i",i);
-  const g=D.games.find(y=>y.id==l.id),p=g&&g.platforms.find(q=>q.id==l.platform),v=latest(l.id),stale=!!v&&v!=l.version;
+  const g=D.games.find(y=>y.id==l.id),p=g&&g.platforms.find(q=>q.id==l.platform),v=V.done?latest(l.id):null,stale=!!v&&v!=l.version;
   const body=el("div",null,"body");body.append(el("span",x.about?title(x):x.name,"t"),el("span",[fill("built_for",{device:p?(p.short||p.label):l.platform}),l.version,ago(l.when)].join(" · "),"s"));
   const side=el("div",null,"side");if(v&&!stale)side.append(el("span","✓ "+S.up_to_date,"badge ok"));
   if(p){const b=el("button",stale?fill("update_to",{version:v}):S.build_again,"btn small "+(stale?"main":"ghost"));b.onclick=e=>{e.stopPropagation();choose(l.id);pickDevice(l.platform)};side.append(b)}
@@ -1047,7 +1047,7 @@ function cards(){const q=$("search").value.trim().toLowerCase();
  for(const b of document.querySelectorAll(".tab")){b.classList.toggle("on",b.dataset.g==group);b.setAttribute("aria-selected",b.dataset.g==group);b.querySelector(".n").textContent=G[b.dataset.g].length}
  $("groupNote").textContent=sel?"":S[{all:"all_note",build:"builds",download:"no_build",later:"later_note"}[group]]+((group=="all"||group=="build")&&D.games.some(g=>g.setup)?" "+S.start_note:"");
  $("pickTitle").textContent=sel?S.step1:S.library;hero(sel?all().find(x=>x.id==sel):null);
- $("list").replaceChildren(...(sel?[]:G[group].map((x,i)=>row(x,i))));$("list").classList.toggle("hidden",!!sel||!G[group].length);$("list").classList.toggle("settled",V.done&&listShown);listShown=true;
+ $("list").replaceChildren(...(sel?[]:G[group].map((x,i)=>row(x,i))));$("list").classList.toggle("hidden",!!sel||!G[group].length);$("list").classList.toggle("settled",listShown);listShown=true;
  $("noMatch").classList.toggle("hidden",!!G[group].length);layout()}
 function back(top){++fileRequest;reading=false;sel=null;file=null;dev=null;for(const id of ["fileBox","deviceBox","planBox","dlBox","readyBox","laterBox","inApp"])$(id).classList.add("hidden");cards();if(top)scrollTo({top:0,behavior:"smooth"});else $("pickCard").scrollIntoView({behavior:"smooth"})}
 let listShown=false;$("shelfMore").onclick=()=>{shelfAll=!shelfAll;shelf()};

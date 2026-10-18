@@ -36,6 +36,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         container.layer?.backgroundColor = window.backgroundColor.cgColor
         web.translatesAutoresizingMaskIntoConstraints = false
         web.isHidden = true
+        // PadMint looks in Downloads for game files; macOS holds it until the player answers
+        // its privacy question, which can end up behind other windows.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
+            guard let self = self, self.web.isHidden, !self.spinner.isHidden else { return }
+            self.status.stringValue = "Starting PadMint…\n\nIf macOS asked whether PadMint may open files in your Downloads folder, answer it to continue. PadMint looks there for your game files."
+        }
         spinner.style = .spinning
         spinner.translatesAutoresizingMaskIntoConstraints = false
         spinner.startAnimation(nil)

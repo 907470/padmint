@@ -433,7 +433,7 @@ MESSAGES = {
     "w_nav_games": {"en": "Games", "es": "Juegos", "pt": "Jogos"},
     "w_nav_storage": {"en": "Storage", "es": "Almacenamiento", "pt": "Armazenamento"},
     "w_hero_title": {"en": "Classic games, rebuilt as native apps for your devices", "es": "Juegos clásicos, convertidos en apps nativas para tus dispositivos", "pt": "Jogos clássicos, refeitos como apps nativos para os seus aparelhos"},
-    "w_hero_text": {"en": "PadMint builds Chris Sotraidis's free, open-source game ports for iPhone, iPad, Mac and Android. You bring a game you own; PadMint makes your copy on this computer.",
+    "w_hero_text": {"en": "PadMint builds Chris Sotraidis' free, open-source game ports for iPhone, iPad, Mac and Android. You bring a game you own; PadMint makes your copy on this computer.",
                     "es": "PadMint crea los ports de juegos gratuitos y de código abierto de Chris Sotraidis para iPhone, iPad, Mac y Android. Tú pones un juego que tienes; PadMint crea tu copia en este ordenador.",
                     "pt": "O PadMint cria os ports de jogos gratuitos e de código aberto de Chris Sotraidis para iPhone, iPad, Mac e Android. Você traz um jogo que tem; o PadMint faz a sua cópia neste computador."},
     "w_intro_1": {"en": "Pick a game", "es": "Elige un juego", "pt": "Escolha um jogo"},
