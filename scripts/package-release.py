@@ -37,6 +37,7 @@ def payload():
     # Headers the universal iPhone module pipeline adds to the open-source SDK.
     files += sorted((ROOT / "padmint/ios-sdk/include").glob("*.h"), key=by_name)
     files += sorted((ROOT / "catalog").glob("*.json"), key=by_name)
+    files += sorted((ROOT / "art").glob("*.png"), key=by_name)  # each game's own app icon, for the window
     return [(path.relative_to(ROOT).as_posix(), path) for path in files]
 
 

@@ -4,6 +4,7 @@ It serves only on 127.0.0.1 with a random token, uses the Python standard librar
 and makes copies by running "python -m padmint make", so the window can never do more
 than the terminal. Nothing is uploaded.
 """
+import concurrent.futures
 import io
 import json
 import os
@@ -17,6 +18,7 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 import webbrowser
@@ -26,6 +28,7 @@ from .manifest import catalog
 from .say import LANGUAGES, MESSAGES, language, localized, phrase
 
 ROOT = Path(__file__).resolve().parent.parent
+ART = ROOT / "art"
 
 
 def strings(lang):
@@ -97,7 +100,72 @@ def player_data(lang):
                 for game, name, targets in cli.elsewhere()]
     return {"lang": lang, "version": __version__, "host": cli.host_id(), "folder": str(folder),
             "saved_in": phrase("saved_in", lang, folder=folder), "games": games, "downloads": apps, "later": waiting,
-            "text": strings(lang), "picker": not cli.on_android(), "reveal": not cli.on_android()}
+            "text": strings(lang), "picker": not cli.on_android(), "reveal": not cli.on_android(),
+            "art": sorted(path.stem for path in ART.glob("*.png")), "library": library()}
+
+
+def library():
+    """The copies this PadMint has finished, newest first: one entry per game and device,
+    read from the build records PadMint already keeps next to each downloaded release."""
+    found = {}
+    for path in (tools.tools_root().parent / "games").glob("*/build/padmint/*/runs/*/record.json"):
+        try:
+            record = json.loads(path.read_text())
+            when = path.stat().st_mtime
+        except (OSError, ValueError):
+            continue
+        game, target = record.get("game"), record.get("target")
+        folder = path.parents[5].name  # games/<game>-<release tag>
+        if (record.get("status") != "completed" or game not in catalog() or not target
+                or not folder.startswith(game + "-") or folder.endswith(".partial")):
+            continue
+        key = (game, target)
+        if key not in found or when > found[key]["when"]:
+            found[key] = {"id": game, "platform": target, "version": folder[len(game) + 1:], "when": int(when)}
+    return sorted(found.values(), key=lambda item: -item["when"])
+
+
+VERSIONS = {"done": False, "padmint": None, "games": {}}
+
+
+def release_tag(repo_url):
+    """A repository's latest release tag, from where /releases/latest lands."""
+    with tools.open_url(repo_url.removesuffix(".git").rstrip("/") + "/releases/latest") as response:
+        landed = response.geturl()
+    return urllib.parse.unquote(landed.rsplit("/releases/tag/", 1)[1].split("?")[0].strip("/")) \
+        if "/releases/tag/" in landed else None
+
+
+def check_versions():
+    """Every game's latest release and PadMint's own, read once per window in the background.
+    For games PadMint builds this also keeps the release recipe, so plans show at once."""
+    offered = {game for game, _name, _targets in cli.player_games()}
+
+    def one(game):
+        entry = catalog()[game]
+        try:
+            if game in offered:
+                release = cli.latest_release(entry["repo_url"])
+                VERSIONS["games"][game] = release[0]
+                if game not in RECIPES:
+                    recipe, source = cli.published_recipe(game, release=release)
+                    if not source.startswith("PadMint's built-in copy"):
+                        RECIPES[game] = recipe
+            else:
+                VERSIONS["games"][game] = release_tag(entry["repo_url"])
+        except Exception:  # offline: the page simply shows no update news
+            pass
+
+    def padmint():
+        try:
+            VERSIONS["padmint"] = release_tag("https://github.com/chrissotraidis/padmint")
+        except Exception:
+            pass
+
+    with concurrent.futures.ThreadPoolExecutor(6) as pool:
+        pool.submit(padmint)
+        list(pool.map(one, [game for game, entry in catalog().items() if entry.get("repo_url")]))
+    VERSIONS["done"] = True
 
 
 def plan(game, platform_name, lang, disc=None):
@@ -347,7 +415,8 @@ def make_handler(token, builds):
             pass
 
         def reply(self, code, body, kind="application/json"):
-            data = body.encode() if isinstance(body, str) else json.dumps(body).encode()
+            data = (body if isinstance(body, bytes) else body.encode() if isinstance(body, str)
+                    else json.dumps(body).encode())
             self.send_response(code)
             self.send_header("Content-Type", kind)
             self.send_header("Cache-Control", "no-store")
@@ -375,6 +444,11 @@ def make_handler(token, builds):
                                   "text/html; charset=utf-8")
             if route == "/api/player":
                 return self.reply(200, player_data(self.lang()))
+            if route == "/api/versions":
+                return self.reply(200, VERSIONS)
+            match = re.fullmatch(r"/art/([a-z0-9]+)\.png", route)
+            if match and (ART / f"{match.group(1)}.png").is_file():
+                return self.reply(200, (ART / f"{match.group(1)}.png").read_bytes(), "image/png")
             if route == "/api/build":
                 return self.reply(200, builds.status(self.lang()))
             if route == "/api/plan":
@@ -425,9 +499,9 @@ def serve(port=0, open_browser=True):
     server = ThreadingHTTPServer(("127.0.0.1", port), make_handler(token, builds))
     url = f"http://127.0.0.1:{server.server_address[1]}/?token={token}"
     print(phrase("w_open", language(), version=__version__, url=url), flush=True)
-    # Read every game's latest recipe in the background, so the plan shows at once.
-    threading.Thread(target=lambda: [release_recipe(game) for game, _name, _targets in cli.player_games()],
-                     daemon=True).start()
+    # Read every game's latest release (and its recipe) in the background, so the page can
+    # say what is up to date and the plan shows at once.
+    threading.Thread(target=check_versions, daemon=True).start()
     if open_browser:
         if cli.on_android():  # the phone's browser, through Termux
             subprocess.run([str(cli.TERMUX_OPEN_URL), url], check=False)
@@ -559,20 +633,79 @@ html{scrollbar-color:color-mix(in srgb,var(--muted) 45%,transparent) transparent
 #headCard .big{font-size:1.45rem;font-weight:750;letter-spacing:-.01em}
 #headCard.okb{background:linear-gradient(135deg,color-mix(in srgb,var(--mint) 16%,var(--panel)),var(--panel))}
 #headCard.okb .big:before{content:"✓";display:inline-grid;place-items:center;width:1.8rem;height:1.8rem;margin-right:.6rem;border-radius:50%;background:var(--mint);color:#06281a;font-size:1rem;vertical-align:.12em}
+
+/* Launcher: one column, the player's own games first, real art, clear status. */
+.wrap{max-width:880px;padding-top:0}
+header{position:sticky;top:0;z-index:5;margin:0 -1.2rem;padding:.75rem 1.2rem;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.vstat{font-size:.8rem;font-weight:650;border-radius:999px;padding:.32rem .8rem;border:1px solid var(--line);color:var(--muted);text-decoration:none;background:var(--panel);white-space:nowrap}
+.vstat.ok{color:var(--mint)}.vstat.upd{background:var(--warn);border-color:var(--warn);color:#2a1d00;animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--warn) 22%,transparent)}}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:1.7rem 0 .7rem}
+.sechead h2,#pickTitle{margin:0;font-size:1.35rem;letter-spacing:-.02em}
+#pickTitle{margin:1.9rem 0 .8rem}
+.art{flex:none;width:52px;height:52px;border-radius:13px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#000));box-shadow:0 6px 16px -8px color-mix(in srgb,var(--c) 85%,#000),inset 0 0 0 1px rgba(255,255,255,.08);transition:transform .2s}
+.art img{width:100%;height:100%;object-fit:cover;display:block}
+.art.gen{color:#fff;font-weight:800;font-size:1rem;letter-spacing:.02em}
+.art.big{width:104px;height:104px;border-radius:24px;font-size:1.7rem}
+.shelf{display:flex;flex-direction:column;gap:.55rem}
+.lib{display:flex;align-items:center;gap:1rem;padding:.85rem 1rem;border-radius:16px;cursor:pointer;background:linear-gradient(100deg,color-mix(in srgb,var(--c) 20%,var(--panel)) 0%,var(--panel) 60%);border:1px solid color-mix(in srgb,var(--c) 28%,var(--line));transition:transform .18s,border-color .18s,box-shadow .18s;animation:rise .35s both;animation-delay:calc(var(--i,0)*35ms)}
+.lib:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--c) 70%,var(--line));box-shadow:0 14px 30px -18px color-mix(in srgb,var(--c) 90%,#000)}
+.lib:hover .art,.item:hover .art{transform:scale(1.06) rotate(-2deg)}
+.lib .art{width:64px;height:64px;border-radius:16px}
+.body{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left}
+.body .t{font-weight:700;font-size:1.05rem;line-height:1.25;color:var(--text)}
+.body .s{color:var(--muted);font-size:.86rem}
+.body .m{color:var(--muted);font-size:.8rem;opacity:.9}
+.side{display:flex;align-items:center;gap:.55rem;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.badge{font-size:.78rem;font-weight:650;border-radius:999px;padding:.22rem .7rem;white-space:nowrap}
+.badge.ok{color:var(--mint);background:color-mix(in srgb,var(--mint) 14%,transparent)}
+.badge.upd{color:#2a1d00;background:var(--warn)}
+button.btn.ghost{background:transparent}button.btn.main.small{font-size:.9rem;padding:.5rem 1rem}
+.welcome{display:flex;flex-direction:column;gap:.3rem;margin:1.6rem 0 .2rem;padding:1.1rem 1.2rem;border-radius:16px;border:1px dashed color-mix(in srgb,var(--mint) 45%,var(--line));background:color-mix(in srgb,var(--mint) 7%,var(--panel))}
+.more{margin-top:.6rem;width:100%;border-style:dashed}#shelfNote{font-weight:600}
+.welcome b{font-size:1.15rem}.welcome span{color:var(--muted)}
+#pickCard{background:none;border:0;box-shadow:none;padding:0;margin-top:0}
+.list{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
+.item{display:flex;align-items:center;gap:.95rem;width:100%;border:0;border-radius:0;border-bottom:1px solid var(--line);background:transparent;padding:.7rem 1rem;transform:none;animation:rise .3s both;animation-delay:calc(var(--i,0)*16ms)}
+.item:last-child{border-bottom:0}
+.item:hover{transform:none;padding-left:1rem;border-color:var(--line);background:color-mix(in srgb,var(--c) 10%,var(--panel))}
+.item .body .t{font-size:1rem}
+.ver{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.own{font-size:.76rem;font-weight:650;color:var(--mint)}
+.act{font-size:.8rem;font-weight:700;border-radius:999px;padding:.32rem .85rem;white-space:nowrap}
+.act.build{background:var(--mint);color:#06281a}.act.download{background:color-mix(in srgb,#2d9cdb 22%,transparent);color:#5bb8f0}.act.later{background:color-mix(in srgb,var(--muted) 14%,transparent);color:var(--muted)}
+.act.build:after,.act.download:after{content:" ›"}
+.item.later .art{filter:grayscale(.85);opacity:.65}.item.later .t{color:var(--muted)}
+.settled .item,.settled .lib{animation:none}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}}
+#hero{position:relative;display:flex;align-items:center;gap:1.3rem;padding:1.4rem;border-radius:22px;overflow:hidden;margin:.2rem 0 .3rem;background:radial-gradient(640px 240px at 0% 0%,color-mix(in srgb,var(--c) 45%,transparent),transparent 70%),linear-gradient(120deg,color-mix(in srgb,var(--c) 22%,var(--panel)),var(--panel));border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));animation:rise .3s both}
+#hero h2{margin:0;font-size:1.75rem;letter-spacing:-.02em;line-height:1.15}#hero p{margin:.15rem 0 .55rem}
+.facts{display:flex;flex-wrap:wrap;gap:.35rem}.fact{font-size:.78rem;border-radius:999px;padding:.16rem .62rem;background:color-mix(in srgb,var(--text) 9%,transparent);color:var(--text)}
+.fact.new{background:var(--warn);color:#2a1d00;font-weight:650}.fact.mine{color:var(--mint)}
+#devices{display:flex;flex-direction:column;gap:.45rem}
+.pick{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.85rem 1rem;border-radius:12px;transition:border-color .15s,background .15s}
+.pick:hover:not(:disabled){background:color-mix(in srgb,var(--mint) 7%,var(--panel2))}
+.pick:after{content:"›";color:var(--muted);font-size:1.25rem;line-height:1}.pick.on:after{content:"✓";color:var(--mint)}
+.pick span{margin:0}
+button.main{background:linear-gradient(180deg,color-mix(in srgb,var(--mint) 82%,#fff),var(--mint));box-shadow:0 8px 22px -12px var(--mint);transition:transform .12s,box-shadow .2s}
+button.main:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 28px -12px var(--mint)}
+button.main:active:not(:disabled){transform:translateY(1px)}
+.aboutbox{margin:2.2rem 0 0;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;background:var(--panel)}
+.aboutbox>summary{font-weight:650;color:var(--text)}.aboutbox .hero{margin:.9rem 0 .6rem}.aboutbox .hero p{font-size:1.05rem}
+@media (max-width:620px){.lib,.item{flex-wrap:wrap}.side{width:100%;justify-content:flex-start;padding-left:calc(52px + .95rem)}#hero{flex-direction:column;align-items:flex-start}}
+@media (prefers-color-scheme:light){.act.download{color:#1d6fa5}.vstat.upd,.badge.upd,.fact.new{color:#2a1d00}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
 </style></head><body><div class="wrap">
 <header><a class="brand" id="home" href="#"><div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="pmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ff0b0"/><stop offset="1" stop-color="#14945f"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#pmg)"/><path fill="#06281a" d="M19 19h26c7.2 0 12.6 6.6 11.2 13.7l-2.1 10.2c-1 4.9-7.1 6.6-10.5 2.9L39 41H25l-4.6 4.8c-3.4 3.7-9.5 2-10.5-2.9L7.8 32.7C6.4 25.6 11.8 19 19 19z"/><path stroke="#5ff0b0" stroke-width="4" stroke-linecap="round" d="M20 26v10M15 31h10"/><path fill="#5ff0b0" d="M37 37c0-6.5 4.8-11 12-11 0 6.5-4.8 11-12 11z"/><path stroke="#06281a" stroke-width="1.8" stroke-linecap="round" d="M39.5 34.5l6.5-6"/></svg></div>
 <div><h1>PadMint</h1><div class="v" id="ver"></div></div></a>
-<div class="top"><a class="gh" id="gh" href="https://github.com/chrissotraidis" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+<div class="top"><a class="vstat hidden" id="vstat" rel="noopener"></a><a class="gh" id="gh" href="https://github.com/chrissotraidis" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 <select id="lang" aria-label="Language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></div></header>
 
-<section class="hero"><p data-t="intro"></p><div class="chips"><span class="chip" data-t="trust_local"></span><span class="chip" data-t="trust_upload"></span><span class="chip" data-t="trust_open"></span></div>
-</section>
-<section class="about" id="about"><h2 data-t="about_title"></h2><div class="flow"><div><i>1</i><b data-t="flow_1"></b><span data-t="flow_1s"></span></div><div><i>2</i><b data-t="flow_2"></b><span data-t="flow_2s"></span></div><div><i>3</i><b data-t="flow_3"></b><span data-t="flow_3s"></span></div></div>
-<div class="explain"><details id="howBox"><summary data-t="how_title"></summary><ol><li data-t="how_1"></li><li data-t="how_2"></li><li data-t="how_3"></li><li data-t="how_4"></li><li data-t="how_5"></li></ol></details>
-<details id="whyBox"><summary data-t="why_title"></summary><p data-t="why_1"></p><p data-t="why_2"></p></details></div></section>
-
 <main id="form">
-<section class="card" id="pickCard"><button class="btn back hidden" id="changeGame" data-t="change"></button><h2 data-t="step1"></h2>
+<section class="welcome hidden" id="welcome"><b data-t="welcome_title"></b><span data-t="welcome_text"></span></section>
+<section class="hidden" id="shelf"><div class="sechead"><h2 data-t="your_games"></h2><span class="muted small" id="shelfNote"></span></div><div class="shelf" id="shelfList"></div><button class="btn ghost more hidden" id="shelfMore"></button></section>
+<section class="card" id="pickCard"><h2 id="pickTitle"></h2><button class="btn back hidden" id="changeGame" data-t="change"></button><div id="hero" class="hidden"></div>
 <div id="finder"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="search" type="search" autocomplete="off"></div></div>
 <div class="pills" id="pills"><div class="tabs" id="tabs" role="tablist"><button class="tab" data-g="all" role="tab"><span data-t="tab_all"></span><span class="n"></span></button><button class="tab" data-g="build" role="tab"><span data-t="tab_build"></span><span class="n"></span></button><button class="tab" data-g="download" role="tab"><span data-t="tab_download"></span><span class="n"></span></button><button class="tab" data-g="later" role="tab"><span data-t="later_head"></span><span class="n"></span></button></div><div class="filters" id="filters"></div></div>
 <p class="note" id="groupNote"></p><div class="list" id="list"></div><p class="small hidden" id="gamePage"><a target="_blank" rel="noopener" id="gamePageLink"></a></p><p class="muted hidden" id="noMatch" data-t="no_match"></p></section>
@@ -608,6 +741,11 @@ html{scrollbar-color:color-mix(in srgb,var(--muted) 45%,transparent) transparent
 <section class="card"><details id="logBox"><summary><span data-t="log"></span> <span class="muted" id="lineCount"></span></summary>
 <pre id="tail"></pre><button class="btn" id="copy" data-t="copy_log"></button></details></section>
 </main>
+<details class="aboutbox" id="aboutBox"><summary data-t="about_padmint"></summary><section class="hero"><p data-t="intro"></p><div class="chips"><span class="chip" data-t="trust_local"></span><span class="chip" data-t="trust_upload"></span><span class="chip" data-t="trust_open"></span></div>
+</section>
+<section class="about" id="about"><h2 data-t="about_title"></h2><div class="flow"><div><i>1</i><b data-t="flow_1"></b><span data-t="flow_1s"></span></div><div><i>2</i><b data-t="flow_2"></b><span data-t="flow_2s"></span></div><div><i>3</i><b data-t="flow_3"></b><span data-t="flow_3s"></span></div></div>
+<div class="explain"><details id="howBox"><summary data-t="how_title"></summary><ol><li data-t="how_1"></li><li data-t="how_2"></li><li data-t="how_3"></li><li data-t="how_4"></li><li data-t="how_5"></li></ol></details>
+<details id="whyBox"><summary data-t="why_title"></summary><p data-t="why_1"></p><p data-t="why_2"></p></details></div></section></details>
 <footer><span data-t="local_note"></span><span><a href="https://github.com/chrissotraidis/padmint/releases/latest" target="_blank" rel="noopener" data-t="update"></a> · <a href="https://github.com/chrissotraidis/padmint" target="_blank" data-t="source"></a> · <a id="reportLink" href="https://github.com/chrissotraidis/padmint/issues" target="_blank" data-t="report"></a></span></footer>
 </div>
 <script>
@@ -618,7 +756,7 @@ for(const e of document.querySelectorAll("[data-t]"))e.textContent=S[e.dataset.t
 document.documentElement.lang=D.lang;$("lang").value=D.lang;$("ver").textContent="v"+D.version;$("search").placeholder=S.search;
 $("choose").classList.toggle("hidden",!D.picker);
 let last=null;
-function texts(){for(const e of document.querySelectorAll("[data-t]"))e.textContent=S[e.dataset.t]||"";document.documentElement.lang=D.lang;$("search").placeholder=S.search;$("home").setAttribute("aria-label",S.home||"PadMint")}
+function texts(){for(const e of document.querySelectorAll("[data-t]"))e.textContent=S[e.dataset.t]||"";document.documentElement.lang=D.lang;$("search").placeholder=S.search;$("home").setAttribute("aria-label",S.home||"PadMint");vstat()}
 $("lang").onchange=async()=>{const lang=$("lang").value,r=await (await fetch("/api/player?lang="+lang,{headers:H})).json();
  if(r.error)return;D=r;S=D.text;texts();history.replaceState(null,"","?token="+T+"&lang="+lang);filters();cards();
  if(sel){const keep={file,dev};const g=game();if(g||app()||waiting())redraw(keep)}
@@ -651,17 +789,56 @@ const colorOf=x=>COLORS[systemOf(x)]||"#1fa572";
 let group="all";const all=()=>[...D.games,...D.downloads,...D.later];
 const groupOf=id=>D.games.some(x=>x.id==id)?"build":D.downloads.some(x=>x.id==id)?"download":"later";
 const DEVICES={ipad:"iPad",iphone:"iPhone",mac:"Mac"};
+let V={done:false,games:{},padmint:null};
+const ART=new Set(D.art||[]);
+const latest=id=>(V.games||{})[id];
+const owned=id=>(D.library||[]).some(l=>l.id==id);
+const initials=x=>(x.name||"?").replace(/(Pad|Touch)$/,"").slice(0,2).toUpperCase();
+function art(x,big){const s=el("span",null,"art"+(big?" big":""));s.style.setProperty("--c",colorOf(x));
+ const plain=()=>{s.classList.add("gen");s.textContent=initials(x)};
+ if(ART.has(x.id)){const i=el("img");i.alt="";i.src="/art/"+x.id+".png?token="+T;i.onerror=()=>{i.remove();plain()};s.append(i)}else plain();return s}
+function devicesOf(x,kind){if(kind=="build")return x.platforms.map(p=>p.short||p.label);const o=x.plays_on||[];
+ return [...(o.includes("iphone")&&o.includes("ipad")?["iPhone/iPad"]:o.filter(d=>d!="mac").map(d=>DEVICES[d])),...(o.includes("mac")?["Mac"]:[])]}
+function ago(t){const f=new Intl.RelativeTimeFormat(D.lang,{numeric:"auto"}),s=Date.now()/1000-t;
+ for(const [n,k] of [["year",31536000],["month",2592000],["week",604800],["day",86400],["hour",3600],["minute",60]])if(s>=k)return f.format(-Math.floor(s/k),n);return f.format(0,"minute")}
+function vstat(){const a=$("vstat"),newer=!!V.padmint&&V.padmint.replace(/^v/,"")!=D.version;
+ a.classList.toggle("hidden",V.done&&!V.padmint);a.className="vstat"+(newer?" upd":V.padmint?" ok":"")+(V.done&&!V.padmint?" hidden":"");
+ a.textContent=newer?fill("pm_update",{version:V.padmint})+" · "+S.get_padmint+" ›":V.padmint?"✓ v"+D.version+" · "+S.up_to_date:S.checking;
+ if(newer){a.href="https://github.com/chrissotraidis/padmint/releases/latest";a.target="_blank"}else{a.removeAttribute("href");a.removeAttribute("target")}}
+let shelfAll=false;
+function shelf(){const items=(D.library||[]).filter(l=>all().some(x=>x.id==l.id)),busy=!!sel||!$("progress").classList.contains("hidden");
+ $("shelf").classList.toggle("hidden",busy||!items.length);$("welcome").classList.toggle("hidden",busy||!!items.length||!D.games.length);
+ if(busy||!items.length)return;const fresh=items.filter(l=>latest(l.id)&&latest(l.id)!=l.version).length;$("shelfNote").textContent=V.done?(fresh?(fresh==1?S.update_ready:fill("updates_ready",{count:fresh})):"✓ "+S.all_current):S.checking;
+ const shown=shelfAll?items:items.slice(0,5);$("shelfMore").classList.toggle("hidden",items.length<=5);$("shelfMore").textContent=shelfAll?S.show_less:fill("show_all",{count:items.length});$("shelfList").classList.toggle("settled",V.done&&$("shelfList").children.length>0);
+ $("shelfList").replaceChildren(...shown.map((l,i)=>{const x=all().find(y=>y.id==l.id),r=el("div",null,"lib");r.style.setProperty("--c",colorOf(x));r.style.setProperty("--i",i);
+  const g=D.games.find(y=>y.id==l.id),p=g&&g.platforms.find(q=>q.id==l.platform),v=latest(l.id),stale=!!v&&v!=l.version;
+  const body=el("div",null,"body");body.append(el("span",x.about?title(x):x.name,"t"),el("span",[fill("built_for",{device:p?(p.short||p.label):l.platform}),l.version,ago(l.when)].join(" · "),"s"));
+  const side=el("div",null,"side");if(v&&!stale)side.append(el("span","✓ "+S.up_to_date,"badge ok"));
+  if(p){const b=el("button",stale?fill("update_to",{version:v}):S.build_again,"btn small "+(stale?"main":"ghost"));b.onclick=e=>{e.stopPropagation();choose(l.id);pickDevice(l.platform)};side.append(b)}
+  r.append(art(x),body,side);r.onclick=()=>choose(l.id);return r}))}
+function hero(x){const h=$("hero");if(!x){h.classList.add("hidden");h.replaceChildren();return}
+ const kind=groupOf(x.id),body=el("div",null,"hbody"),facts=el("div",null,"facts"),v=latest(x.id),mine=(D.library||[]).find(l=>l.id==x.id);h.style.setProperty("--c",colorOf(x));
+ body.append(el("h2",x.about?title(x):x.name),el("p",x.name+(systemOf(x)?" · "+fill("original",{system:systemOf(x)}):""),"muted"));
+ if(v)facts.append(el("span",fill("latest",{version:v}),"fact"+(mine&&mine.version!=v?" new":"")));
+ if(mine)facts.append(el("span","✓ "+S.in_library+" · "+mine.version,"fact mine"));
+ for(const d of devicesOf(x,kind))facts.append(el("span",d,"fact"));
+ if(kind=="build"&&x.setup)facts.append(el("span",S["setup_"+x.setup],"fact"));
+ body.append(facts);h.replaceChildren(art(x,true),body);h.classList.remove("hidden")}
+async function versions(){try{const r=await (await fetch("/api/versions",{headers:H})).json();V=r;vstat();
+ if(r.done){cards();if(sel)hero(all().find(x=>x.id==sel))}else{shelf();setTimeout(versions,1200)}}catch(e){}}
+
+
 for(const b of document.querySelectorAll(".tab"))b.onclick=()=>{group=b.dataset.g;cards()};
 function filters(){const systems=[...new Set(all().map(systemOf).filter(Boolean))].sort();
  $("filters").replaceChildren(...["",...systems].map(s=>{const b=el("button",s||S.all,"filter"+(s==system?" on":""));b.onclick=()=>{system=s;filters();cards()};return b}))}
-function row(x){const kind=groupOf(x.id),b=el("button",null,"item "+kind+(x.id==sel?" on":""));b.style.setProperty("--c",colorOf(x));
- const badge=el("span",BADGES[systemOf(x)]||(x.name||"?").charAt(0),"av");badge.title=systemOf(x)?fill("original",{system:systemOf(x)}):"";
- b.append(badge,el("span",x.about?title(x):x.name,"t"));const t=el("div",null,"tags");
- if(kind=="later")t.append(el("span",x.tag||S.later_head,"tag soon"));if(kind=="download")t.append(el("span",S.dl_tag,"tag dl"));
- if(kind=="build"&&x.setup)t.append(el("span",S["setup_"+x.setup],"tag setup "+x.setup));
- if(kind=="build"&&x.ready){const on=x.platforms.filter(p=>x.ready.platforms.includes(p.id)).map(p=>p.short||p.label);if(on.length)t.append(el("span",fill("ready_tag",{devices:on.join(", ")}),"tag ready"))}
- if(kind=="build")for(const p of x.platforms)t.append(el("span",p.short||p.label,"tag"));else{const o=x.plays_on||[];const ios=o.includes("iphone")&&o.includes("ipad")?["iPhone/iPad"]:o.filter(d=>d!="mac").map(d=>DEVICES[d]);for(const d of [...ios,...(o.includes("mac")?["Mac"]:[])])t.append(el("span",d,"tag"))}b.append(t);
- b.append(el("span",x.name+(systemOf(x)?" · "+fill("original",{system:systemOf(x)}):""),"s"));b.onclick=()=>choose(x.id);return b}
+function row(x,i){const kind=groupOf(x.id),b=el("button",null,"item "+kind);b.style.setProperty("--c",colorOf(x));b.style.setProperty("--i",Math.min(i||0,24));
+ b.title=systemOf(x)?fill("original",{system:systemOf(x)}):"";const body=el("span",null,"body"),meta=[devicesOf(x,kind).join(", ")];
+ if(kind=="build"&&x.ready){const on=x.platforms.filter(p=>x.ready.platforms.includes(p.id)).map(p=>p.short||p.label);if(on.length)meta.push(fill("ready_tag",{devices:on.join(", ")}))}
+ if(kind=="build"&&x.setup&&x.setup!="easy")meta.push(S["setup_"+x.setup]);if(kind=="later"&&x.tag)meta.push(x.tag);
+ body.append(el("span",x.about?title(x):x.name,"t"),el("span",x.name+(systemOf(x)?" · "+systemOf(x):""),"s"),el("span",meta.filter(Boolean).join(" · "),"m"));
+ const side=el("span",null,"side"),v=latest(x.id);if(owned(x.id))side.append(el("span","✓ "+S.in_library,"own"));if(v)side.append(el("span",v,"ver"));
+ side.append(el("span",S[{build:"act_build",download:"act_download",later:"act_later"}[kind]],"act "+kind));
+ b.append(art(x),body,side);b.onclick=()=>choose(x.id);return b}
 function cards(){const q=$("search").value.trim().toLowerCase();
  const match=x=>(!q||(x.name+" "+(x.about||"")).toLowerCase().includes(q))&&(!system||systemOf(x)==system);
  const order=a=>a.sort((x,y)=>sortKey(x).localeCompare(sortKey(y)));
@@ -672,10 +849,12 @@ function cards(){const q=$("search").value.trim().toLowerCase();
  $("finder").classList.toggle("hidden",!!sel);$("changeGame").classList.toggle("hidden",!sel);$("tabs").classList.toggle("hidden",!!sel);$("pills").classList.toggle("hidden",!!sel);const one=sel&&all().find(x=>x.id==sel);$("gamePage").classList.toggle("hidden",!(one&&one.page));if(one&&one.page){$("gamePageLink").href=one.page;$("gamePageLink").textContent=fill("game_page",{name:one.name})+" ↗"}
  for(const b of document.querySelectorAll(".tab")){b.classList.toggle("on",b.dataset.g==group);b.setAttribute("aria-selected",b.dataset.g==group);b.querySelector(".n").textContent=G[b.dataset.g].length}
  $("groupNote").textContent=sel?"":S[{all:"all_note",build:"builds",download:"no_build",later:"later_note"}[group]]+((group=="all"||group=="build")&&D.games.some(g=>g.setup)?" "+S.start_note:"");
- $("list").replaceChildren(...G[group].map(x=>row(x)));$("list").classList.toggle("hidden",!G[group].length);
+ $("pickTitle").textContent=sel?S.step1:S.library;hero(sel?all().find(x=>x.id==sel):null);
+ $("list").replaceChildren(...(sel?[]:G[group].map((x,i)=>row(x,i))));$("list").classList.toggle("hidden",!!sel||!G[group].length);$("list").classList.toggle("settled",V.done&&listShown);listShown=true;
  $("noMatch").classList.toggle("hidden",!!G[group].length);layout()}
 function back(top){++fileRequest;reading=false;sel=null;file=null;dev=null;for(const id of ["fileBox","deviceBox","planBox","dlBox","readyBox","laterBox","inApp"])$(id).classList.add("hidden");cards();if(top)scrollTo({top:0,behavior:"smooth"});else $("pickCard").scrollIntoView({behavior:"smooth"})}
-function layout(){$("about").classList.toggle("hidden",!!sel||!$("progress").classList.contains("hidden"))}
+let listShown=false;$("shelfMore").onclick=()=>{shelfAll=!shelfAll;shelf()};
+function layout(){$("about").classList.toggle("hidden",!!sel||!$("progress").classList.contains("hidden"));shelf()}
 function home(){if(last&&last.state=="running"){scrollTo({top:0,behavior:"smooth"});return}
  last=null;shown=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");$("finished").replaceChildren();$("finished").classList.add("hidden");
  $("cancel").disabled=false;$("logBox").open=false;$("makeError").textContent="";$("reportLink").href="https://github.com/chrissotraidis/padmint/issues";
@@ -777,6 +956,6 @@ function show(r){if(r.state=="idle")return;last=r;$("form").classList.add("hidde
   if(x.warning){const w=linked(x.warning,"p");w.className="warn small";f.append(w)}
   const p=el("p",S.guide+": ","small"),a=el("a",x.guide);a.href=x.guide;a.target="_blank";p.append(a);f.append(p,el("p",x.private,"warn small"))}}
 async function poll(){const r=await (await fetch("/api/build?lang="+D.lang,{headers:H})).json();show(r);if(r.state=="running")setTimeout(poll,1500)}
-if(!D.games.length&&!D.downloads.length){$("form").replaceChildren(el("p",S.none,"bad"))}else{filters();cards();poll()}
+if(!D.games.length&&!D.downloads.length){$("form").replaceChildren(el("p",S.none,"bad"))}else{filters();cards();poll();vstat();versions()}
 </script></body></html>
 """
