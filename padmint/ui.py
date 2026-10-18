@@ -671,7 +671,7 @@ button.btn.ghost{background:transparent}button.btn.main.small{font-size:.9rem;pa
 .item:hover{transform:none;padding-left:1rem;border-color:var(--line);background:color-mix(in srgb,var(--c) 10%,var(--panel))}
 .item .body .t{font-size:1rem}
 .ver{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.own{font-size:.76rem;font-weight:650;color:var(--mint)}
+.own{font-size:.76rem;font-weight:650;color:var(--mint)}.own.upd{color:var(--warn)}
 .act{font-size:.8rem;font-weight:700;border-radius:999px;padding:.32rem .85rem;white-space:nowrap}
 .act.build{background:var(--mint);color:#06281a}.act.download{background:color-mix(in srgb,#2d9cdb 22%,transparent);color:#5bb8f0}.act.later{background:color-mix(in srgb,var(--muted) 14%,transparent);color:var(--muted)}
 .act.build:after,.act.download:after{content:" ›"}
@@ -693,6 +693,18 @@ button.main:active:not(:disabled){transform:translateY(1px)}
 .aboutbox{margin:2.2rem 0 0;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;background:var(--panel)}
 .aboutbox>summary{font-weight:650;color:var(--text)}.aboutbox .hero{margin:.9rem 0 .6rem}.aboutbox .hero p{font-size:1.05rem}
 @media (max-width:620px){.lib,.item{flex-wrap:wrap}.side{width:100%;justify-content:flex-start;padding-left:calc(52px + .95rem)}#hero{flex-direction:column;align-items:flex-start}}
+
+.card.done{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.2rem;animation:rise .25s both}
+.card.done>:not(h2):not(.sum){display:none!important}.card.done h2{margin:0;font-size:.95rem;color:var(--muted);font-weight:600}
+.sum{display:none}.card.done .sum{display:flex;align-items:center;gap:.9rem;min-width:0}
+.sum b{color:var(--mint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button.btn.link{background:none;border:0;color:var(--mint);font-weight:650;padding:.2rem .3rem}button.btn.link:hover{text-decoration:underline}
+#nowBox{display:flex;align-items:center;gap:1rem;margin:1.4rem 0 0;padding:1rem 1.1rem;border-radius:16px;cursor:pointer;border:1px solid color-mix(in srgb,var(--mint) 50%,var(--line));background:linear-gradient(100deg,color-mix(in srgb,var(--mint) 16%,var(--panel)),var(--panel));animation:rise .3s both}
+#nowBox.hidden{display:none}#nowBox.failed{border-color:var(--bad)}#nowBox .bar{margin:.45rem 0 0}
+.headrow{display:flex;align-items:center;gap:1rem}#headArt .art{width:72px;height:72px;border-radius:18px}#headBar .bar{height:8px;margin-top:1rem}
+.bar i{transition:width .6s ease;background:linear-gradient(90deg,var(--mint2),var(--mint))}
+.bar.live i{background-image:linear-gradient(90deg,var(--mint2),var(--mint),color-mix(in srgb,var(--mint) 60%,#fff),var(--mint),var(--mint2));background-size:200% 100%;animation:shimmer 1.8s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
 @media (prefers-color-scheme:light){.act.download{color:#1d6fa5}.vstat.upd,.badge.upd,.fact.new{color:#2a1d00}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
@@ -703,6 +715,7 @@ button.main:active:not(:disabled){transform:translateY(1px)}
 <select id="lang" aria-label="Language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></div></header>
 
 <main id="form">
+<section class="hidden" id="nowBox"></section>
 <section class="welcome hidden" id="welcome"><b data-t="welcome_title"></b><span data-t="welcome_text"></span></section>
 <section class="hidden" id="shelf"><div class="sechead"><h2 data-t="your_games"></h2><span class="muted small" id="shelfNote"></span></div><div class="shelf" id="shelfList"></div><button class="btn ghost more hidden" id="shelfMore"></button></section>
 <section class="card" id="pickCard"><h2 id="pickTitle"></h2><button class="btn back hidden" id="changeGame" data-t="change"></button><div id="hero" class="hidden"></div>
@@ -719,10 +732,10 @@ button.main:active:not(:disabled){transform:translateY(1px)}
 <div id="foundBox"><p class="muted small" id="found"></p><div id="files"></div></div>
 <details id="typeBox"><summary data-t="type_toggle"></summary><p class="muted small" data-t="type"></p>
 <div class="row"><input id="path" style="flex:1;min-width:240px"><button class="btn" id="use" data-t="use"></button></div></details>
-<p class="state" id="fileState"></p></section>
+<p class="state" id="fileState"></p><div class="sum" id="fileSum"><b id="fileSumText"></b><button class="btn link" id="fileChange" data-t="change_short"></button></div></section>
 <section class="card hidden" id="inApp"><h2 data-t="step2"></h2><p id="inAppText" class="muted"></p></section>
 
-<section class="card hidden" id="deviceBox"><h2 data-t="step3"></h2><div class="grid" id="devices"></div><p class="muted small hidden" id="heldNote"></p>
+<section class="card hidden" id="deviceBox"><h2 data-t="step3"></h2><div class="grid" id="devices"></div><p class="muted small hidden" id="heldNote"></p><div class="sum" id="devSum"><b id="devSumText"></b><button class="btn link" id="devChange" data-t="change_short"></button></div>
 <details class="small"><summary data-t="device_help"></summary><p data-t="update_help"></p><a href="https://github.com/chrissotraidis/padmint/releases/latest" target="_blank" rel="noopener" data-t="update"></a></details></section>
 
 <section class="card banner hidden" id="readyBox"><h2 data-t="ready_title"></h2><p id="readyText"></p><div class="row"><a class="btn main" id="readyLink" target="_blank"></a></div><p class="muted small" data-t="ready_or"></p></section>
@@ -733,7 +746,7 @@ button.main:active:not(:disabled){transform:translateY(1px)}
 </main>
 
 <main id="progress" class="hidden">
-<section class="card banner" id="headCard"><p class="big" id="making"></p><p class="muted small"><span id="elapsedLabel" data-t="elapsed"></span>: <b id="elapsed"></b></p></section>
+<section class="card banner" id="headCard"><div class="headrow"><span id="headArt"></span><div><p class="big" id="making"></p><p class="muted small"><span id="elapsedLabel" data-t="elapsed"></span>: <b id="elapsed"></b> <span id="headPct"></span></p></div></div><div id="headBar"></div></section>
 <section class="card"><ul class="steps" id="phases"></ul>
 <div class="row" style="margin-top:.8rem"><button class="btn" id="cancel" data-t="cancel"></button><span class="muted small" id="cancelNote" data-t="cancel_note"></span>
 <button class="btn hidden" id="again" data-t="again"></button></div></section>
@@ -836,7 +849,7 @@ function row(x,i){const kind=groupOf(x.id),b=el("button",null,"item "+kind);b.st
  if(kind=="build"&&x.ready){const on=x.platforms.filter(p=>x.ready.platforms.includes(p.id)).map(p=>p.short||p.label);if(on.length)meta.push(fill("ready_tag",{devices:on.join(", ")}))}
  if(kind=="build"&&x.setup&&x.setup!="easy")meta.push(S["setup_"+x.setup]);if(kind=="later"&&x.tag)meta.push(x.tag);
  body.append(el("span",x.about?title(x):x.name,"t"),el("span",x.name+(systemOf(x)?" · "+systemOf(x):""),"s"),el("span",meta.filter(Boolean).join(" · "),"m"));
- const side=el("span",null,"side"),v=latest(x.id);if(owned(x.id))side.append(el("span","✓ "+S.in_library,"own"));if(v)side.append(el("span",v,"ver"));
+ const side=el("span",null,"side"),v=latest(x.id);{const mine=(D.library||[]).filter(l=>l.id==x.id);if(mine.length)side.append(mine.some(l=>v&&l.version!=v)?el("span",S.update_ready_short,"own upd"):el("span","✓ "+S.in_library,"own"))}if(v)side.append(el("span",v,"ver"));
  side.append(el("span",S[{build:"act_build",download:"act_download",later:"act_later"}[kind]],"act "+kind));
  b.append(art(x),body,side);b.onclick=()=>choose(x.id);return b}
 function cards(){const q=$("search").value.trim().toLowerCase();
@@ -855,13 +868,13 @@ function cards(){const q=$("search").value.trim().toLowerCase();
 function back(top){++fileRequest;reading=false;sel=null;file=null;dev=null;for(const id of ["fileBox","deviceBox","planBox","dlBox","readyBox","laterBox","inApp"])$(id).classList.add("hidden");cards();if(top)scrollTo({top:0,behavior:"smooth"});else $("pickCard").scrollIntoView({behavior:"smooth"})}
 let listShown=false;$("shelfMore").onclick=()=>{shelfAll=!shelfAll;shelf()};
 function layout(){$("about").classList.toggle("hidden",!!sel||!$("progress").classList.contains("hidden"));shelf()}
-function home(){if(last&&last.state=="running"){scrollTo({top:0,behavior:"smooth"});return}
+function home(){if(last&&last.state=="running"){watch=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");back(true);now(last);return}
  last=null;shown=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");$("finished").replaceChildren();$("finished").classList.add("hidden");
  $("cancel").disabled=false;$("logBox").open=false;$("makeError").textContent="";$("reportLink").href="https://github.com/chrissotraidis/padmint/issues";
- $("search").value="";system="";group="all";filters();back(true)}
+ $("search").value="";system="";group="all";watch=true;now(null);filters();back(true)}
 $("home").onclick=e=>{e.preventDefault();home()};$("home").setAttribute("aria-label",S.home||"PadMint");
 $("search").oninput=cards;$("changeGame").onclick=back;for(const b of document.querySelectorAll(".backBtn"))b.onclick=back;
-function choose(id){++fileRequest;reading=false;sel=id;file=null;dev=null;$("fileState").textContent="";$("path").value="";cards();const g=game(),a=app(),w=waiting();
+function choose(id){++fileRequest;reading=false;sel=id;file=null;dev=null;editFile=editDev=false;$("fileState").textContent="";$("path").value="";cards();const g=game(),a=app(),w=waiting();
  $("laterBox").classList.toggle("hidden",!w);
  if(w){$("laterName").textContent=w.name;$("laterAbout").textContent=[systemOf(w)?fill("original",{system:systemOf(w)}):"",(w.plays_on||[]).length?fill("plays_on",{devices:(w.plays_on.includes("iphone")&&w.plays_on.includes("ipad")?["iPhone/iPad"]:w.plays_on.filter(d=>d!="mac").map(d=>DEVICES[d])).concat(w.plays_on.includes("mac")?["Mac"]:[]).join(", ")}):""].filter(Boolean).join(" · ");$("laterText").textContent=w.text;$("laterLink").href=w.link;$("laterLink").textContent=fill("later_link",{name:w.name});$("laterBox").scrollIntoView({behavior:"smooth"})}
  $("dlBox").classList.toggle("hidden",!a);
@@ -878,7 +891,7 @@ function choose(id){++fileRequest;reading=false;sel=id;file=null;dev=null;$("fil
  const held=g.held||[];$("heldNote").classList.toggle("hidden",!held.length);if(held.length){const l=el("a",fill("later_link",{name:g.name}));l.href=g.page;l.target="_blank";$("heldNote").replaceChildren(held.map(h=>h.text).join(" ")+" ",l)}
  if(g.platforms.length==1)pickDevice(g.platforms[0].id);($("fileBox").classList.contains("hidden")?$("deviceBox"):$("fileBox")).scrollIntoView({behavior:"smooth"});ready()}
 let planRequest=0;
-async function pickDevice(id){const request=++planRequest;blocked=true;planning=true;dev=id;ready();for(const b of $("devices").children)b.classList.toggle("on",b.dataset.id==id);const rg=game();$("readyBox").classList.toggle("hidden",!(rg&&rg.ready&&rg.ready.platforms.includes(id)));$("planBox").classList.remove("hidden");$("plan").replaceChildren(el("p",fill("plan_loading",{name:(game()||{}).name||""}),"muted loading"));
+async function pickDevice(id){const request=++planRequest;editDev=false;blocked=true;planning=true;dev=id;ready();for(const b of $("devices").children)b.classList.toggle("on",b.dataset.id==id);const rg=game();$("readyBox").classList.toggle("hidden",!(rg&&rg.ready&&rg.ready.platforms.includes(id)));$("planBox").classList.remove("hidden");$("plan").replaceChildren(el("p",fill("plan_loading",{name:(game()||{}).name||""}),"muted loading"));
  const selected=sel;try{const r=await (await fetch("/api/plan?game="+selected+"&platform="+id+"&lang="+D.lang+(file?"&disc="+encodeURIComponent(file):""),{headers:H})).json();if(request!=planRequest||dev!=id||sel!=selected)return;planning=false;showPlan(r);ready()}catch(e){if(request!=planRequest||dev!=id||sel!=selected)return;planning=false;$("plan").replaceChildren(el("p",String(e),"bad"));ready()}}
 let blocked=false,planning=false;
 function copyLine(line){const c=el("div",null,"cmd"),btn=el("button",S.copy);c.append(el("code",line),btn);
@@ -906,17 +919,21 @@ function showPlan(p){const g=game(),box=$("plan");box.replaceChildren();if(p.err
  if(p.space_gb)box.append(el("p",fill("plan_space",{gb:p.space_gb}),"muted small"));
  if(p.install){const d=el("details"),ol=el("ol",null,"next");d.append(el("summary",S.install_preview));for(const s of p.install.steps)ol.append(linked(s));d.append(ol,el("p",p.install.note,"muted small"));box.append(d)}}
 // The button is disabled by the state itself; the line under it only says which state it is.
+let editFile=false,editDev=false,watch=true;
 function ready(){const g=game(),why=!g?"none":!dev?"why_device":reading?"why_reading":(g.needs_file&&!file)?"why_file":planning?"why_loading":blocked?"why_blocked":"";
- $("make").disabled=!!why;$("makeWhy").textContent=why&&why!="none"?S[why]||"":""}
+ $("make").disabled=!!why;$("makeWhy").textContent=why&&why!="none"?S[why]||"":"";
+ const pf=g&&dev&&g.platforms.find(x=>x.id==dev);$("fileBox").classList.toggle("done",!!(g&&file&&!editFile));$("fileSumText").textContent=file?"✓ "+base(file):"";
+ $("deviceBox").classList.toggle("done",!!(pf&&!editDev));$("devSumText").textContent=pf?"✓ "+pf.label:""}
+$("fileChange").onclick=()=>{editFile=true;ready()};$("devChange").onclick=()=>{editDev=true;ready()};
 async function useFile(path){if(!path)return;const request=++fileRequest,selected=sel;$("path").value=path;reading=true;file=null;ready();$("fileState").className="state";
  $("fileState").textContent="…";const r=await post("/api/file",{game:selected,path});if(request!=fileRequest||sel!=selected)return;reading=false;
  if(r.problem||r.error){$("fileState").className="state bad";$("fileState").textContent=r.problem||r.error}
- else{file=path;$("fileState").className="state ok";$("fileState").textContent="✓ "+fill("file_ok",{file:base(path)});if(dev)await pickDevice(dev)}ready()}
+ else{file=path;editFile=false;$("fileState").className="state ok";$("fileState").textContent="✓ "+fill("file_ok",{file:base(path)});if(dev)await pickDevice(dev)}ready()}
 $("choose").onclick=async()=>{const request=fileRequest,selected=sel;$("fileState").className="state muted";$("fileState").textContent=S.picker_open;
  const r=await post("/api/pick");if(request!=fileRequest||sel!=selected)return;if($("fileState").textContent==S.picker_open)$("fileState").textContent="";
  if(r.path)useFile(r.path);else if(!r.available){$("typeBox").open=true;$("path").focus()}};
 $("use").onclick=()=>useFile($("path").value.trim().replace(/^["']|["']$/g,""));
-$("make").onclick=async()=>{$("make").disabled=true;const r=await post("/api/make",{game:sel,platform:dev,path:file});
+$("make").onclick=async()=>{$("make").disabled=true;watch=true;const r=await post("/api/make",{game:sel,platform:dev,path:file});
  if(r.error){$("makeError").textContent=r.error;ready();return}show(r);poll()};
 $("cancel").onclick=async()=>{$("cancel").disabled=true;await post("/api/cancel")};
 $("again").onclick=home;
@@ -937,8 +954,20 @@ function phaseRow(p,r,g){const li=el("li",null,p.state||"pending"),ico=el("div",
  if(p.id=="build"&&p.state=="running"&&r.now)body.append(el("div",r.now.slice(-160),"detail mono"));
  if(p.id=="save"&&p.file)body.append(el("div",p.file,"detail ok"));
  li.append(ico,body);return li}
-function show(r){if(r.state=="idle")return;last=r;$("form").classList.add("hidden");$("progress").classList.remove("hidden");layout();
+const WEIGHT={release:2,source:6,tools:10,app:4,build:76,save:2};
+function overall(r){if(r.state=="done")return 100;const ids=Object.keys(WEIGHT),have={};for(const p of r.phases||[])have[p.id]=p;
+ const list=ids.filter(id=>have[id]||(id!="app"&&r.state=="running")),total=list.reduce((a,id)=>a+WEIGHT[id],0);let got=0;
+ for(const id of list){const p=have[id]||{};if(p.state=="done")got+=WEIGHT[id];else if(p.state=="running"&&id=="build"&&r.stage&&r.stage.total)got+=WEIGHT[id]*r.stage.completed/r.stage.total}
+ return Math.max(1,Math.min(99,Math.round(100*got/Math.max(1,total))))}
+function now(r){const b=$("nowBox");if(!r||watch||r.state=="idle"){b.classList.add("hidden");return}
+ const g=D.games.find(x=>x.id==r.game)||{id:r.game,name:r.game},body=el("div",null,"body"),pct=overall(r);
+ body.append(el("span",r.state=="done"?S.done_title:r.state=="failed"?S.failed_title:r.state=="cancelled"?S.cancelled:fill("making",{name:g.name,device:r.device||""}),"t"),
+  el("span",(r.state=="running"?pct+"% · ":"")+clock(r.elapsed)+" · "+S.see_progress+" ›","s"));
+ if(r.state=="running"){const x=bar(pct);x.classList.add("live");body.append(x)}
+ b.replaceChildren(art(g),body);b.className=r.state;b.onclick=()=>{watch=true;show(last);scrollTo({top:0})}}
+function show(r){if(r.state=="idle")return;last=r;now(r);if(!watch)return;$("form").classList.add("hidden");$("progress").classList.remove("hidden");layout();
  const g=D.games.find(x=>x.id==r.game);$("making").textContent=r.state=="done"?S.done_title:r.state=="failed"?S.failed_title:r.state=="cancelled"?S.cancelled:fill("making",{name:g?g.name:r.game,device:r.device||""});
+ if(g)$("headArt").replaceChildren(art(g));{const pct=overall(r),x=bar(pct);if(r.state=="running")x.classList.add("live");$("headBar").replaceChildren(r.state=="running"||r.state=="done"?x:"");$("headPct").textContent=r.state=="running"?" · "+pct+"%":""}
  $("headCard").classList.toggle("badb",r.state=="failed");$("headCard").classList.toggle("okb",r.state=="done");$("elapsedLabel").textContent=r.state=="done"?S.took:S.elapsed;$("elapsed").textContent=clock(r.elapsed);
  const ids=["release","source","tools","app","build","save"],have={};for(const p of r.phases||[])have[p.id]=p;
  const list=ids.filter(id=>have[id]||(id!="app"&&r.state=="running")).map(id=>have[id]||{id,state:"pending"});
