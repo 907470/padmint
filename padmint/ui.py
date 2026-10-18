@@ -23,7 +23,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 import webbrowser
 
-from . import __version__, cli, tools
+from . import __version__, cli, storage, tools, update
 from .manifest import catalog
 from .say import LANGUAGES, MESSAGES, language, localized, phrase
 
@@ -101,13 +101,20 @@ def player_data(lang):
     return {"lang": lang, "version": __version__, "host": cli.host_id(), "folder": str(folder),
             "saved_in": phrase("saved_in", lang, folder=folder), "games": games, "downloads": apps, "later": waiting,
             "text": strings(lang), "picker": not cli.on_android(), "reveal": not cli.on_android(),
-            "art": sorted(path.stem for path in ART.glob("*.png")), "library": library()}
+            "art": sorted(path.stem for path in ART.glob("*.png")), "library": library(),
+            "self_update": bool(update.platform())}
 
 
 def library():
     """The copies this PadMint has finished, newest first: one entry per game and device,
-    read from the build records PadMint already keeps next to each downloaded release."""
-    found = {}
+    read from the build records PadMint keeps next to each downloaded release and remembered
+    in library.json, so removing an old download in Storage doesn't forget the copy."""
+    saved = tools.tools_root().parent / "library.json"
+    try:
+        found = {(item["id"], item["platform"]): item for item in json.loads(saved.read_text())}
+    except (OSError, ValueError, KeyError, TypeError):
+        found = {}
+    before = dict(found)
     for path in (tools.tools_root().parent / "games").glob("*/build/padmint/*/runs/*/record.json"):
         try:
             record = json.loads(path.read_text())
@@ -120,8 +127,16 @@ def library():
                 or not folder.startswith(game + "-") or folder.endswith(".partial")):
             continue
         key = (game, target)
-        if key not in found or when > found[key]["when"]:
+        if key not in found or when > found[key]["when"] or (
+                when == found[key]["when"] and found[key]["version"] != folder[len(game) + 1:]):
             found[key] = {"id": game, "platform": target, "version": folder[len(game) + 1:], "when": int(when)}
+    found = {key: item for key, item in found.items() if item.get("id") in catalog()}
+    if found != before:
+        try:
+            saved.parent.mkdir(parents=True, exist_ok=True)
+            saved.write_text(json.dumps(list(found.values())))
+        except OSError:
+            pass
     return sorted(found.values(), key=lambda item: -item["when"])
 
 
@@ -158,7 +173,8 @@ def check_versions():
 
     def padmint():
         try:
-            VERSIONS["padmint"] = release_tag("https://github.com/chrissotraidis/padmint")
+            found = update.latest()
+            VERSIONS["padmint"] = "v" + found if found else None
         except Exception:
             pass
 
@@ -399,6 +415,9 @@ class Builds:
                                     "about": phrase(key, lang, name=name) if key in MESSAGES else ""}
         return job["results"][lang]
 
+    def running(self):
+        return bool(self.process and self.process.poll() is None)
+
     def cancel(self):
         if self.process and self.process.poll() is None:
             # PadMint cancels and keeps finished work.
@@ -409,7 +428,7 @@ class Builds:
             cli.reveal(Path(self.result()["file"]))
 
 
-def make_handler(token, builds):
+def make_handler(token, builds, restart=None):
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args):
             pass
@@ -446,6 +465,12 @@ def make_handler(token, builds):
                 return self.reply(200, player_data(self.lang()))
             if route == "/api/versions":
                 return self.reply(200, VERSIONS)
+            if route == "/api/update":
+                return self.reply(200, update.STATE)
+            if route == "/api/storage":
+                if storage.STATE.get("state") == "idle" or "fresh" in parse_qs(urlparse(self.path).query):
+                    storage.measure(latest_tags())
+                return self.reply(200, storage.STATE)
             match = re.fullmatch(r"/art/([a-z0-9]+)\.png", route)
             if match and (ART / f"{match.group(1)}.png").is_file():
                 return self.reply(200, (ART / f"{match.group(1)}.png").read_bytes(), "image/png")
@@ -483,6 +508,25 @@ def make_handler(token, builds):
                 if route == "/api/cancel":
                     builds.cancel()
                     return self.reply(200, builds.status())
+                if route == "/api/update":
+                    if not VERSIONS.get("padmint") or not update.newer(VERSIONS["padmint"]):
+                        raise ValueError("This is the newest PadMint")
+                    update.start(VERSIONS["padmint"].lstrip("v"))
+                    return self.reply(200, update.STATE)
+                if route == "/api/restart":
+                    if builds.running():
+                        raise ValueError(phrase("w_st_busy", lang))
+                    if restart is None:
+                        raise ValueError("PadMint can't restart itself here")
+                    self.reply(200, {})
+                    threading.Thread(target=restart, daemon=True).start()
+                    return None
+                if route == "/api/remove":
+                    if builds.running():
+                        raise ValueError(phrase("w_st_busy", lang))
+                    freed = storage.remove(list(form.get("ids") or []), latest_tags())
+                    storage.STATE.update(state="idle")
+                    return self.reply(200, {"freed": freed})
                 if route == "/api/reveal":
                     builds.reveal()
                     return self.reply(200, {})
@@ -493,10 +537,33 @@ def make_handler(token, builds):
     return Handler
 
 
+def latest_tags():
+    """Each game's latest release tag, as far as the background check has read them."""
+    return {game: tag for game, tag in VERSIONS["games"].items() if tag}
+
+
 def serve(port=0, open_browser=True):
-    token = secrets.token_urlsafe(24)
+    # After an update PadMint restarts itself on the same address, so the open page and the
+    # Mac app's window keep working: the restarted process gets the port and token back.
+    token = os.environ.pop("PADMINT_UI_TOKEN", "") or secrets.token_urlsafe(24)
+    reused = os.environ.pop("PADMINT_UI_PORT", "")
+    if reused:
+        port, open_browser = int(reused), False
     builds = Builds()
-    server = ThreadingHTTPServer(("127.0.0.1", port), make_handler(token, builds))
+    holder = {}
+
+    def restart():
+        time.sleep(0.3)  # let the reply reach the page
+        holder["restarting"] = True
+        server = holder["server"]
+        server.shutdown()
+        server.server_close()
+        os.environ.update(PADMINT_UI_PORT=str(server.server_address[1]), PADMINT_UI_TOKEN=token)
+        os.environ.pop("PADMINT_FROM_UPDATE", None)
+        os.execv(sys.executable, [sys.executable, "-m", "padmint", "ui", "--no-open"])
+
+    server = ThreadingHTTPServer(("127.0.0.1", port), make_handler(token, builds, restart))
+    holder["server"] = server
     url = f"http://127.0.0.1:{server.server_address[1]}/?token={token}"
     print(phrase("w_open", language(), version=__version__, url=url), flush=True)
     # Read every game's latest release (and its recipe) in the background, so the page can
@@ -509,6 +576,8 @@ def serve(port=0, open_browser=True):
             webbrowser.open(url)
     try:
         server.serve_forever()
+        while holder.get("restarting"):  # the restart thread replaces this process
+            time.sleep(1)
     except KeyboardInterrupt:
         pass
     finally:
@@ -705,16 +774,78 @@ button.btn.link{background:none;border:0;color:var(--mint);font-weight:650;paddi
 .bar i{transition:width .6s ease;background:linear-gradient(90deg,var(--mint2),var(--mint))}
 .bar.live i{background-image:linear-gradient(90deg,var(--mint2),var(--mint),color-mix(in srgb,var(--mint) 60%,#fff),var(--mint),var(--mint2));background-size:200% 100%;animation:shimmer 1.8s linear infinite}
 @keyframes shimmer{to{background-position:-200% 0}}
+
+/* Polish pass: one button system, quiet focus rings, a real header, intro, sheet and Storage. */
+*:focus{outline:none}*:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:10px}
+button.btn,a.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-height:2.5rem;padding:0 1.05rem;border-radius:11px;font-weight:650;font-size:.93rem;line-height:1;border:1px solid color-mix(in srgb,var(--text) 12%,transparent);background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--text);text-decoration:none;transition:background .15s,border-color .15s,transform .1s,box-shadow .2s}
+button.btn:hover:not(:disabled),a.btn:hover{background:color-mix(in srgb,var(--text) 11%,transparent);border-color:color-mix(in srgb,var(--text) 20%,transparent)}
+button.btn:active:not(:disabled),a.btn:active{transform:translateY(1px)}
+button.btn.main,a.btn.main,a.main{background:linear-gradient(180deg,#6af0b5,var(--mint));border-color:transparent;color:#05261a;box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 8px 20px -12px var(--mint)}
+button.btn.main:hover:not(:disabled),a.btn.main:hover{background:linear-gradient(180deg,#7ff5c2,#4be3a2);box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 12px 26px -12px var(--mint)}
+button.btn.main{font-size:1rem;min-height:2.85rem;padding:0 1.5rem}button.btn.small,button.btn.main.small{min-height:2.2rem;font-size:.86rem;padding:0 .95rem}
+button.btn.ghost{background:transparent}button.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 35%,transparent);background:transparent}
+button.btn.danger:hover:not(:disabled){background:color-mix(in srgb,var(--bad) 12%,transparent)}
+button.btn.back{min-height:auto;padding:.2rem 0;border:0;background:none;color:var(--mint)}button.btn.back:hover{background:none;text-decoration:underline}
+button.btn.link{min-height:auto;padding:.15rem .2rem;border:0;background:none;color:var(--mint)}button.btn.link:hover:not(:disabled){background:none;text-decoration:underline}
+header{display:flex;align-items:center;gap:1rem;flex-wrap:nowrap}.brand{flex:none}.brand h1{font-size:1.3rem}.brand .v{display:none}.mark{width:36px;height:36px}
+.nav{display:flex;gap:.2rem;padding:.22rem;border-radius:12px;background:color-mix(in srgb,var(--text) 6%,transparent);margin-right:auto}
+.navb{font:inherit;font-size:.9rem;font-weight:650;color:var(--muted);background:none;border:0;border-radius:9px;padding:.42rem .9rem;cursor:pointer;transition:background .15s,color .15s}
+.navb:hover{color:var(--text)}.navb.on{background:var(--panel2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.35)}
+.top{gap:.45rem}.gh{width:2.4rem;height:2.4rem;border-radius:11px;background:color-mix(in srgb,var(--text) 6%,transparent);border-color:transparent}
+.langw{position:relative;display:inline-flex;align-items:center;height:2.4rem;border-radius:11px;background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--muted)}
+.langw:hover{background:color-mix(in srgb,var(--text) 11%,transparent)}.langw svg{position:absolute;left:.65rem;width:16px;height:16px;pointer-events:none}
+.langw select{appearance:none;-webkit-appearance:none;background:transparent;border:0;height:100%;padding:0 .8rem 0 2.05rem;color:var(--text);font-weight:600;font-size:.88rem;cursor:pointer;border-radius:11px}
+.langw select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+button.vstat{font:inherit;font-size:.82rem;font-weight:650;cursor:default;height:2.4rem;border-radius:11px;padding:0 .85rem;background:color-mix(in srgb,var(--mint) 12%,transparent);border:0;color:var(--mint)}
+button.vstat.upd{cursor:pointer;background:var(--warn);color:#2a1d00}button.vstat.upd:hover{filter:brightness(1.06)}button.vstat.wait{background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--muted)}
+.intro{position:relative;margin:1.5rem 0 .4rem;padding:1.5rem 1.6rem;border-radius:22px;overflow:hidden;border:1px solid color-mix(in srgb,var(--mint) 22%,var(--line));background:radial-gradient(700px 260px at 100% 0%,color-mix(in srgb,#2d9cdb 22%,transparent),transparent 70%),radial-gradient(600px 260px at 0% 100%,color-mix(in srgb,var(--mint) 22%,transparent),transparent 70%),var(--panel)}
+.intro h1{margin:0 0 .45rem;font-size:1.65rem;line-height:1.2;letter-spacing:-.025em;max-width:30ch}
+.intro p{margin:0;color:var(--muted);max-width:62ch;font-size:1rem}
+.intro ol{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;list-style:none;padding:0;margin:1rem 0 .2rem;counter-reset:s}
+.intro li{counter-increment:s;display:flex;align-items:center;gap:.5rem;font-weight:600;font-size:.92rem}
+.intro li:before{content:counter(s);display:grid;place-items:center;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--mint);color:#05261a;font-size:.78rem;font-weight:800}
+.intro .row{margin-top:.9rem}
+.intro.compact{padding:1rem 1.2rem}.intro.compact h1{font-size:1.15rem;margin-bottom:.2rem}.intro.compact ol{display:none}.intro.compact p{font-size:.9rem}
+.sheet{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:1.2rem;background:rgba(3,8,6,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fade .2s both}
+.sheet.hidden{display:none}@keyframes fade{from{opacity:0}}
+.sheetbox{position:relative;width:min(640px,100%);max-height:calc(100vh - 2.4rem);overflow:auto;padding:1.6rem 1.7rem;border-radius:22px;background:var(--panel);border:1px solid var(--line);box-shadow:0 30px 80px -20px rgba(0,0,0,.7);animation:rise .25s both}
+.sheetbox h2{margin:0 0 .5rem;font-size:1.35rem;letter-spacing:-.02em}.sheetbox p{color:var(--muted)}
+.sheet .x{position:absolute;top:.8rem;right:.8rem;width:2.2rem;height:2.2rem;border-radius:50%;border:0;background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--muted);font-size:1.2rem;cursor:pointer}.sheet .x:hover{color:var(--text)}
+.sheet .flow{grid-template-columns:1fr;gap:.4rem}.sheet .flow div{padding:.6rem .8rem .6rem 2.9rem}.sheet .flow i{top:.65rem}
+.sheet .explain{grid-template-columns:1fr}.sheet .about h2{margin:1.1rem 0 .4rem}.sheet .chips{margin:.8rem 0 .2rem}.sheet .hero{margin:0}
+.who{display:flex;gap:.9rem;align-items:flex-start;padding:.9rem 1rem;border-radius:14px;background:color-mix(in srgb,var(--mint) 9%,var(--panel2));margin:.6rem 0 .2rem}.who b{display:block}
+.upd-head{display:flex;align-items:center;gap:1rem;margin-bottom:.4rem}.upd-head .mark{width:56px;height:56px}
+#storage .sechead{margin-top:1.6rem}
+.st-sum{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;padding:1.3rem 1.4rem;border-radius:20px;background:var(--panel);border:1px solid var(--line);margin-top:1.4rem}
+.st-sum .big{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1}.st-sum .body{min-width:200px}
+.st-meter{height:10px;border-radius:99px;overflow:hidden;display:flex;background:color-mix(in srgb,var(--text) 8%,transparent);margin:.7rem 0 .35rem}
+.st-meter i{display:block;height:100%}.st-meter .keep{background:var(--mint)}.st-meter .old{background:var(--warn)}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}.legend span:before{content:"";display:inline-block;width:.6rem;height:.6rem;border-radius:3px;margin-right:.35rem;background:var(--c)}
+.st-row{display:flex;align-items:center;gap:.9rem;padding:.65rem 1rem;border-bottom:1px solid var(--line)}.st-row:last-child{border-bottom:0}
+.st-row .art{width:40px;height:40px;border-radius:11px;font-size:.85rem}.st-row .sz{font-variant-numeric:tabular-nums;font-weight:650;min-width:4.5rem;text-align:right}
+.glyph{background:linear-gradient(135deg,#3a4a44,#1f2a26)!important;color:var(--muted)!important;font-size:1.1rem!important}
+details.kept{margin-top:.8rem}details.kept>summary{padding:.4rem 0;font-weight:600}
+.toast{position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%);z-index:30;padding:.7rem 1.1rem;border-radius:12px;background:var(--mint);color:#05261a;font-weight:700;box-shadow:0 14px 34px -14px rgba(0,0,0,.7);animation:rise .25s both}
+.native footer .localnote{display:none}
+.who .mark{width:44px;height:44px;flex:none}.who span{display:block;margin-top:.15rem}
+.sheet .hero>p,.sheet .about>h2,.sheet .about .flow{display:none}.sheet .chips{margin:.9rem 0 .4rem}
+.sheet .explain details{background:none;border:0;padding:0;margin-top:.9rem}.sheet .explain summary{pointer-events:none;list-style:none;color:var(--text);font-weight:700;font-size:1.02rem}
+.sheet .explain summary::-webkit-details-marker{display:none}.sheet .explain li,.sheet .explain p{color:var(--muted)}
+html{min-height:100%;background:var(--bg)}body{min-height:100vh;background-attachment:fixed}
+@media (max-width:640px){header{flex-wrap:wrap}.nav{order:3;width:100%;margin-right:0}.nav .navb{flex:1}.intro h1{font-size:1.3rem}}
+
 @media (prefers-color-scheme:light){.act.download{color:#1d6fa5}.vstat.upd,.badge.upd,.fact.new{color:#2a1d00}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 </style></head><body><div class="wrap">
 <header><a class="brand" id="home" href="#"><div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="pmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ff0b0"/><stop offset="1" stop-color="#14945f"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#pmg)"/><path fill="#06281a" d="M19 19h26c7.2 0 12.6 6.6 11.2 13.7l-2.1 10.2c-1 4.9-7.1 6.6-10.5 2.9L39 41H25l-4.6 4.8c-3.4 3.7-9.5 2-10.5-2.9L7.8 32.7C6.4 25.6 11.8 19 19 19z"/><path stroke="#5ff0b0" stroke-width="4" stroke-linecap="round" d="M20 26v10M15 31h10"/><path fill="#5ff0b0" d="M37 37c0-6.5 4.8-11 12-11 0 6.5-4.8 11-12 11z"/><path stroke="#06281a" stroke-width="1.8" stroke-linecap="round" d="M39.5 34.5l6.5-6"/></svg></div>
 <div><h1>PadMint</h1><div class="v" id="ver"></div></div></a>
-<div class="top"><a class="vstat hidden" id="vstat" rel="noopener"></a><a class="gh" id="gh" href="https://github.com/chrissotraidis" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
-<select id="lang" aria-label="Language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></div></header>
+<nav class="nav"><button class="navb on" id="navGames" data-t="nav_games"></button><button class="navb" id="navStorage" data-t="nav_storage"></button></nav>
+<div class="top"><button class="vstat hidden" id="vstat"></button><a class="gh" id="gh" href="https://github.com/chrissotraidis" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+<label class="langw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><select id="lang" aria-label="Language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></label></div></header>
 
 <main id="form">
+<section class="intro" id="intro"><h1 data-t="hero_title"></h1><p data-t="hero_text"></p><ol><li data-t="intro_1"></li><li data-t="intro_2"></li><li data-t="intro_3"></li></ol><div class="row"><button class="btn link" id="aboutOpen" data-t="learn_more"></button></div></section>
 <section class="hidden" id="nowBox"></section>
 <section class="welcome hidden" id="welcome"><b data-t="welcome_title"></b><span data-t="welcome_text"></span></section>
 <section class="hidden" id="shelf"><div class="sechead"><h2 data-t="your_games"></h2><span class="muted small" id="shelfNote"></span></div><div class="shelf" id="shelfList"></div><button class="btn ghost more hidden" id="shelfMore"></button></section>
@@ -754,12 +885,14 @@ button.btn.link{background:none;border:0;color:var(--mint);font-weight:650;paddi
 <section class="card"><details id="logBox"><summary><span data-t="log"></span> <span class="muted" id="lineCount"></span></summary>
 <pre id="tail"></pre><button class="btn" id="copy" data-t="copy_log"></button></details></section>
 </main>
-<details class="aboutbox" id="aboutBox"><summary data-t="about_padmint"></summary><section class="hero"><p data-t="intro"></p><div class="chips"><span class="chip" data-t="trust_local"></span><span class="chip" data-t="trust_upload"></span><span class="chip" data-t="trust_open"></span></div>
+<main id="storage" class="hidden"><div class="sechead"><h2 data-t="nav_storage"></h2></div><p class="note" data-t="st_intro"></p><div id="stBody"></div></main>
+<div id="aboutHome"><div class="hidden" id="aboutPanel"><h2 data-t="about_padmint"></h2><div class="who"><div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="pmg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ff0b0"/><stop offset="1" stop-color="#14945f"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#pmg2)"/><path fill="#06281a" d="M19 19h26c7.2 0 12.6 6.6 11.2 13.7l-2.1 10.2c-1 4.9-7.1 6.6-10.5 2.9L39 41H25l-4.6 4.8c-3.4 3.7-9.5 2-10.5-2.9L7.8 32.7C6.4 25.6 11.8 19 19 19z"/><path stroke="#5ff0b0" stroke-width="4" stroke-linecap="round" d="M20 26v10M15 31h10"/><path fill="#5ff0b0" d="M37 37c0-6.5 4.8-11 12-11 0 6.5-4.8 11-12 11z"/><path stroke="#06281a" stroke-width="1.8" stroke-linecap="round" d="M39.5 34.5l6.5-6"/></svg></div><div><b data-t="who_title"></b><span class="muted" data-t="who_text"></span></div></div><section class="hero"><p data-t="intro"></p><div class="chips"><span class="chip" data-t="trust_local"></span><span class="chip" data-t="trust_upload"></span><span class="chip" data-t="trust_open"></span></div>
 </section>
 <section class="about" id="about"><h2 data-t="about_title"></h2><div class="flow"><div><i>1</i><b data-t="flow_1"></b><span data-t="flow_1s"></span></div><div><i>2</i><b data-t="flow_2"></b><span data-t="flow_2s"></span></div><div><i>3</i><b data-t="flow_3"></b><span data-t="flow_3s"></span></div></div>
 <div class="explain"><details id="howBox"><summary data-t="how_title"></summary><ol><li data-t="how_1"></li><li data-t="how_2"></li><li data-t="how_3"></li><li data-t="how_4"></li><li data-t="how_5"></li></ol></details>
-<details id="whyBox"><summary data-t="why_title"></summary><p data-t="why_1"></p><p data-t="why_2"></p></details></div></section></details>
-<footer><span data-t="local_note"></span><span><a href="https://github.com/chrissotraidis/padmint/releases/latest" target="_blank" rel="noopener" data-t="update"></a> · <a href="https://github.com/chrissotraidis/padmint" target="_blank" data-t="source"></a> · <a id="reportLink" href="https://github.com/chrissotraidis/padmint/issues" target="_blank" data-t="report"></a></span></footer>
+<details id="whyBox"><summary data-t="why_title"></summary><p data-t="why_1"></p><p data-t="why_2"></p></details></div></section></div></div>
+<div class="sheet hidden" id="sheet"><div class="sheetbox" role="dialog" aria-modal="true"><button class="x" id="sheetClose" aria-label="Close">×</button><div id="sheetBody"></div></div></div>
+<footer><span class="localnote" data-t="local_note"></span><span><a href="https://github.com/chrissotraidis/padmint/releases/latest" target="_blank" rel="noopener" data-t="update"></a> · <a href="https://github.com/chrissotraidis/padmint" target="_blank" data-t="source"></a> · <a id="reportLink" href="https://github.com/chrissotraidis/padmint/issues" target="_blank" data-t="report"></a></span></footer>
 </div>
 <script>
 const T="__TOKEN__";let D=__DATA__,S=D.text;const H={"Content-Type":"application/json","X-PadMint-Token":T};
@@ -814,10 +947,11 @@ function devicesOf(x,kind){if(kind=="build")return x.platforms.map(p=>p.short||p
  return [...(o.includes("iphone")&&o.includes("ipad")?["iPhone/iPad"]:o.filter(d=>d!="mac").map(d=>DEVICES[d])),...(o.includes("mac")?["Mac"]:[])]}
 function ago(t){const f=new Intl.RelativeTimeFormat(D.lang,{numeric:"auto"}),s=Date.now()/1000-t;
  for(const [n,k] of [["year",31536000],["month",2592000],["week",604800],["day",86400],["hour",3600],["minute",60]])if(s>=k)return f.format(-Math.floor(s/k),n);return f.format(0,"minute")}
-function vstat(){const a=$("vstat"),newer=!!V.padmint&&V.padmint.replace(/^v/,"")!=D.version;
- a.classList.toggle("hidden",V.done&&!V.padmint);a.className="vstat"+(newer?" upd":V.padmint?" ok":"")+(V.done&&!V.padmint?" hidden":"");
- a.textContent=newer?fill("pm_update",{version:V.padmint})+" · "+S.get_padmint+" ›":V.padmint?"✓ v"+D.version+" · "+S.up_to_date:S.checking;
- if(newer){a.href="https://github.com/chrissotraidis/padmint/releases/latest";a.target="_blank"}else{a.removeAttribute("href");a.removeAttribute("target")}}
+function vstat(){const a=$("vstat"),newer=!!V.padmint&&cmpv(V.padmint,D.version)>0;
+ a.className="vstat"+(newer?" upd":V.padmint?"":" wait")+(V.done&&!V.padmint?" hidden":"");
+ a.textContent=newer?fill("pm_update",{version:V.padmint})+" · "+S.up_short+" ›":V.padmint?"✓ v"+D.version:S.checking;a.title=V.padmint&&!newer?S.up_to_date:"";
+ a.onclick=newer?openUpdate:null}
+const cmpv=(a,b)=>{const x=a.replace(/^v/,"").split(".").map(Number),y=b.replace(/^v/,"").split(".").map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d}return 0};
 let shelfAll=false;
 function shelf(){const items=(D.library||[]).filter(l=>all().some(x=>x.id==l.id)),busy=!!sel||!$("progress").classList.contains("hidden");
  $("shelf").classList.toggle("hidden",busy||!items.length);$("welcome").classList.toggle("hidden",busy||!!items.length||!D.games.length);
@@ -844,6 +978,56 @@ async function versions(){try{const r=await (await fetch("/api/versions",{header
 for(const b of document.querySelectorAll(".tab"))b.onclick=()=>{group=b.dataset.g;cards()};
 function filters(){const systems=[...new Set(all().map(systemOf).filter(Boolean))].sort();
  $("filters").replaceChildren(...["",...systems].map(s=>{const b=el("button",s||S.all,"filter"+(s==system?" on":""));b.onclick=()=>{system=s;filters();cards()};return b}))}
+
+const size=b=>b>=1e9?(b/1e9).toFixed(b>=1e11?0:1)+" GB":b>=1e6?Math.round(b/1e6)+" MB":b>0?Math.max(1,Math.round(b/1e3))+" KB":"0";
+function toast(text){const t=el("div",text,"toast");document.body.append(t);setTimeout(()=>t.remove(),2800)}
+function sheet(...nodes){$("sheetBody").replaceChildren(...nodes);$("sheet").classList.remove("hidden")}
+function closeSheet(){if($("aboutPanel").parentNode==$("sheetBody"))$("aboutHome").append($("aboutPanel"));$("sheet").classList.add("hidden")}
+$("sheetClose").onclick=closeSheet;$("sheet").onclick=e=>{if(e.target==$("sheet"))closeSheet()};
+$("aboutOpen").onclick=()=>{$("howBox").open=$("whyBox").open=true;$("aboutPanel").classList.remove("hidden");sheet($("aboutPanel"))};
+function nav(v){$("navGames").classList.toggle("on",v=="games");$("navStorage").classList.toggle("on",v=="storage")}
+$("navGames").onclick=()=>home();$("navStorage").onclick=()=>storageView();
+function intro(){const busy=!!sel||!$("progress").classList.contains("hidden")||!$("storage").classList.contains("hidden");
+ $("intro").classList.toggle("hidden",busy);$("intro").classList.toggle("compact",(D.library||[]).length>0)}
+// PadMint updates itself where it can, else the button opens the download page.
+function openUpdate(){const v=V.padmint;if(!D.self_update){window.open("https://github.com/chrissotraidis/padmint/releases/latest","_blank");return}
+ const head=el("div",null,"upd-head");head.append(markIcon(),el("h2",fill("up_title",{version:v})));
+ const state=el("div"),go=el("button",S.up_now,"btn main");go.onclick=async()=>{go.disabled=true;const r=await post("/api/update");if(r.error){state.replaceChildren(el("p",r.error,"bad"));go.disabled=false;return}watchUpdate(state,go)};
+ const row=el("div",null,"row");row.append(go);sheet(head,el("p",S.up_text),state,row)}
+function markIcon(){const i=el("div",null,"mark");i.innerHTML=$("home").querySelector(".mark").innerHTML;return i}
+async function watchUpdate(state,go){const r=await (await fetch("/api/update",{headers:H})).json();
+ if(r.state=="downloading"||r.state=="installing"){state.replaceChildren(el("p",r.state=="installing"?S.up_installing:fill("up_downloading",{percent:r.percent||0}),"state"),bar(r.state=="installing"?100:r.percent||0));setTimeout(()=>watchUpdate(state,go),400);return}
+ if(r.state=="failed"){const a=el("a",S.up_manual,"btn");a.href="https://github.com/chrissotraidis/padmint/releases/latest";a.target="_blank";state.replaceChildren(el("p",fill("up_failed",{error:r.error||""}),"bad"),a);go.disabled=false;return}
+ if(r.state=="ready"){state.replaceChildren(el("p","✓ "+fill("up_installed",{version:r.version}),"state ok"));go.textContent=S.up_restart;go.disabled=false;
+  go.onclick=async()=>{go.disabled=true;const x=await post("/api/restart");if(x.error){state.append(el("p",x.error,"bad"));go.disabled=false;return}
+   state.replaceChildren(el("p",S.up_restarting,"muted loading"));const wait=async()=>{try{const ok=await fetch("/api/versions",{headers:H});if(ok.ok){location.reload();return}}catch(e){}setTimeout(wait,700)};setTimeout(wait,1200)}}}
+// Storage: what PadMint keeps in its folder, and removing what it no longer needs.
+let ST=null;
+function storageView(){watch=false;sel=null;$("form").classList.add("hidden");$("progress").classList.add("hidden");$("storage").classList.remove("hidden");nav("storage");intro();scrollTo({top:0});loadStorage(true)}
+async function loadStorage(fresh){const r=await (await fetch("/api/storage"+(fresh?"?fresh=1":""),{headers:H})).json();if($("storage").classList.contains("hidden"))return;ST=r;renderStorage();if(r.state=="measuring"||r.state=="idle")setTimeout(()=>loadStorage(false),900)}
+function nameOf(i){const g=i.game&&all().find(x=>x.id==i.game);return g?(g.about?title(g):g.name):i.kind=="padmint"?"PadMint":i.name||i.id}
+function stRow(i){const r=el("div",null,"st-row"),g=i.game&&all().find(x=>x.id==i.game);
+ const a=g?art(g):(()=>{const s=el("span",i.kind=="tool"?"⚙":i.kind=="padmint"?"P":"⇣","art gen glyph");return s})();
+ const body=el("div",null,"body");body.append(el("span",nameOf(i),"t"),el("span",[i.version||(g?"":i.name),S["st_r_"+i.reason]].filter(Boolean).join(" · "),"s"));
+ r.append(a,body,el("span",size(i.size),"sz"));if(i.removable){const b=el("button",S.st_remove,"btn small danger");b.onclick=()=>confirmRemove([i]);r.append(b)}return r}
+function renderStorage(){const box=$("stBody");if(!ST||ST.state!="ready"){box.replaceChildren(el("p",ST&&ST.state=="failed"?ST.error:S.st_calc,ST&&ST.state=="failed"?"bad":"muted loading"));return}
+ const items=ST.items,bulk=items.filter(i=>i.removable&&i.reason!="cache"),gone=bulk.reduce((a,i)=>a+i.size,0),cache=items.filter(i=>i.reason=="cache");
+ const sum=el("div",null,"st-sum"),body=el("div",null,"body");body.append(el("div",size(ST.total),"big"),el("span",fill("st_used",{folder:ST.folder})+" · "+fill("st_free",{size:size(ST.free)}),"s"));
+ const meter=el("div",null,"st-meter"),keep=el("i",null,"keep"),old=el("i",null,"old");keep.style.width=(100*(ST.total-gone)/Math.max(1,ST.total+ST.free))+"%";old.style.width=(100*gone/Math.max(1,ST.total+ST.free))+"%";meter.append(keep,old);
+ const lg=el("div",null,"legend"),l1=el("span",S.st_kept_short),l2=el("span",fill("st_can_go",{size:size(gone)}));l1.style.setProperty("--c","var(--mint)");l2.style.setProperty("--c","var(--warn)");lg.append(l1,l2);body.append(meter,lg);
+ const side=el("div",null,"side");if(gone){const b=el("button",fill("st_free_up",{size:size(gone)}),"btn main");b.onclick=()=>confirmRemove(bulk);side.append(b)}else side.append(el("span","✓ "+S.st_nothing,"badge ok"));
+ sum.append(body,side);const parts=[sum];
+ const group=(key,list,note)=>{if(!list.length)return;const h=el("div",null,"sechead");h.append(el("h2",S[key]),el("span",size(list.reduce((a,i)=>a+i.size,0)),"muted small"));parts.push(h);if(note)parts.push(el("p",S[note],"note"));const l=el("div",null,"list");l.append(...list.sort((a,b)=>b.size-a.size).map(stRow));parts.push(l)};
+ group("st_old",items.filter(i=>i.removable&&i.reason!="cache"&&i.reason!="unused"),"st_old_note");group("st_tools",items.filter(i=>i.reason=="unused"));group("st_cache",cache,"st_cache_note");
+ const kept=items.filter(i=>!i.removable);if(kept.length){const d=el("details",null,"kept"),s=el("summary",fill("st_kept",{count:kept.length,size:size(kept.reduce((a,i)=>a+i.size,0))}));const l=el("div",null,"list");l.append(...kept.sort((a,b)=>b.size-a.size).map(stRow));d.append(s,el("p",S.st_kept_note,"note"),l);parts.push(d)}
+ box.replaceChildren(...parts)}
+function confirmRemove(list){const total=list.reduce((a,i)=>a+i.size,0),go=el("button",fill("st_remove_size",{size:size(total)}),"btn main"),no=el("button",S.st_cancel,"btn ghost"),row=el("div",null,"row");
+ const ul=el("ul",null,"tools");for(const i of list.slice(0,6)){const li=el("li");li.append(el("span",nameOf(i)+(i.version?" "+i.version:"")),el("span",size(i.size),"muted"));ul.append(li)}if(list.length>6)ul.append(el("li","+"+(list.length-6),"muted"));
+ no.onclick=closeSheet;go.onclick=async()=>{go.disabled=true;no.disabled=true;go.textContent=S.st_removing;const r=await post("/api/remove",{ids:list.map(i=>i.id)});closeSheet();
+  if(r.error){toast(r.error);return}toast(fill("st_freed",{size:size(r.freed)}));ST=null;renderStorage();loadStorage(true)};
+ row.append(go,no);sheet(el("h2",fill("st_confirm_title",{size:size(total)})),el("p",fill("st_confirm_text",{folder:ST.folder})),ul,row)}
+
+
 function row(x,i){const kind=groupOf(x.id),b=el("button",null,"item "+kind);b.style.setProperty("--c",colorOf(x));b.style.setProperty("--i",Math.min(i||0,24));
  b.title=systemOf(x)?fill("original",{system:systemOf(x)}):"";const body=el("span",null,"body"),meta=[devicesOf(x,kind).join(", ")];
  if(kind=="build"&&x.ready){const on=x.platforms.filter(p=>x.ready.platforms.includes(p.id)).map(p=>p.short||p.label);if(on.length)meta.push(fill("ready_tag",{devices:on.join(", ")}))}
@@ -867,8 +1051,8 @@ function cards(){const q=$("search").value.trim().toLowerCase();
  $("noMatch").classList.toggle("hidden",!!G[group].length);layout()}
 function back(top){++fileRequest;reading=false;sel=null;file=null;dev=null;for(const id of ["fileBox","deviceBox","planBox","dlBox","readyBox","laterBox","inApp"])$(id).classList.add("hidden");cards();if(top)scrollTo({top:0,behavior:"smooth"});else $("pickCard").scrollIntoView({behavior:"smooth"})}
 let listShown=false;$("shelfMore").onclick=()=>{shelfAll=!shelfAll;shelf()};
-function layout(){$("about").classList.toggle("hidden",!!sel||!$("progress").classList.contains("hidden"));shelf()}
-function home(){if(last&&last.state=="running"){watch=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");back(true);now(last);return}
+function layout(){intro();shelf()}
+function home(){$("storage").classList.add("hidden");nav("games");closeSheet();if(last&&last.state=="running"){watch=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");back(true);now(last);return}
  last=null;shown=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");$("finished").replaceChildren();$("finished").classList.add("hidden");
  $("cancel").disabled=false;$("logBox").open=false;$("makeError").textContent="";$("reportLink").href="https://github.com/chrissotraidis/padmint/issues";
  $("search").value="";system="";group="all";watch=true;now(null);filters();back(true)}
@@ -965,7 +1149,7 @@ function now(r){const b=$("nowBox");if(!r||watch||r.state=="idle"){b.classList.a
   el("span",(r.state=="running"?pct+"% · ":"")+clock(r.elapsed)+" · "+S.see_progress+" ›","s"));
  if(r.state=="running"){const x=bar(pct);x.classList.add("live");body.append(x)}
  b.replaceChildren(art(g),body);b.className=r.state;b.onclick=()=>{watch=true;show(last);scrollTo({top:0})}}
-function show(r){if(r.state=="idle")return;last=r;now(r);if(!watch)return;$("form").classList.add("hidden");$("progress").classList.remove("hidden");layout();
+function show(r){if(r.state=="idle")return;last=r;now(r);if(!watch)return;$("storage").classList.add("hidden");nav("games");$("form").classList.add("hidden");$("progress").classList.remove("hidden");layout();
  const g=D.games.find(x=>x.id==r.game);$("making").textContent=r.state=="done"?S.done_title:r.state=="failed"?S.failed_title:r.state=="cancelled"?S.cancelled:fill("making",{name:g?g.name:r.game,device:r.device||""});
  if(g)$("headArt").replaceChildren(art(g));{const pct=overall(r),x=bar(pct);if(r.state=="running")x.classList.add("live");$("headBar").replaceChildren(r.state=="running"||r.state=="done"?x:"");$("headPct").textContent=r.state=="running"?" · "+pct+"%":""}
  $("headCard").classList.toggle("badb",r.state=="failed");$("headCard").classList.toggle("okb",r.state=="done");$("elapsedLabel").textContent=r.state=="done"?S.took:S.elapsed;$("elapsed").textContent=clock(r.elapsed);

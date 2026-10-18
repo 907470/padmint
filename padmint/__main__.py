@@ -5,6 +5,10 @@ from .macos_startup import prefer_native_macos
 
 prefer_native_macos()
 
+from .update import switch
+
+switch()  # a newer PadMint installed from the window runs instead of this one
+
 from .cli import main
 
 if os.name == "nt":

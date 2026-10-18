@@ -62,6 +62,7 @@ def main():
             "CFBundleIconFile": "AppIcon", "LSMinimumSystemVersion": "13.0", "NSHighResolutionCapable": True,
             "LSApplicationCategoryType": "public.app-category.utilities",
             "NSAppTransportSecurity": {"NSAllowsLocalNetworking": True},
+            "NSDownloadsFolderUsageDescription": "PadMint looks in Downloads for your own game files and saves the copies it makes there.",
             "NSHumanReadableCopyright": "Free and open source: github.com/chrissotraidis/padmint",
         }, stream)
     identity = os.environ.get("PADMINT_SIGN_IDENTITY", "-")

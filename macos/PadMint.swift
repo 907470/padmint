@@ -231,6 +231,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
 
 let app = NSApplication.shared
 let delegate = AppDelegate()
+// Closed by a signal (a logout, "kill"): stop PadMint the same way Quit does, so no server is left behind.
+var stopSignals: [DispatchSourceSignal] = []
+for number in [SIGTERM, SIGINT, SIGHUP] {
+    signal(number, SIG_IGN)
+    let source = DispatchSource.makeSignalSource(signal: number, queue: .main)
+    source.setEventHandler { delegate.stop(); exit(0) }
+    source.resume()
+    stopSignals.append(source)
+}
 app.delegate = delegate
 app.setActivationPolicy(.regular)
 app.run()
