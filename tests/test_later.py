@@ -18,7 +18,9 @@ class LaterTests(unittest.TestCase):
         self.assertIn("snappad", later)
         self.assertEqual(later["snappad"]["about"], "Pokémon Snap (N64)")
         self.assertIn("están en pausa", later["snappad"]["text"])
-        self.assertTrue(later["ratouch"]["link"].startswith("https://github.com/chrissotraidis/ratouch"))
+        self.assertTrue(later["f0x"]["link"].startswith("https://github.com/chrissotraidis/f0x"))
+        downloads = {app["id"]: app for app in ui.player_data("es")["downloads"]}
+        self.assertIn("RAtouch-v0.1.0-unsigned.ipa", downloads["ratouch"]["steps"][0])
 
     def test_a_listed_game_cannot_also_be_built_or_downloaded(self):
         entry = json.loads((manifest.CATALOG / "snappad.json").read_text())
