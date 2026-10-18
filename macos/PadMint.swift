@@ -40,7 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         // its privacy question, which can end up behind other windows.
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
             guard let self = self, self.web.isHidden, !self.spinner.isHidden else { return }
-            self.status.stringValue = "Starting PadMint…\n\nIf macOS asked whether PadMint may open files in your Downloads folder, answer it to continue. PadMint looks there for your game files."
+            self.status.stringValue = "Still starting PadMint…\n\nIf macOS asked PadMint a question, answer it to continue."
         }
         spinner.style = .spinning
         spinner.translatesAutoresizingMaskIntoConstraints = false
@@ -122,7 +122,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
               let range = output.range(of: #"http://127\.0\.0\.1:\d+/\?token=[A-Za-z0-9_\-]+"#, options: .regularExpression),
               let url = URL(string: String(output[range])) else { return }
         home = url
-        web.load(URLRequest(url: url))
+        web.load(URLRequest(url: url, timeoutInterval: 20))
+    }
+
+    // If the page doesn't load, try again a few times, then say so instead of spinning forever.
+    var attempts = 0
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        retry(error)
+    }
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        if webView.isHidden { retry(error) }
+    }
+    func retry(_ error: Error) {
+        guard let home = home, !quitting else { return }
+        attempts += 1
+        if attempts > 3 {
+            fail("PadMint started but its page didn't load (\(error.localizedDescription)).\n\nQuit PadMint and open it again. If it keeps happening, report it at github.com/chrissotraidis/padmint/issues.")
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.web.load(URLRequest(url: home, timeoutInterval: 20)) }
     }
 
     func fail(_ message: String) {

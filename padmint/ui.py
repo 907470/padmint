@@ -60,7 +60,6 @@ def player_data(lang):
     for game, name, platforms in cli.player_games():
         entry = catalog()[game]
         needs_file = entry.get("player_game_file", "build") != "in-app"
-        files = cli.game_files(folder, entry.get("manifest")) if needs_file else []
         games.append({"id": game, "name": name, "needs_file": needs_file,
                       "about": entry.get("game") or (entry.get("manifest") or {}).get("game", ""),
                       "formats": [f.upper() for f in input_formats([item for item in (entry.get("manifest") or {}).get("inputs", [])
@@ -70,7 +69,7 @@ def player_data(lang):
                                      "short": phrase(f"w_short_{p}", lang) if f"w_short_{p}" in MESSAGES else p}
                                     for p in platforms],
                       "held": cli.unavailable_devices(entry, platforms, lang),
-                      "files": [str(path) for path in files[:8]],
+                      "files": [],  # read on demand (/api/files): opening the window never waits on Downloads
                       "setup": setup_level(entry, platforms),
                       "ready": ({"text": localized(entry["ready_to_play"], "text", lang),
                                  "url": entry["ready_to_play"]["url"],
@@ -463,6 +462,16 @@ def make_handler(token, builds, restart=None):
                                   "text/html; charset=utf-8")
             if route == "/api/player":
                 return self.reply(200, player_data(self.lang()))
+            if route == "/api/files":
+                # Game files in the player's Downloads folder, for the chosen game only. On a Mac
+                # this is what can make macOS ask about the Downloads folder, so it is never part
+                # of opening the window.
+                game = parse_qs(urlparse(self.path).query).get("game", [""])[0]
+                if game not in {id_ for id_, _name, _platforms in cli.player_games()}:
+                    return self.reply(400, {"error": "unknown game"})
+                entry = catalog()[game]
+                files = cli.game_files(cli.player_folder(), release_recipe(game) or entry.get("manifest"))
+                return self.reply(200, {"files": [str(path) for path in files[:8]]})
             if route == "/api/versions":
                 return self.reply(200, VERSIONS)
             if route == "/api/update":
@@ -1067,13 +1076,17 @@ function choose(id){++fileRequest;reading=false;sel=id;file=null;dev=null;editFi
   const l=el("a",a.guide);l.href=a.guide;l.target="_blank";$("dlGuide").replaceChildren(S.guide+": ",l);$("dlBox").scrollIntoView({behavior:"smooth"})}
  for(const id of ["fileBox","deviceBox","planBox"])$(id).classList.add("hidden");$("inApp").classList.add("hidden");if(!g)return;
  if(g.needs_file){$("fileBox").classList.remove("hidden");
-  fileHint(g,null);$("foundBox").classList.toggle("hidden",!g.files.length);$("found").textContent=fill("found",{folder:D.folder});
-  $("files").replaceChildren(...g.files.map(f=>{const b=el("button",null,"btn file");b.append(el("b",base(f)),el("span","→","muted"));b.title=f;b.onclick=()=>useFile(f);return b}))}
+  fileHint(g,null);showFiles([]);loadFiles(g.id)}
  else{$("inAppText").textContent=fill("file_in_app",{name:g.name});$("inApp").classList.remove("hidden")}
  $("deviceBox").classList.remove("hidden");$("devices").replaceChildren(...g.platforms.map(p=>{const b=el("button",null,"pick");b.append(el("b",p.label));b.onclick=()=>pickDevice(p.id);b.dataset.id=p.id;return b}),
   ...(g.held||[]).map(h=>{const b=el("button",null,"pick");b.append(el("b",h.label),el("span",h.tag));b.disabled=true;b.setAttribute("aria-describedby","heldNote");return b}));
  const held=g.held||[];$("heldNote").classList.toggle("hidden",!held.length);if(held.length){const l=el("a",fill("later_link",{name:g.name}));l.href=g.page;l.target="_blank";$("heldNote").replaceChildren(held.map(h=>h.text).join(" ")+" ",l)}
  if(g.platforms.length==1)pickDevice(g.platforms[0].id);($("fileBox").classList.contains("hidden")?$("deviceBox"):$("fileBox")).scrollIntoView({behavior:"smooth"});ready()}
+let filesRequest=0;
+function showFiles(files){$("foundBox").classList.toggle("hidden",!files.length);$("found").textContent=fill("found",{folder:D.folder});
+ $("files").replaceChildren(...files.map(f=>{const b=el("button",null,"btn file");b.append(el("b",base(f)),el("span","→","muted"));b.title=f;b.onclick=()=>useFile(f);return b}))}
+async function loadFiles(id){const request=++filesRequest;try{const r=await (await fetch("/api/files?game="+encodeURIComponent(id),{headers:H})).json();
+ if(request==filesRequest&&sel==id)showFiles(r.files||[])}catch(e){}}
 let planRequest=0;
 async function pickDevice(id){const request=++planRequest;editDev=false;blocked=true;planning=true;dev=id;ready();for(const b of $("devices").children)b.classList.toggle("on",b.dataset.id==id);const rg=game();$("readyBox").classList.toggle("hidden",!(rg&&rg.ready&&rg.ready.platforms.includes(id)));$("planBox").classList.remove("hidden");$("plan").replaceChildren(el("p",fill("plan_loading",{name:(game()||{}).name||""}),"muted loading"));
  const selected=sel;try{const r=await (await fetch("/api/plan?game="+selected+"&platform="+id+"&lang="+D.lang+(file?"&disc="+encodeURIComponent(file):""),{headers:H})).json();if(request!=planRequest||dev!=id||sel!=selected)return;planning=false;showPlan(r);ready()}catch(e){if(request!=planRequest||dev!=id||sel!=selected)return;planning=false;$("plan").replaceChildren(el("p",String(e),"bad"));ready()}}
