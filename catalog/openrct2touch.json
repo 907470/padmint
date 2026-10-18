@@ -1,26 +1,114 @@
 {
   "schema_version": 1,
   "id": "openrct2touch",
+  "repo_url": "https://github.com/chrissotraidis/OpenRCT2Touch",
   "name": "OpenRCT2 Touch",
   "game": "RollerCoaster Tycoon 2 (PC)",
-  "plays_on": [
-    "ipad"
+  "player_targets": [
+    "ios"
   ],
-  "repo_url": "https://github.com/chrissotraidis/OpenRCT2Touch",
-  "reviewed_revision": null,
-  "player_help": "https://github.com/chrissotraidis/OpenRCT2Touch",
-  "notes": "Listed so players can find it, with why it isn't offered: no public build yet.",
-  "later": {
-    "status": "in_development",
-    "text": "Still in development: there's no public iPad build yet, only the source code. Its page has the latest news.",
-    "translations": {
-      "es": {
-        "text": "Todavía en desarrollo: aún no hay una versión pública para iPad, solo el código fuente. Su página tiene las últimas noticias."
-      },
-      "pt": {
-        "text": "Ainda em desenvolvimento: ainda não há versão pública para iPad, só o código-fonte. A página dele tem as últimas notícias."
-      }
-    }
+  "free_space_gb": 15,
+  "player_game_file": "in-app",
+  "before_build": {
+    "commands": [
+      "brew install pkg-config"
+    ]
   },
-  "manifest": null
+  "player_help": "https://github.com/chrissotraidis/OpenRCT2Touch#bring-your-own-game-data",
+  "reviewed_revision": null,
+  "notes": "Manifest owned by the game repository: OpenRCT2 with the Touch changes and its pinned iOS dependencies, built with no game data; players import their RCT2 or RCT Classic folder in the app.",
+  "manifest": {
+    "schema_version": 1,
+    "id": "openrct2touch",
+    "name": "OpenRCT2 Touch",
+    "game": "RollerCoaster Tycoon 2 (PC)",
+    "kind": "upstream-engine",
+    "status": "experimental",
+    "inputs": [
+      {
+        "type": "game-folder",
+        "when": "in-app",
+        "description": "Your own RollerCoaster Tycoon 2 or RollerCoaster Tycoon Classic installation folder (the one containing Data/g1.dat or Assets/g1.dat). You import it in OpenRCT2 Touch after installing; the build does not read it."
+      }
+    ],
+    "targets": {
+      "ios": {
+        "hosts": {
+          "macos-arm64": "experimental"
+        },
+        "tools": [
+          "git",
+          "cmake",
+          "ninja"
+        ],
+        "output": "ipa",
+        "check": "ipa",
+        "steps": [
+          {
+            "stage": "build",
+            "command": [
+              "/bin/bash",
+              "{repo}/scripts/build-padmint-ios.sh",
+              "{output}"
+            ]
+          }
+        ]
+      }
+    },
+    "requirements": {
+      "disk_gb": 15,
+      "tools": [
+        {
+          "name": "git",
+          "version_args": [
+            "--version"
+          ]
+        },
+        {
+          "name": "cmake",
+          "version_args": [
+            "--version"
+          ]
+        },
+        {
+          "name": "ninja",
+          "version_args": [
+            "--version"
+          ]
+        },
+        {
+          "name": "pkg-config",
+          "version_args": [
+            "--version"
+          ],
+          "player": true,
+          "note": "Install it with Homebrew: brew install pkg-config"
+        },
+        {
+          "name": "xcodebuild",
+          "version_args": [
+            "-version"
+          ],
+          "min_version": "26",
+          "player": true,
+          "note": "Install Xcode 26 or newer with its iOS platform, then select it in Xcode Settings > Locations > Command Line Tools; Command Line Tools alone are not enough."
+        },
+        {
+          "name": "xcrun",
+          "label": "Xcode iPhoneOS SDK",
+          "version_args": [
+            "--sdk",
+            "iphoneos",
+            "--show-sdk-path"
+          ],
+          "player": true,
+          "note": "Install Xcode 26 or newer with its iOS platform, then select it in Xcode Settings > Locations > Command Line Tools; Command Line Tools alone are not enough."
+        }
+      ]
+    },
+    "publication": {
+      "public_binaries": false,
+      "reason": "OpenRCT2 Touch publishes source rather than a public IPA (see its README); each player builds and signs their own copy. RollerCoaster Tycoon data is imported in the app."
+    }
+  }
 }

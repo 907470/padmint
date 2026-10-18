@@ -13,21 +13,33 @@ from padmint import manifest, ui
 
 
 class LaterTests(unittest.TestCase):
+    LISTED = {"schema_version": 1, "id": "somepad", "name": "SomePad", "game": "Some Game (N64)",
+              "repo_url": "https://github.com/chrissotraidis/somepad", "plays_on": ["ipad"],
+              "later": {"status": "paused", "text": "Downloads are paused.",
+                        "translations": {"es": {"text": "Las descargas están en pausa."}}},
+              "manifest": None}
+
     def test_listed_games_reach_the_page_in_the_players_language(self):
-        later = {game["id"]: game for game in ui.player_data("es")["later"]}
-        self.assertIn("snappad", later)
-        self.assertEqual(later["snappad"]["about"], "Pokémon Snap (N64)")
-        self.assertIn("están en pausa", later["snappad"]["text"])
-        self.assertTrue(later["f0x"]["link"].startswith("https://github.com/chrissotraidis/f0x"))
+        with tempfile.TemporaryDirectory() as folder:
+            for name in ("somepad", "ratouch"):
+                entry = self.LISTED if name == "somepad" else json.loads((manifest.CATALOG / "ratouch.json").read_text())
+                Path(folder, f"{name}.json").write_text(json.dumps(entry))
+            with mock.patch.object(manifest, "CATALOG", Path(folder)):
+                data = ui.player_data("es")
+        later = {game["id"]: game for game in data["later"]}
+        self.assertEqual(later["somepad"]["about"], "Some Game (N64)")
+        self.assertEqual(later["somepad"]["status"], "paused")
+        self.assertIn("están en pausa", later["somepad"]["text"])
+        self.assertTrue(later["somepad"]["link"].startswith("https://github.com/chrissotraidis/somepad"))
         downloads = {app["id"]: app for app in ui.player_data("es")["downloads"]}
         self.assertIn("RAtouch-v0.1.0-unsigned.ipa", downloads["ratouch"]["steps"][0])
 
     def test_a_listed_game_cannot_also_be_built_or_downloaded(self):
-        entry = json.loads((manifest.CATALOG / "snappad.json").read_text())
+        entry = self.LISTED
         for change in ({"player_targets": ["ios"], "free_space_gb": 10},
                        {"download": {"steps": ["x"]}}, {"later": {}}):
             with self.subTest(change=change), tempfile.TemporaryDirectory() as folder:
-                Path(folder, "snappad.json").write_text(json.dumps(dict(entry, **change)))
+                Path(folder, "somepad.json").write_text(json.dumps(dict(entry, **change)))
                 with mock.patch.object(manifest, "CATALOG", Path(folder)), self.assertRaises(ValueError):
                     manifest.catalog()
 

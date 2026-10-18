@@ -1,28 +1,132 @@
 {
   "schema_version": 1,
   "id": "ectopad",
+  "repo_url": "https://github.com/chrissotraidis/ectopad",
   "name": "EctoPad",
   "game": "Metroid Prime (GameCube)",
-  "plays_on": [
-    "iphone",
-    "ipad",
-    "mac"
+  "player_targets": [
+    "ios"
   ],
-  "repo_url": "https://github.com/chrissotraidis/ectopad",
-  "reviewed_revision": null,
-  "player_help": "https://github.com/chrissotraidis/ectopad#getting-started",
-  "notes": "Listed so players can find it, with why it isn't offered: no public build yet.",
-  "later": {
-    "status": "in_development",
-    "text": "Still in development: there's no download yet. You can build it yourself on a Mac with Xcode and your own copy of the game; its page has the steps.",
-    "translations": {
-      "es": {
-        "text": "Todavía en desarrollo: aún no hay descarga. Puedes crearlo tú mismo en un Mac con Xcode y tu propia copia del juego; su página tiene los pasos."
-      },
-      "pt": {
-        "text": "Ainda em desenvolvimento: ainda não há download. Você pode criá-lo num Mac com Xcode e sua própria cópia do jogo; a página dele tem os passos."
-      }
-    }
+  "game_ids": [
+    "GM8E01"
+  ],
+  "free_space_gb": 20,
+  "player_game_file": "in-app",
+  "before_build": {
+    "commands": [
+      "brew install rustup",
+      "rustup-init -y",
+      "rustup target add aarch64-apple-ios"
+    ]
   },
-  "manifest": null
+  "player_help": "https://github.com/chrissotraidis/ectopad#first-launch-and-game-data",
+  "reviewed_revision": null,
+  "notes": "Manifest owned by the game repository: Metaforce and its components at EctoPad's tested pins plus EctoPad's changes (scripts/bootstrap-workspace.sh), built with no game data; players import their disc image in the app.",
+  "manifest": {
+    "schema_version": 1,
+    "id": "ectopad",
+    "name": "EctoPad",
+    "game": "Metroid Prime (GameCube, GM8E01)",
+    "kind": "upstream-engine",
+    "status": "experimental",
+    "inputs": [
+      {
+        "type": "gamecube-disc",
+        "formats": [
+          "iso",
+          "gcm"
+        ],
+        "when": "in-app",
+        "description": "Your own Metroid Prime (USA, Rev 2, GM8E01) disc image. You import it in EctoPad after installing; the build does not read it."
+      }
+    ],
+    "targets": {
+      "ios": {
+        "hosts": {
+          "macos-arm64": "experimental"
+        },
+        "tools": [
+          "git",
+          "cmake",
+          "ninja"
+        ],
+        "output": "ipa",
+        "check": "ipa",
+        "steps": [
+          {
+            "stage": "build",
+            "command": [
+              "/bin/bash",
+              "{repo}/scripts/build-padmint-ios.sh",
+              "{output}"
+            ],
+            "env": {
+              "ECTOPAD_BUILD_JOBS": "{jobs}"
+            }
+          }
+        ]
+      }
+    },
+    "requirements": {
+      "disk_gb": 20,
+      "tools": [
+        {
+          "name": "git",
+          "version_args": [
+            "--version"
+          ]
+        },
+        {
+          "name": "cmake",
+          "version_args": [
+            "--version"
+          ]
+        },
+        {
+          "name": "ninja",
+          "version_args": [
+            "--version"
+          ]
+        },
+        {
+          "name": "python3",
+          "version_args": [
+            "--version"
+          ]
+        },
+        {
+          "name": "rustup",
+          "version_args": [
+            "--version"
+          ],
+          "player": true,
+          "note": "Install Rust with rustup and add the iPhone target; see PadMint's before-build line for this game."
+        },
+        {
+          "name": "xcodebuild",
+          "version_args": [
+            "-version"
+          ],
+          "min_version": "26",
+          "player": true,
+          "note": "Install Xcode 26 or newer with its iOS platform, then select it in Xcode Settings > Locations > Command Line Tools; Command Line Tools alone are not enough."
+        },
+        {
+          "name": "xcrun",
+          "label": "Xcode iPhoneOS SDK",
+          "version_args": [
+            "--sdk",
+            "iphoneos",
+            "--show-sdk-path"
+          ],
+          "player": true,
+          "note": "Install Xcode 26 or newer with its iOS platform, then select it in Xcode Settings > Locations > Command Line Tools; Command Line Tools alone are not enough."
+        }
+      ]
+    },
+    "publication": {
+      "public_binaries": false,
+      "reason": "EctoPad publishes source; each player builds and signs their own copy. The Metroid Prime disc image is imported in the app."
+    }
+  }
 }
