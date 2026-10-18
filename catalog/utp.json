@@ -11,7 +11,8 @@
   "player_game_file": "in-app",
   "before_build": {
     "commands": [
-      "brew install jq"
+      "brew install jq ripgrep",
+      "xcodebuild -downloadComponent MetalToolchain"
     ]
   },
   "player_help": "https://github.com/chrissotraidis/utp#getting-the-game-files",
