@@ -27,7 +27,7 @@
   ],
   "free_space_gb": 16,
   "free_space_gb_by_target": {
-    "macos": 60
+    "macos": 12
   },
   "ios_off_mac": true,
   "reviewed_revision": null,
@@ -326,7 +326,7 @@
       }
     },
     "requirements": {
-      "disk_gb": 60,
+      "disk_gb": 16,
       "tools": [
         {
           "name": "git",

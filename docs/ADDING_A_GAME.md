@@ -179,7 +179,7 @@ To offer the game in guided setup, add `player_targets` and a positive whole
 number for `free_space_gb`. Measure the first player build, including downloaded
 tools, fetched sources, temporary build files and the exported output; allow
 headroom. If targets need different amounts, add an optional
-`free_space_gb_by_target` map, for example `{"macos": 60}`; unlisted targets use
+`free_space_gb_by_target` map, for example `{"macos": 12}`; unlisted targets use
 `free_space_gb`. Only targets in `player_targets` may have overrides. The same
 estimate appears in the window, player `doctor`, the initial source download
 check and disk-full guidance. Cached source keeps the existing resume behavior;

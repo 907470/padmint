@@ -1,6 +1,6 @@
 # PadMint status
 
-Updated **16 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **18 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
@@ -33,10 +33,15 @@ work and when to revisit it.
 
 ## PadMint itself
 
+- **v0.5.4**: KartPad's Mac build asks for about 12 GB free instead of 60 GB
+  ([KartPad #489](https://github.com/chrissotraidis/kartpad/issues/489)). A clean
+  KartPad 0.8.3 Mac build from an empty PadMint folder peaked at 9.3 GB; the 60 GB
+  figure was never measured. Mobile copies keep their 16 GB budget.
+
 - **v0.5.3**: clearer KartPad setup on Mac. PadMint restarts natively when opened
   through Rosetta on Apple Silicon, restoring **This Mac**. Intel Macs show why
   that copy is unavailable while retaining supported choices. KartPad's Mac plan
-  now shows its 60 GB disk budget (mobile copies remain 16 GB), and completion
+  showed a 60 GB disk budget (corrected in 0.5.4), and completion
   links directly to the Mac installation guide. Update guidance explains how to
   open the new ZIP without deleting existing builds, caches or saves.
 
