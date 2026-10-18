@@ -40,14 +40,15 @@ class FreeSpaceTests(unittest.TestCase):
                     path.write_text(json.dumps(dict(entry, free_space_gb_by_target=invalid)))
                     with self.assertRaisesRegex(ValueError, "free_space_gb_by_target"):
                         manifest.catalog()
-            path.write_text(json.dumps(dict(entry, free_space_gb_by_target={"macos": 60})))
+            path.write_text(json.dumps(dict(entry, free_space_gb_by_target={"macos": 12})))
             valid = manifest.catalog()["somepad"]
-            self.assertEqual(cli.player_free_space(valid, "macos"), 60)
+            self.assertEqual(cli.player_free_space(valid, "macos"), 12)
             self.assertEqual(cli.player_free_space(valid, "ios"), 16)
             self.assertEqual(cli.player_free_space(valid), 16)
 
-    def test_mac_plan_and_player_doctor_use_60_gb_while_mobile_stays_at_16(self):
-        recipe = {"name": "KartPad", "status": "experimental", "requirements": {"disk_gb": 60},
+    def test_mac_plan_and_player_doctor_use_the_measured_12_gb_mac_budget(self):
+        # A clean KartPad 0.8.3 Mac build peaked at 9.3 GB (chrissotraidis/kartpad#489).
+        recipe = {"name": "KartPad", "status": "experimental", "requirements": {"disk_gb": 16},
                   "targets": {target: {"hosts": {"macos-arm64": "experimental"}}
                               for target in ("macos", "ios", "android")}}
         with tempfile.TemporaryDirectory() as folder, \
@@ -55,24 +56,24 @@ class FreeSpaceTests(unittest.TestCase):
                 mock.patch.object(cli, "published_recipe", return_value=(recipe, "synthetic release")), \
                 mock.patch.object(cli, "host_id", return_value="macos-arm64"), \
                 mock.patch.object(cli.tools, "tools_root", return_value=Path(folder) / "tools"), \
-                mock.patch.object(cli.shutil, "disk_usage", return_value=SimpleNamespace(free=32 * (1 << 30))):
-            for target, needed, expected_code in (("macos", 60, 1), ("ios", 16, 0), ("android", 16, 0)):
+                mock.patch.object(cli.shutil, "disk_usage", return_value=SimpleNamespace(free=14 * (1 << 30))):
+            for target, needed, expected_code in (("macos", 12, 0), ("ios", 16, 1), ("android", 16, 1)):
                 with self.subTest(target=target):
                     self.assertEqual(ui.plan("kartpad", target, "en")["space_gb"], needed)
                     stream = io.StringIO()
                     self.assertEqual(cli.doctor("kartpad", target, stream=stream), expected_code)
-                    self.assertIn(f"32 GB free, {needed} GB needed", stream.getvalue())
+                    self.assertIn(f"14 GB free, {needed} GB needed", stream.getvalue())
 
-    def test_fresh_mac_source_checks_selected_budget_before_downloading(self):
+    def test_fresh_source_checks_the_selected_target_budget_before_downloading(self):
         with tempfile.TemporaryDirectory() as folder, \
                 mock.patch.object(cli.tools, "tools_root", return_value=Path(folder) / "tools"), \
                 mock.patch.object(cli, "source_complete", return_value=False), \
-                mock.patch.object(cli.shutil, "disk_usage", return_value=SimpleNamespace(free=32 * (1 << 30))), \
+                mock.patch.object(cli.shutil, "disk_usage", return_value=SimpleNamespace(free=14 * (1 << 30))), \
                 mock.patch.object(cli, "fetch_source") as fetch:
-            with self.assertRaisesRegex(ValueError, "60 GB free"):
-                cli.release_source("kartpad", ref="v0.8.1", platform_name="macos")
+            with self.assertRaisesRegex(ValueError, "16 GB free"):
+                cli.release_source("kartpad", ref="v0.8.1", platform_name="ios")
             fetch.assert_not_called()
-            cli.release_source("kartpad", ref="v0.8.1", platform_name="ios")
+            cli.release_source("kartpad", ref="v0.8.1", platform_name="macos")
             fetch.assert_called_once()
 
     def test_cached_source_can_resume_without_the_initial_free_space_budget(self):
