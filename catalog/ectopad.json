@@ -5,7 +5,8 @@
   "name": "EctoPad",
   "game": "Metroid Prime (GameCube)",
   "player_targets": [
-    "ios"
+    "ios",
+    "macos"
   ],
   "game_ids": [
     "GM8E01"
@@ -127,6 +128,31 @@
     "publication": {
       "public_binaries": false,
       "reason": "EctoPad publishes source; each player builds and signs their own copy. The Metroid Prime disc image is imported in the app."
+    }
+  },
+  "player_next": {
+    "macos": {
+      "steps": [
+        "Open {file} and move EctoPad.app to your Applications folder.",
+        "Open EctoPad and choose Select Game to pick your own Metroid Prime (USA, Rev 2) disc image; next time, Load Previous Game opens it again.",
+        "Updating? Replace the old EctoPad.app with the new one. Your saves and disc choice are kept."
+      ],
+      "translations": {
+        "es": {
+          "steps": [
+            "Abre {file} y mueve EctoPad.app a tu carpeta Aplicaciones.",
+            "Abre EctoPad y elige Select Game para escoger tu propia imagen de disco de Metroid Prime (EE. UU., Rev 2); la próxima vez, Load Previous Game la vuelve a abrir.",
+            "¿Actualizando? Reemplaza el EctoPad.app anterior por el nuevo. Tus partidas y el disco elegido se conservan."
+          ]
+        },
+        "pt": {
+          "steps": [
+            "Abra {file} e mova o EctoPad.app para a sua pasta Aplicativos.",
+            "Abra o EctoPad e escolha Select Game para selecionar a sua própria imagem de disco de Metroid Prime (EUA, Rev 2); da próxima vez, Load Previous Game a abre de novo.",
+            "Atualizando? Substitua o EctoPad.app antigo pelo novo. Seus saves e o disco escolhido são mantidos."
+          ]
+        }
+      }
     }
   }
 }
