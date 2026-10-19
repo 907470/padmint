@@ -533,3 +533,12 @@ profiles never belong in this repository.
 ```sh
 python3 -m unittest discover -s tests -v
 ```
+
+## Legal
+
+PadMint is an unofficial, fan-made tool. It is not affiliated with, endorsed by,
+or sponsored by Nintendo or any other game publisher. Game titles named here are
+trademarks of their respective owners, including Nintendo. This repository
+contains no game data, ROMs, disc images, or extracted assets. To use it, you
+need your own legally obtained copy of each game, and PadMint builds it on your
+own machine. Please don't share game files or builds made from them.
