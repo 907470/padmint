@@ -48,11 +48,13 @@ def ready_asset(platform, names):
 
 def readme(repo_url, tag):
     path = urllib.parse.urlsplit(repo_url).path.strip("/")
-    try:
-        with urllib.request.urlopen(f"https://raw.githubusercontent.com/{path}/{tag}/README.md", timeout=30) as r:
-            return r.read().decode("utf-8", "replace")
-    except OSError:
-        return ""
+    for name in ("README.md", "readme.md"):  # GitHub shows either; OpenRCT2 Touch uses readme.md
+        try:
+            with urllib.request.urlopen(f"https://raw.githubusercontent.com/{path}/{tag}/{name}", timeout=30) as r:
+                return r.read().decode("utf-8", "replace")
+        except OSError:
+            pass
+    return ""
 
 
 def anchor(heading):
