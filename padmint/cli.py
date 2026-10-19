@@ -897,7 +897,69 @@ def _make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results
                    import_label=(entry.get("game_data_import") or {}).get(platform_name))
     report("save", state="done", folder=str(out), file=str(result))
     print(t(private_note(manifest)))
+    try:
+        tidy_older_builds(game, source)
+    except OSError:
+        pass  # the copy is saved; leftover build files are only disk space
     return 0
+
+
+def tidy_older_builds(game, source, stream=None):
+    """Each release of a game gets its own source folder in games/, and a build leaves
+    several GB in that folder's build/. Once a newer version has built, nothing reads an
+    older version's build/ again: the finished copy is in the player's folder, and reusable
+    packs and downloads live in cache/. So empty the older versions' build/ folders. The
+    rest of each older folder stays, because some games' guides point the player at game
+    files prepared there. A folder another PadMint is building in is left alone. Returns
+    the bytes freed; tidying never fails a build that already succeeded."""
+    stream = stream or sys.stdout
+    current = Path(source)
+    games = current.parent
+    prefix = f"{game}-"
+    newest = version_tuple(current.name[len(prefix):]) if current.name.startswith(prefix) else None
+    if newest is None or games.name != "games":
+        return 0
+    freed = 0
+    for folder in sorted(games.glob(prefix + "*")):
+        ref = folder.name[len(prefix):]
+        # Only a plain version (v0.8.2), never another game whose id starts the same way.
+        if (folder == current or folder.is_symlink() or not folder.is_dir()
+                or not re.fullmatch(r"v?\d+(?:\.\d+)*", ref) or version_tuple(ref) >= newest):
+            continue
+        build = folder / "build"
+        if build.is_symlink() or not build.is_dir():
+            continue
+        try:
+            lock = build / "padmint" / "runner.lock"
+            lock.parent.mkdir(exist_ok=True)
+            with workspace_lock(lock):
+                freed += _empty_build_folder(build, keep=lock)
+        except (OSError, ValueError):
+            continue  # in use, or not removable right now: try again after the next build
+    if freed >= 1 << 20:
+        print(t("tidied_older", name=game, size=f"{freed / (1 << 30):.1f}"), file=stream, flush=True)
+    return freed
+
+
+def _empty_build_folder(build, keep):
+    """Delete everything in build/ except the lock file being held; return the bytes freed."""
+    freed = 0
+    for path in [*build.iterdir(), *(keep.parent.iterdir() if keep.parent.is_dir() else [])]:
+        if path == keep or path == keep.parent:
+            continue
+        long = Path(tools._long(path))
+        if path.is_dir() and not path.is_symlink():
+            # Hard-linked files (shared with another folder) free nothing, so don't count them.
+            for item in long.rglob("*"):
+                info = item.lstat()
+                if stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
+                    freed += info.st_size
+            _remove_tree(long)
+        else:
+            info = long.lstat()
+            freed += info.st_size if stat.S_ISREG(info.st_mode) and info.st_nlink == 1 else 0
+            long.unlink()
+    return freed
 
 
 def private_note(manifest):
