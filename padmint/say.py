@@ -150,6 +150,11 @@ MESSAGES = {
         "es": "Tu carpeta de datos del juego de {name} ya está en {path}",
         "pt": "Sua pasta de dados do jogo de {name} já está em {path}",
     },
+    "tidied_older": {
+        "en": "Freed {size} GB: removed build files left by older versions of {name}.",
+        "es": "Se liberaron {size} GB: se quitaron archivos de compilación de versiones anteriores de {name}.",
+        "pt": "{size} GB liberados: foram removidos arquivos de compilação de versões anteriores de {name}.",
+    },
     "data_saving": {
         "en": "Saving your {name} game data folder (about {size} GB)…",
         "es": "Guardando tu carpeta de datos del juego de {name} (unos {size} GB)…",

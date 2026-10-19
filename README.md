@@ -52,8 +52,12 @@ an easy one:
 | Tag on the page | Games | What you need |
 |---|---|---|
 | **Easiest** | KartPad for Android (Mario Kart Wii) | Any Windows, Mac or Linux computer, an Android phone, and the **European** Mario Kart Wii disc. Install the ready-to-play app; PadMint makes its game data. |
-| **Needs Xcode** | BlueWake (Wind Waker, US disc), SunPad (Super Mario Sunshine, US disc), KartPad for iPhone and Mac (European disc), AgePad (Age of Empires II from Steam) | A Mac with Apple Silicon (M1 or newer) and [Xcode](https://apps.apple.com/app/xcode/id497799835), free from the App Store. PadMint downloads everything else. |
+| **Needs Xcode** | BlueWake (Wind Waker, US disc), SunPad (Super Mario Sunshine, US disc), KartPad for Mac, and KartPad for iPhone when you build on a Mac (European disc), AgePad (Age of Empires II from Steam) | A Mac with Apple Silicon (M1 or newer) and [Xcode](https://apps.apple.com/app/xcode/id497799835), free from the App Store. PadMint downloads everything else. |
 | **Needs Xcode + Homebrew** | Most other games | The same, plus one Homebrew line that the page shows you, with a Copy button. |
+
+**KartPad for iPhone and iPad doesn't need a Mac.** On Windows or Linux,
+PadMint builds it with its own compiler, so there's no Xcode to install. That
+route is experimental: it's checked less often than building on a Mac.
 
 Your game file must be the version the page names, for example **Only the US
 (North American) version works**. PadMint checks it as soon as you pick it.
@@ -115,7 +119,7 @@ them all, or the tabs to narrow the list.
 
 | Group on the page | What it means | What you need |
 |---|---|---|
-| **Build with PadMint** | PadMint builds the game on your computer from your game file, then tells you how to install it | For iPhone and iPad, and for Mac copies (CTRPad, HaloPad, KartPad): a **Mac with Apple Silicon (M1 or newer)** with [Xcode](https://apps.apple.com/app/xcode/id497799835). KartPad also builds for Android on any Windows, Mac or Linux computer |
+| **Build with PadMint** | PadMint builds the game on your computer from your game file, then tells you how to install it | For iPhone and iPad, and for Mac copies (CTRPad, HaloPad, KartPad): a **Mac with Apple Silicon (M1 or newer)** with [Xcode](https://apps.apple.com/app/xcode/id497799835). KartPad is the exception: its iPhone and iPad copy also builds on Windows and Linux (experimental, no Xcode needed), and its Android game data on any Windows, Mac or Linux computer |
 | **Download** | The game's app has no game files in it, so there is nothing to build: download it and add your own files in the app | Any computer to sideload an iPad or iPhone app with your own Apple ID |
 | **Not available yet** | Listed so you can find it. Choosing it says why it isn't available and links to the game's page | — |
 
@@ -232,6 +236,9 @@ afterwards, see [Removing PadMint](#removing-padmint).
 PadMint doesn't install itself anywhere. It is the folder you unzipped, plus
 one folder of its own, `.padmint` in your home folder, which keeps the game
 sources, tools and builds it downloaded. That folder can take tens of GB.
+Each game version gets its own folder there. After a newer version builds,
+PadMint deletes the build files the older versions left behind and says how
+much space it freed.
 
 1. If a build is running, press **Cancel** on the PadMint page or wait for it to
    finish. Then close PadMint's small window (on a Mac, the Terminal window).
