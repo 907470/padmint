@@ -1,6 +1,6 @@
 # PadMint status
 
-Updated **18 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **19 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
@@ -32,6 +32,13 @@ work and when to revisit it.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.5**: after a newer version of a game builds, PadMint empties the
+  `build/` folders that older versions left in `.padmint/games` and says how
+  much space it freed. Source and `private/` folders stay, because KartPad's Mac
+  guide points players at game files there; a folder another PadMint is using is
+  skipped. The README now says KartPad for iPhone and iPad also builds on Windows
+  and Linux (experimental, no Xcode).
 
 - **v0.5.4**: KartPad's Mac build asks for about 12 GB free instead of 60 GB
   ([KartPad #489](https://github.com/chrissotraidis/kartpad/issues/489)). A clean
