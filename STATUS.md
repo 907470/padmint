@@ -1,6 +1,6 @@
 # PadMint status
 
-Updated **18 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **19 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
@@ -32,6 +32,20 @@ work and when to revisit it.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.5**: a launcher. A sidebar lists **My games**, **Updates** and each
+  iPhone, iPad and Mac PadMint can see; every game shows which version is on
+  which device (read with Xcode's devicectl and from the Applications folders),
+  and updates are compared with each game's latest release. Storage shows and
+  frees PadMint's folder; PadMint can update itself on Mac and Linux.
+  New builds: F0X, EctoPad, SnapPad, OpenRCT2 Touch and UTP. New Mac targets:
+  F0X, EctoPad, SnapPad, BellPad, AnnePad, SunPad, MeleePad and BrawlerPad. RAtouch is listed as a download.
+- **v0.5.5** also: after a newer version of a game builds, PadMint empties the
+  `build/` folders that older versions left in `.padmint/games` and says how
+  much space it freed. Source and `private/` folders stay, because KartPad's Mac
+  guide points players at game files there; a folder another PadMint is using is
+  skipped. The README now says KartPad for iPhone and iPad also builds on Windows
+  and Linux (experimental, no Xcode).
 
 - **v0.5.4**: KartPad's Mac build asks for about 12 GB free instead of 60 GB
   ([KartPad #489](https://github.com/chrissotraidis/kartpad/issues/489)). A clean

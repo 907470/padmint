@@ -25,23 +25,29 @@ PadMint download does not make a Mac-only game recipe portable.
 ## Current player recipes
 
 Every release link is the exact version checked. macOS targets marked planned
-are omitted. Guided setup offers KartPad's Mac target on Apple Silicon, alongside
-its Android and iOS targets. Intel Macs show why the Mac target is unavailable.
+are omitted. Guided setup offers each Mac target on Apple Silicon (This Mac),
+alongside the game's other targets. Intel Macs show why the Mac target is unavailable.
 
 | Project and release | Output | Mac ARM64 | Windows x64 / ARM64 | Linux x64 / ARM64 |
 |---|---|---|---|---|
 | [AgePad v0.1.0](https://github.com/chrissotraidis/agepad/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [AnnePad v0.2.1](https://github.com/chrissotraidis/annepad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [AnnePad v0.2.3](https://github.com/chrissotraidis/annepad/releases/tag/v0.2.3) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [AnnePad v0.2.3](https://github.com/chrissotraidis/annepad/releases/tag/v0.2.3) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [BallPad v1.1.1](https://github.com/chrissotraidis/ballpad/releases/tag/v1.1.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [BananaPad v0.2.1](https://github.com/chrissotraidis/bananapad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [BarrelPad v0.2.0](https://github.com/chrissotraidis/barrelpad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [BearBirdPad v0.2.2](https://github.com/chrissotraidis/bearbirdpad/releases/tag/v0.2.2) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [BellPad v0.2.1](https://github.com/chrissotraidis/bellpad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [BellPad v0.2.2](https://github.com/chrissotraidis/bellpad/releases/tag/v0.2.2) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [BellPad v0.2.2](https://github.com/chrissotraidis/bellpad/releases/tag/v0.2.2) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [BlueWake v0.1.0](https://github.com/chrissotraidis/bluewake/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [BrawlerPad v0.2.0](https://github.com/chrissotraidis/brawlerpad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [CTRPad v0.2.2](https://github.com/chrissotraidis/ctrpad/releases/tag/v0.2.2) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [CTRPad v0.2.2](https://github.com/chrissotraidis/ctrpad/releases/tag/v0.2.2) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [DinoPad v0.2.0](https://github.com/chrissotraidis/dinopad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [EctoPad v0.1.3](https://github.com/chrissotraidis/ectopad/releases/tag/v0.1.3) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [EctoPad v0.1.3](https://github.com/chrissotraidis/ectopad/releases/tag/v0.1.3) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [F0X v0.1.0](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [F0X v0.1.0](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.0) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [GoldenPad v0.2.2](https://github.com/chrissotraidis/goldenpad/releases/tag/v0.2.2) | iOS IPA | Experimental | Planned / Unavailable | Planned / Unavailable |
 | [HarkinianPad v0.2.0](https://github.com/chrissotraidis/harkinianpad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [KartPad v0.8.2](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.2) | iOS IPA | Experimental | Experimental / Experimental | Experimental / Experimental |
@@ -49,13 +55,18 @@ its Android and iOS targets. Intel Macs show why the Mac target is unavailable.
 | [KartPad v0.8.2](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.2) | Android game pack | Experimental | Experimental / Experimental | Experimental / Experimental |
 | [MaskPad v0.2.0](https://github.com/chrissotraidis/maskpad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [MeleePad v0.2.1](https://github.com/chrissotraidis/meleepad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [OpenRCT2 Touch touch-v0.1.0](https://github.com/chrissotraidis/OpenRCT2Touch/releases/tag/touch-v0.1.0) | iPad IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [Ottsel v0.1.0](https://github.com/chrissotraidis/ottsel/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [Ottsel v0.1.0](https://github.com/chrissotraidis/ottsel/releases/tag/v0.1.0) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [PaperPad v0.2.1](https://github.com/chrissotraidis/paperpad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [SnapPad v0.2.0](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [SnapPad v0.2.0](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.0) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [SpaghettiPad v0.2.1](https://github.com/chrissotraidis/spaghettipad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [StarshipPad v0.2.0](https://github.com/chrissotraidis/starshippad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [SquirrelPad v0.1.0](https://github.com/chrissotraidis/squirrelpad/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [SunPad v0.2.0](https://github.com/chrissotraidis/sunpad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [StarshipPad v0.2.0](https://github.com/chrissotraidis/starshippad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [SunPad v0.2.2](https://github.com/chrissotraidis/sunpad/releases/tag/v0.2.2) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [SunPad v0.2.2](https://github.com/chrissotraidis/sunpad/releases/tag/v0.2.2) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [UTP v0.1.0](https://github.com/chrissotraidis/utp/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 
 **Android as the build host:** only KartPad's phone route is offered, through
 Termux and a Linux ARM64 environment. It remains experimental: the recorded
@@ -83,8 +94,7 @@ matching recipe, and PadMint 0.5.1 offers the route. Native Mac gameplay still r
 
 **No build needed:** CaesarPad, DaggerPad, DevilTouch, Emerald Tablet, KidPad,
 PeonPad and VaultPad publish apps without game files; PadMint lists them with
-download and data-import steps. **SnapPad** downloads remain paused and no public
-PadMint recipe is available.
+download and data-import steps. RAtouch joined them in 0.5.5.
 
 ## Status by game
 
@@ -123,11 +133,16 @@ the next steps below are kept for when it resumes.
 | GalaxyPad | Mac only: its 0.2.0 recipe builds an unsigned iPhone/iPad IPA with the New engine and no game file; players import their own USA `RMGE01` revision 0 WBFS in the app. Its Old engine's routine research was retired so the source passes the release gate (GalaxyPad docs/OLD-ENGINE-DEPRECATION.md) | A player check of the published release and a sideloaded device check of a PadMint-built IPA |
 | Ottsel | Mac only: its v0.1.0 recipe builds an unsigned iPhone/iPad IPA or a Mac app, plus a game-data folder, from the player's USA `SCUS-97124` Black Label Jak and Daxter disc (other versions are refused). On 12 October 2026 `scripts/player-check.sh ottsel ios` passed from the published v0.1.0 release, and a Mac build made an app that plays the intro | A sideloaded device check of a PadMint-built IPA |
 
-**Listed, not available yet** (the page's "Not available yet" section, with
-where each stands and a link): F0X (decompiled-context patch lines need a decision), EctoPad (needs a
-bootstrap script first), RAtouch (license-notice review before PadMint lists its
-install steps), UTP (owner decision on official builds), OpenRCT2 Touch (no iPad
-download) and SnapPad (downloads paused).
+**New in PadMint 0.5.5:** F0X, EctoPad, SnapPad, OpenRCT2 Touch and UTP build
+through PadMint (each passed a clean player check before its first recipe
+release), RAtouch is listed as a download, and nothing is listed as not
+available yet. Mac targets were added for F0X, EctoPad, SnapPad, BellPad, AnnePad, SunPad, MeleePad and BrawlerPad; each Mac
+recipe signs the app for the player's Mac and zips it, and each passed a clean
+player check whose app was launched to its first screen. Games whose Mac app is
+a developer test binary (AgePad, BarrelPad, SquirrelPad, OpenRCT2 Touch's
+headless host), starts with a ROM fixed at build time (BananaPad), or has an
+official signed Mac download upstream (HarkinianPad, MaskPad, SpaghettiPad,
+StarshipPad, BearBirdPad, UTP) stay iPhone/iPad only.
 
 **HaloPad** (ProjectReach) builds for iPhone, iPad and Mac on Apple silicon Macs,
 experimental. Choosing an Xbox ISO/XISO builds the Xbox edition alone from the OpenCE engine
