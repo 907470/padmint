@@ -985,7 +985,9 @@ const groupOf=id=>D.games.some(x=>x.id==id)?"build":D.downloads.some(x=>x.id==id
 const DEVICES={ipad:"iPad",iphone:"iPhone",mac:"Mac"};
 let V={done:false,games:{},padmint:null};
 const ART=new Set(D.art||[]);
-const latest=id=>(V.games||{})[id];
+// A release tag's version, wherever it sits in the tag: v0.8.3, touch-v0.1.0, v0.1.0-preview.2.
+const tagVersion=t=>{const m=String(t||"").match(/\d+(?:\.\d+)*/);return m?"v"+m[0]:t};
+const latest=id=>{const t=(V.games||{})[id];return t?tagVersion(t):t};
 const owned=id=>(D.library||[]).some(l=>l.id==id);
 const initials=x=>(x.name||"?").replace(/(Pad|Touch)$/,"").slice(0,2).toUpperCase();
 function art(x,big){const s=el("span",null,"art"+(big?" big":""));s.style.setProperty("--c",colorOf(x));
@@ -1009,7 +1011,7 @@ const ICONS={mine:'<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="1
  storage:'<ellipse cx="12" cy="6" rx="7.5" ry="2.8"/><path d="M4.5 6v12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V6M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/>',
  built:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',windows:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'};
 function ico(k){const s=el("span",null,"ic");s.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[k]||ICONS.built)+'</svg>';return s}
-const norm=v=>String(v||"").replace(/^v/,"");
+const norm=v=>String(tagVersion(v)||"").replace(/^v/,"");
 const onMac=()=>String(D.host||"").startsWith("macos");
 const known=id=>all().some(x=>x.id==id);
 function copies(id){const out=[],lib=(D.library||[]).filter(l=>l.id==id);
@@ -1107,7 +1109,7 @@ function storageView(){watch=false;sel=null;view="storage";$("form").classList.a
 async function loadStorage(fresh){const r=await (await fetch("/api/storage"+(fresh?"?fresh=1":""),{headers:H})).json();if($("storage").classList.contains("hidden"))return;ST=r;renderStorage();if(r.state=="measuring"||r.state=="idle")setTimeout(()=>loadStorage(false),900)}
 function nameOf(i){const g=i.game&&all().find(x=>x.id==i.game);return g?(g.about?title(g):g.name):i.kind=="padmint"?"PadMint":i.name||i.id}
 function stRow(i){const r=el("div",null,"st-row"),g=i.game&&all().find(x=>x.id==i.game),port=g?g.name:i.name||i.id,game=g&&g.about?title(g):"";let t,sub;
- if(i.kind=="game"){const v=latest(i.game);t=port+" "+(i.version||"");sub=[game,i.reason=="current"&&v&&v!=i.version?fill("st_r_behind",{version:v}):S["st_r_"+(i.reason=="current"?"newest":i.reason)]]}
+ if(i.kind=="game"){const v=latest(i.game);t=port+" "+(i.version?tagVersion(i.version):"");sub=[game,i.reason=="current"&&v&&v!=tagVersion(i.version)?fill("st_r_behind",{version:v}):S["st_r_"+(i.reason=="current"?"newest":i.reason)]]}
  else if(i.kind=="apps"){t=fill("st_kind_app",{name:port});sub=[game,S.st_app_note]}
  else if(i.kind=="cache"){t=fill("st_kind_extra",{name:port});sub=[game,S.st_extra_note]}
  else if(i.kind=="tool"){t=i.name;sub=[i.reason=="unused"?S.st_r_unused:S.st_r_tool]}
