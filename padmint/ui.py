@@ -23,7 +23,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 import webbrowser
 
-from . import __version__, cli, storage, tools, update
+from . import __version__, cli, installed, storage, tools, update
 from .manifest import catalog
 from .say import LANGUAGES, MESSAGES, language, localized, phrase
 
@@ -101,7 +101,7 @@ def player_data(lang):
             "saved_in": phrase("saved_in", lang, folder=folder), "games": games, "downloads": apps, "later": waiting,
             "text": strings(lang), "picker": not cli.on_android(), "reveal": not cli.on_android(),
             "art": sorted(path.stem for path in ART.glob("*.png")), "library": library(),
-            "self_update": bool(update.platform())}
+            "self_update": bool(update.platform()), "installed": installed.snapshot()}
 
 
 def library():
@@ -474,6 +474,8 @@ def make_handler(token, builds, restart=None):
                 return self.reply(200, {"files": [str(path) for path in files[:8]]})
             if route == "/api/versions":
                 return self.reply(200, VERSIONS)
+            if route == "/api/installed":
+                return self.reply(200, installed.status("fresh" in parse_qs(urlparse(self.path).query)))
             if route == "/api/update":
                 return self.reply(200, update.STATE)
             if route == "/api/storage":
@@ -846,19 +848,56 @@ html{min-height:100%;background:var(--bg)}body{min-height:100vh;background-attac
 @media (prefers-color-scheme:light){.act.download{color:#1d6fa5}.vstat.upd,.badge.upd,.fact.new{color:#2a1d00}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-</style></head><body><div class="wrap">
-<header><a class="brand" id="home" href="#"><div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="pmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ff0b0"/><stop offset="1" stop-color="#14945f"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#pmg)"/><path fill="#06281a" d="M19 19h26c7.2 0 12.6 6.6 11.2 13.7l-2.1 10.2c-1 4.9-7.1 6.6-10.5 2.9L39 41H25l-4.6 4.8c-3.4 3.7-9.5 2-10.5-2.9L7.8 32.7C6.4 25.6 11.8 19 19 19z"/><path stroke="#5ff0b0" stroke-width="4" stroke-linecap="round" d="M20 26v10M15 31h10"/><path fill="#5ff0b0" d="M37 37c0-6.5 4.8-11 12-11 0 6.5-4.8 11-12 11z"/><path stroke="#06281a" stroke-width="1.8" stroke-linecap="round" d="M39.5 34.5l6.5-6"/></svg></div>
-<div><h1>PadMint</h1><div class="v" id="ver"></div></div></a>
-<nav class="nav"><button class="navb on" id="navGames" data-t="nav_games"></button><button class="navb" id="navStorage" data-t="nav_storage"></button></nav>
-<div class="top"><button class="vstat hidden" id="vstat"></button><a class="gh" id="gh" href="https://github.com/chrissotraidis" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
-<label class="langw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><select id="lang" aria-label="Language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></label></div></header>
+
+/* Launcher with a sidebar: where each game is, readable rows, one clear action. */
+.app{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
+#side{position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column;padding:1.1rem .7rem .9rem;border-right:1px solid color-mix(in srgb,var(--line) 75%,transparent);background:color-mix(in srgb,var(--panel) 60%,transparent)}
+#side .brand{padding:.2rem .55rem 1rem}#side .brand h1{font-size:1.2rem}#side .mark{width:34px;height:34px}
+.sidenav{display:flex;flex-direction:column;gap:.1rem;flex:1}
+.sh{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:1rem .6rem .3rem;opacity:.85}.sh:empty{padding:.5rem 0;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);margin-top:.7rem}
+.sn{display:flex;align-items:center;gap:.6rem;width:100%;font:inherit;font-size:.9rem;font-weight:600;color:var(--text);background:none;border:0;border-radius:9px;padding:.45rem .6rem;cursor:pointer;text-align:left;transition:background .12s}
+.sn:hover{background:color-mix(in srgb,var(--text) 6%,transparent)}.sn.on{background:color-mix(in srgb,var(--mint) 17%,transparent)}
+.ic{width:18px;height:18px;flex:none;display:grid;place-items:center;color:var(--muted)}.ic svg{width:100%;height:100%;display:block}.sn.on .ic{color:var(--mint)}
+.sn .l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sn .c{font-size:.74rem;font-weight:650;color:var(--muted);font-variant-numeric:tabular-nums}
+.sn.hot .c{background:var(--warn);color:#2a1d00;border-radius:99px;padding:.02rem .48rem}
+.sn.away .l{color:var(--muted)}.sn.live{background:color-mix(in srgb,var(--mint) 10%,transparent);margin-bottom:.3rem}.sn.live .c{color:var(--mint)}
+.ic.spin{width:14px;height:14px;margin:0 2px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--mint);animation:spin 1s linear infinite}
+.sidefoot{display:flex;flex-direction:column;align-items:stretch;gap:.5rem;padding:.9rem .25rem 0}
+.sidefoot .vstat{width:100%;justify-content:center}.footrow{display:flex;gap:.45rem}.footrow .langw{flex:1}.footrow .langw select{width:100%}
+.sidefoot .btn.link{justify-content:flex-start;padding:.2rem .35rem;color:var(--muted);font-weight:600}.sidefoot .btn.link:hover{color:var(--mint)}
+.wrap{max-width:960px;width:100%;margin:0;padding:.4rem 2.2rem 3rem}
+#shelf>.sechead{align-items:flex-start;margin:1.6rem 0 .9rem}#shelfTitle{margin:0;font-size:1.6rem;letter-spacing:-.025em}#shelfSub{margin:.2rem 0 0;max-width:62ch}
+#shelfNote{white-space:nowrap}#shelfNote.loading:before{width:.8rem;height:.8rem}
+.group{font-size:.74rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:1.3rem .2rem .45rem}.group:first-child{margin-top:.2rem}
+.shelf{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
+.mg{display:flex;align-items:flex-start;gap:1rem;padding:.9rem 1.1rem;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s;animation:rise .3s both;animation-delay:calc(var(--i,0)*18ms)}
+.mg:last-child{border-bottom:0}.mg:hover{background:color-mix(in srgb,var(--c) 9%,var(--panel))}.mg:hover .art{transform:scale(1.05)}
+.mg .art{width:56px;height:56px;border-radius:14px}.mg .side{align-self:center;flex-wrap:nowrap}.mg .body .t{font-size:1.02rem}
+.where{display:flex;flex-direction:column;gap:.22rem;margin-top:.5rem}
+.cp{display:flex;align-items:center;gap:.5rem;font-size:.86rem;flex-wrap:wrap;line-height:1.35}.cp .ic{width:16px;height:16px}
+.cp b{font-weight:650}.cp .d{color:var(--muted)}.cp.built b,.cp.away b{color:var(--muted);font-weight:600}.cp .badge{padding:.05rem .5rem;font-size:.72rem}
+.okt{color:var(--mint);font-size:.84rem;font-weight:650;white-space:nowrap}.chev{color:var(--muted);font-size:1.4rem;line-height:1;padding-left:.2rem}
+.empty{padding:1.4rem 1.2rem;border:1px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center}
+#copies{margin:.7rem 0 .2rem;padding:.9rem 1.15rem;border-radius:16px;border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:.35rem}
+#copies h3{margin:0 0 .15rem;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}#copies .cp{font-size:.93rem}
+.item .side{gap:.8rem}.own{font-size:.8rem}.act{padding:0;border-radius:0;background:none!important;font-size:.84rem;min-width:5.5rem;text-align:right}
+.act.build{color:var(--mint)}.act.download{color:#5bb8f0}.act.later{color:var(--muted)}.act.build:after,.act.download:after{content:" ›";font-size:1.05rem}
+@media (max-width:820px){.app{display:block}#side{position:sticky;z-index:6;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;padding:.6rem .8rem;border-right:0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+ #side .brand{padding:0}.sidenav{order:3;flex:1 1 100%;flex-direction:row;overflow-x:auto;gap:.2rem;scrollbar-width:none}.sidenav::-webkit-scrollbar{display:none}.sh{display:none}.sn{width:auto;white-space:nowrap;flex:none}.sn .l{overflow:visible}
+ .sidefoot{flex-direction:row;align-items:center;padding:0;margin-left:auto}.sidefoot .vstat{width:auto}.sidefoot .btn.link{display:none}.wrap{padding:.2rem 1rem 2rem}#shelf>.sechead{flex-direction:column;gap:.4rem}}
+@media (max-width:560px){.mg{flex-wrap:wrap}.mg .side{width:100%;justify-content:flex-start;padding-left:calc(56px + 1rem)}.mg .chev{display:none}.footrow .langw{display:none}}
+</style></head><body><div class="app">
+<aside id="side"><a class="brand" id="home" href="#"><div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="pmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ff0b0"/><stop offset="1" stop-color="#14945f"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#pmg)"/><path fill="#06281a" d="M19 19h26c7.2 0 12.6 6.6 11.2 13.7l-2.1 10.2c-1 4.9-7.1 6.6-10.5 2.9L39 41H25l-4.6 4.8c-3.4 3.7-9.5 2-10.5-2.9L7.8 32.7C6.4 25.6 11.8 19 19 19z"/><path stroke="#5ff0b0" stroke-width="4" stroke-linecap="round" d="M20 26v10M15 31h10"/><path fill="#5ff0b0" d="M37 37c0-6.5 4.8-11 12-11 0 6.5-4.8 11-12 11z"/><path stroke="#06281a" stroke-width="1.8" stroke-linecap="round" d="M39.5 34.5l6.5-6"/></svg></div><div><h1>PadMint</h1><div class="v" id="ver"></div></div></a>
+<nav class="sidenav" id="sidenav"></nav>
+<div class="sidefoot"><button class="vstat hidden" id="vstat"></button><div class="footrow"><label class="langw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><select id="lang" aria-label="Language"><option value="en">English</option><option value="es">Español</option><option value="pt">Português</option></select></label><a class="gh" id="gh" href="https://github.com/chrissotraidis" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></div><button class="btn link" id="aboutSide" data-t="about_padmint"></button></div></aside>
+<div class="wrap">
 
 <main id="form">
 <section class="intro" id="intro"><h1 data-t="hero_title"></h1><p data-t="hero_text"></p><ol><li data-t="intro_1"></li><li data-t="intro_2"></li><li data-t="intro_3"></li></ol><div class="row"><button class="btn link" id="aboutOpen" data-t="learn_more"></button></div></section>
 <section class="hidden" id="nowBox"></section>
-<section class="welcome hidden" id="welcome"><b data-t="welcome_title"></b><span data-t="welcome_text"></span></section>
-<section class="hidden" id="shelf"><div class="sechead"><h2 data-t="your_games"></h2><span class="muted small" id="shelfNote"></span></div><div class="shelf" id="shelfList"></div><button class="btn ghost more hidden" id="shelfMore"></button></section>
-<section class="card" id="pickCard"><h2 id="pickTitle"></h2><button class="btn back hidden" id="changeGame" data-t="change"></button><div id="hero" class="hidden"></div>
+<section class="hidden" id="shelf"><div class="sechead"><div><h2 id="shelfTitle"></h2><p class="note" id="shelfSub"></p></div><div class="row"><span class="muted small" id="shelfNote"></span><button class="btn small ghost" id="lookAgain" data-t="look_again"></button></div></div><div id="shelfList"></div></section>
+<section class="card" id="pickCard"><h2 id="pickTitle"></h2><button class="btn back hidden" id="changeGame" data-t="change"></button><div id="hero" class="hidden"></div><div id="copies" class="hidden"></div>
 <div id="finder"><div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="search" type="search" autocomplete="off"></div></div>
 <div class="pills" id="pills"><div class="tabs" id="tabs" role="tablist"><button class="tab" data-g="all" role="tab"><span data-t="tab_all"></span><span class="n"></span></button><button class="tab" data-g="build" role="tab"><span data-t="tab_build"></span><span class="n"></span></button><button class="tab" data-g="download" role="tab"><span data-t="tab_download"></span><span class="n"></span></button><button class="tab" data-g="later" role="tab"><span data-t="later_head"></span><span class="n"></span></button></div><div class="filters" id="filters"></div></div>
 <p class="note" id="groupNote"></p><div class="list" id="list"></div><p class="small hidden" id="gamePage"><a target="_blank" rel="noopener" id="gamePageLink"></a></p><p class="muted hidden" id="noMatch" data-t="no_match"></p></section>
@@ -902,7 +941,7 @@ html{min-height:100%;background:var(--bg)}body{min-height:100vh;background-attac
 <details id="whyBox"><summary data-t="why_title"></summary><p data-t="why_1"></p><p data-t="why_2"></p></details></div></section></div></div>
 <div class="sheet hidden" id="sheet"><div class="sheetbox" role="dialog" aria-modal="true"><button class="x" id="sheetClose" aria-label="Close">×</button><div id="sheetBody"></div></div></div>
 <footer><span class="localnote" data-t="local_note"></span><span><a href="https://github.com/chrissotraidis/padmint/releases/latest" target="_blank" rel="noopener" data-t="update"></a> · <a href="https://github.com/chrissotraidis/padmint" target="_blank" data-t="source"></a> · <a id="reportLink" href="https://github.com/chrissotraidis/padmint/issues" target="_blank" data-t="report"></a></span></footer>
-</div>
+</div></div>
 <script>
 const T="__TOKEN__";let D=__DATA__,S=D.text;const H={"Content-Type":"application/json","X-PadMint-Token":T};
 const $=id=>document.getElementById(id);let file=null,reading=false,sel=null,dev=null,shown=false,fileRequest=0;
@@ -961,27 +1000,79 @@ function vstat(){const a=$("vstat"),newer=!!V.padmint&&cmpv(V.padmint,D.version)
  a.textContent=newer?fill("pm_update",{version:V.padmint})+" · "+S.up_short+" ›":V.padmint?"✓ v"+D.version:S.checking;a.title=V.padmint&&!newer?S.up_to_date:"";
  a.onclick=newer?openUpdate:null}
 const cmpv=(a,b)=>{const x=a.replace(/^v/,"").split(".").map(Number),y=b.replace(/^v/,"").split(".").map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d}return 0};
-let shelfAll=false,shelfSig="";
-function shelf(){const items=(D.library||[]).filter(l=>all().some(x=>x.id==l.id)),busy=!!sel||!$("progress").classList.contains("hidden");
- $("shelf").classList.toggle("hidden",busy||!items.length);$("welcome").classList.toggle("hidden",busy||!!items.length||!D.games.length);
- if(busy||!items.length)return;const sig=JSON.stringify([items,V.done&&V.games,shelfAll,D.lang]);if(sig==shelfSig)return;shelfSig=sig;const fresh=items.filter(l=>latest(l.id)&&latest(l.id)!=l.version).length;$("shelfNote").textContent=V.done?(fresh?(fresh==1?S.update_ready:fill("updates_ready",{count:fresh})):"✓ "+S.all_current):S.checking;
- const shown=shelfAll?items:items.slice(0,5);$("shelfMore").classList.toggle("hidden",items.length<=5);$("shelfMore").textContent=shelfAll?S.show_less:fill("show_all",{count:items.length});$("shelfList").classList.toggle("settled",$("shelfList").children.length>0);
- $("shelfList").replaceChildren(...shown.map((l,i)=>{const x=all().find(y=>y.id==l.id),r=el("div",null,"lib");r.style.setProperty("--c",colorOf(x));r.style.setProperty("--i",i);
-  const g=D.games.find(y=>y.id==l.id),p=g&&g.platforms.find(q=>q.id==l.platform),v=V.done?latest(l.id):null,stale=!!v&&v!=l.version;
-  const body=el("div",null,"body");body.append(el("span",x.about?title(x):x.name,"t"),el("span",[fill("built_for",{device:p?(p.short||p.label):l.platform}),l.version,ago(l.when)].join(" · "),"s"));
-  const side=el("div",null,"side");if(v&&!stale)side.append(el("span","✓ "+S.up_to_date,"badge ok"));
-  if(p){const b=el("button",stale?fill("update_to",{version:v}):S.build_again,"btn small "+(stale?"main":"ghost"));b.onclick=e=>{e.stopPropagation();choose(l.id);pickDevice(l.platform)};side.append(b)}
-  r.append(art(x),body,side);r.onclick=()=>choose(l.id);return r}))}
-function hero(x){const h=$("hero");if(!x){h.classList.add("hidden");h.replaceChildren();return}
- const kind=groupOf(x.id),body=el("div",null,"hbody"),facts=el("div",null,"facts"),v=latest(x.id),mine=(D.library||[]).find(l=>l.id==x.id);h.style.setProperty("--c",colorOf(x));
+// Where each game is: the iPhones and iPads paired with this Mac, its Applications folder, and copies PadMint built.
+let I=D.installed||{state:"idle",mac:[],devices:[]},view="mine",shelfSig="",sideSig="";
+const ICONS={mine:'<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>',
+ updates:'<circle cx="12" cy="12" r="8.5"/><path d="M12 16V8M8.5 11.5L12 8l3.5 3.5"/>',library:'<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>',
+ ipad:'<rect x="4.5" y="2.5" width="15" height="19" rx="2.5"/><path d="M11 18.5h2"/>',iphone:'<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+ mac:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',android:'<rect x="5" y="8" width="14" height="10" rx="3"/><path d="M8 5l1.5 2.5M16 5l-1.5 2.5"/>',
+ storage:'<ellipse cx="12" cy="6" rx="7.5" ry="2.8"/><path d="M4.5 6v12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V6M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/>',
+ built:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',windows:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'};
+function ico(k){const s=el("span",null,"ic");s.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[k]||ICONS.built)+'</svg>';return s}
+const norm=v=>String(v||"").replace(/^v/,"");
+const onMac=()=>String(D.host||"").startsWith("macos");
+const known=id=>all().some(x=>x.id==id);
+function copies(id){const out=[],lib=(D.library||[]).filter(l=>l.id==id);
+ for(const d of I.devices||[])for(const a of d.apps||[])if(a.game==id)out.push({where:"dev:"+d.id,kind:d.kind,label:d.name,version:norm(a.version),platform:"ios",away:!d.reachable,seen:d.checked});
+ for(const a of I.mac||[])if(a.game==id){const b=lib.find(l=>l.platform=="macos"),bv=b?norm(b.version):"";out.push({where:"mac",kind:"mac",label:S.this_mac,version:bv&&a.version&&bv.startsWith(a.version)?bv:norm(a.version),platform:"macos"})}
+ for(const l of lib)if(!out.some(c=>c.platform==l.platform))out.push({where:l.platform=="android"?"android":"built",kind:l.platform=="android"?"android":"built",label:fill("built_copy",{device:S["short_"+l.platform]||l.platform}),version:norm(l.version),platform:l.platform,built:true,when:l.when});
+ return out}
+function stateOf(id){const c=copies(id),v=latest(id),old=v?c.filter(x=>x.version&&cmpv(x.version,v)<0):[];return {copies:c,latest:v,old,stale:old.length>0}}
+function mineIds(){const ids=new Set((D.library||[]).map(l=>l.id));for(const d of I.devices||[])for(const a of d.apps||[])ids.add(a.game);for(const a of I.mac||[])ids.add(a.game);return [...ids].filter(known)}
+function places(){const out=(I.devices||[]).map(d=>({view:"dev:"+d.id,name:d.name,kind:d.kind,count:new Set((d.apps||[]).map(a=>a.game).filter(known)).size,away:!d.reachable,d}));
+ if(onMac())out.push({view:"mac",name:S.this_mac,kind:"mac",count:mineIds().filter(id=>copies(id).some(c=>c.platform=="macos")).length});
+ if((D.library||[]).some(l=>l.platform=="android"))out.push({view:"android",name:"Android",kind:"android",count:mineIds().filter(id=>copies(id).some(c=>c.platform=="android")).length});return out}
+const fits=(c,v)=>v=="mine"||v=="updates"||(v=="mac"?c.platform=="macos":v=="android"?c.platform=="android":c.where==v);
+function inView(id,v){return v=="updates"?stateOf(id).stale:copies(id).some(c=>fits(c,v))}
+function viewName(){const p=places().find(d=>d.view==view);return view=="updates"?S.sn_updates:view=="library"?S.library:p?p.name:S.sn_mine}
+function whereLine(c,v){const li=el("div",null,"cp"+(c.built?" built":"")+(c.away?" away":"")),stale=!!v&&!!c.version&&cmpv(c.version,v)<0,bits=[c.version?"v"+c.version:c.platform=="macos"?S.in_apps:S.version_unknown];
+ if(c.built&&c.when)bits.push(fill("built_when",{when:ago(c.when)}));
+ if(c.away&&c.seen&&I.state=="ready")bits.push(fill("seen",{when:ago(c.seen)}));
+ if(c.built&&c.platform=="ios"&&I.state=="ready"&&(I.devices||[]).some(d=>d.reachable))bits.push(S.not_on_devices);
+ if(c.platform=="android")bits.push(S.android_unseen);
+ li.append(ico(c.kind),el("b",c.label),el("span",bits.join(" · "),"d"));if(stale)li.append(el("span",fill("new_version",{version:v}),"badge upd"));return li}
+function copiesBox(x){const b=$("copies"),st=x&&stateOf(x.id);if(!st||!st.copies.length){b.classList.add("hidden");b.replaceChildren();return}
+ b.replaceChildren(el("h3",S.your_copies),...st.copies.map(c=>whereLine(c,st.latest)));b.classList.remove("hidden")}
+function mgRow(id,i){const x=all().find(y=>y.id==id),st=stateOf(id),shown=st.copies.filter(c=>fits(c,view)),old=st.latest?shown.filter(c=>c.version&&cmpv(c.version,st.latest)<0):[],r=el("div",null,"mg"+(old.length?" stale":""));r.style.setProperty("--c",colorOf(x));r.style.setProperty("--i",Math.min(i,20));
+ const body=el("div",null,"body"),where=el("div",null,"where");body.append(el("span",x.about?title(x):x.name,"t"),el("span",x.name+(systemOf(x)?" · "+systemOf(x):""),"s"));
+ where.append(...shown.map(c=>whereLine(c,st.latest)));body.append(where);
+ const side=el("div",null,"side");
+ if(old.length){const g=D.games.find(y=>y.id==id),p=g&&g.platforms.find(q=>q.id==old[0].platform),b=el("button",fill("update_to",{version:st.latest}),"btn main small");b.onclick=e=>{e.stopPropagation();choose(id);if(p)pickDevice(p.id)};side.append(b)}
+ else if(st.latest&&shown.some(c=>c.version))side.append(el("span","✓ "+S.latest_short,"okt"));
+ side.append(el("span","›","chev"));r.append(art(x),body,side);r.onclick=()=>choose(id);return r}
+function shelf(){const busy=!!sel||view=="library"||view=="storage"||!$("progress").classList.contains("hidden");$("shelf").classList.toggle("hidden",busy);if(busy)return;
+ const ids=mineIds().filter(id=>inView(id,view)).sort((a,b)=>sortKey(all().find(x=>x.id==a)).localeCompare(sortKey(all().find(x=>x.id==b))));
+ const sig=JSON.stringify([ids,view,I,V.done&&V.games,D.lang,D.library]);if(sig==shelfSig)return;const first=!shelfSig;shelfSig=sig;
+ const p=places().find(d=>d.view==view),checking=I.state!="ready";$("shelfTitle").textContent=viewName();
+ $("shelfSub").textContent=view=="mine"?S.mine_note:view=="updates"?(V.done?(ids.length?S.updates_note:""):S.checking):view=="mac"?S.mac_note:view=="android"?S.android_note:p?[p.d.model,p.away?(p.d.checked?fill("seen",{when:ago(p.d.checked)}):S.device_away):S.device_live].filter(Boolean).join(" · "):"";
+ $("shelfNote").textContent=checking?S.checking_devices:I.checked?fill("checked",{when:ago(I.checked)}):"";$("shelfNote").classList.toggle("loading",checking);
+ $("lookAgain").classList.toggle("hidden",checking||view=="updates"||view=="android"||(!I.xcode&&!onMac()));
+ const parts=[];if(view=="mine"&&onMac()&&I.state=="ready"&&!I.xcode)parts.push(el("p",S.no_xcode_note,"note"));
+ const list=rows=>{const l=el("div",null,"shelf"+(first?"":" settled"));l.append(...rows.map(mgRow));return l};
+ if(!ids.length)parts.push(el("p",view=="updates"?(V.done?"✓ "+S.no_updates:S.checking):view=="mine"?S.empty_mine:S.empty_device,"empty"));
+ else if(view=="mine"&&V.done){const up=ids.filter(id=>stateOf(id).stale),rest=ids.filter(id=>!stateOf(id).stale);
+  if(up.length)parts.push(el("div",S.sec_updates+" · "+up.length,"group"),list(up));if(rest.length)parts.push(el("div",(up.length?S.sec_current:S.sec_all)+" · "+rest.length,"group"),list(rest))}
+ else parts.push(list(ids));
+ $("shelfList").replaceChildren(...parts)}
+function side(){const mine=mineIds(),ups=mine.filter(id=>stateOf(id).stale).length,running=last&&last.state=="running",cur=sel||!$("progress").classList.contains("hidden")?null:view,pl=places();
+ const sig=JSON.stringify([mine.length,ups,V.done,cur,pl.map(d=>[d.view,d.name,d.count,d.away]),running&&[last.game,overall(last)],D.lang]);if(sig==sideSig)return;sideSig=sig;
+ const item=(v,k,label,count,extra)=>{const b=el("button",null,"sn"+(cur==v?" on":"")+(extra?" "+extra:""));b.append(ico(k),el("span",label,"l"));if(count!==""&&count!=null)b.append(el("span",String(count),"c"));b.onclick=()=>go(v);return b};
+ const parts=[];
+ if(running){const g=D.games.find(x=>x.id==last.game)||{name:last.game},b=el("button",null,"sn live");b.append(el("span",null,"ic spin"),el("span",fill("making",{name:g.name,device:last.device||""}),"l"),el("span",overall(last)+"%","c"));b.onclick=()=>{watch=true;show(last);scrollTo({top:0})};parts.push(b)}
+ parts.push(el("div",S.sn_library,"sh"),item("mine","mine",S.sn_mine,mine.length||""),item("updates","updates",S.sn_updates,V.done?(ups||""):"",ups?"hot":""),item("library","library",S.sn_browse,all().length));
+ if(pl.length){parts.push(el("div",S.sn_devices,"sh"));for(const d of pl)parts.push(item(d.view,d.kind,d.name,d.count||"",d.away?"away":""))}
+ parts.push(el("div","","sh"),item("storage","storage",S.nav_storage,""));$("sidenav").replaceChildren(...parts)}
+async function seen(fresh){try{const r=await (await fetch("/api/installed"+(fresh?"?fresh=1":""),{headers:H})).json();if(r.error)return;I=r;layout();if(sel)hero(all().find(x=>x.id==sel));if(r.state!="ready")setTimeout(()=>seen(false),900)}catch(e){}}
+function hero(x){const h=$("hero");if(!x){h.classList.add("hidden");h.replaceChildren();copiesBox(null);return}
+ const kind=groupOf(x.id),body=el("div",null,"hbody"),facts=el("div",null,"facts"),v=latest(x.id),st=stateOf(x.id);h.style.setProperty("--c",colorOf(x));
  body.append(el("h2",x.about?title(x):x.name),el("p",x.name+(systemOf(x)?" · "+fill("original",{system:systemOf(x)}):""),"muted"));
- if(v)facts.append(el("span",fill("latest",{version:v}),"fact"+(mine&&mine.version!=v?" new":"")));
- if(mine)facts.append(el("span","✓ "+S.in_library+" · "+mine.version,"fact mine"));
+ if(v)facts.append(el("span",fill("latest",{version:v}),"fact"+(st.stale?" new":"")));
+ 
  for(const d of devicesOf(x,kind))facts.append(el("span",d,"fact"));
  if(kind=="build"&&x.setup)facts.append(el("span",S["setup_"+x.setup],"fact"));
- body.append(facts);h.replaceChildren(art(x,true),body);h.classList.remove("hidden")}
+ body.append(facts);h.replaceChildren(art(x,true),body);h.classList.remove("hidden");copiesBox(x)}
 async function versions(){try{const r=await (await fetch("/api/versions",{headers:H})).json();V=r;vstat();
- if(r.done){cards();if(sel)hero(all().find(x=>x.id==sel))}else{shelf();setTimeout(versions,1200)}}catch(e){}}
+ if(r.done){cards();if(sel)hero(all().find(x=>x.id==sel))}else{layout();setTimeout(versions,1200)}}catch(e){}}
 
 
 for(const b of document.querySelectorAll(".tab"))b.onclick=()=>{group=b.dataset.g;cards()};
@@ -993,10 +1084,10 @@ function toast(text){const t=el("div",text,"toast");document.body.append(t);setT
 function sheet(...nodes){$("sheetBody").replaceChildren(...nodes);$("sheet").classList.remove("hidden")}
 function closeSheet(){if($("aboutPanel").parentNode==$("sheetBody"))$("aboutHome").append($("aboutPanel"));$("sheet").classList.add("hidden")}
 $("sheetClose").onclick=closeSheet;$("sheet").onclick=e=>{if(e.target==$("sheet"))closeSheet()};
-$("aboutOpen").onclick=()=>{$("howBox").open=$("whyBox").open=true;$("aboutPanel").classList.remove("hidden");sheet($("aboutPanel"))};
-function nav(v){$("navGames").classList.toggle("on",v=="games");$("navStorage").classList.toggle("on",v=="storage")}
-$("navGames").onclick=()=>home();$("navStorage").onclick=()=>storageView();
-function intro(){const busy=!!sel||!$("progress").classList.contains("hidden")||!$("storage").classList.contains("hidden");
+$("aboutOpen").onclick=$("aboutSide").onclick=()=>{$("howBox").open=$("whyBox").open=true;$("aboutPanel").classList.remove("hidden");sheet($("aboutPanel"))};
+function nav(){side()}
+
+function intro(){const busy=!!sel||view!="library"||!$("progress").classList.contains("hidden")||!$("storage").classList.contains("hidden");
  $("intro").classList.toggle("hidden",busy);$("intro").classList.toggle("compact",(D.library||[]).length>0)}
 // PadMint updates itself where it can, else the button opens the download page.
 function openUpdate(){const v=V.padmint;if(!D.self_update){window.open("https://github.com/chrissotraidis/padmint/releases/latest","_blank");return}
@@ -1012,7 +1103,7 @@ async function watchUpdate(state,go){const r=await (await fetch("/api/update",{h
    state.replaceChildren(el("p",S.up_restarting,"muted loading"));const wait=async()=>{try{const ok=await fetch("/api/versions",{headers:H});if(ok.ok){location.reload();return}}catch(e){}setTimeout(wait,700)};setTimeout(wait,1200)}}}
 // Storage: what PadMint keeps in its folder, and removing what it no longer needs.
 let ST=null;
-function storageView(){watch=false;sel=null;$("form").classList.add("hidden");$("progress").classList.add("hidden");$("storage").classList.remove("hidden");nav("storage");intro();scrollTo({top:0});loadStorage(true)}
+function storageView(){watch=false;sel=null;view="storage";$("form").classList.add("hidden");$("progress").classList.add("hidden");$("storage").classList.remove("hidden");nav("storage");intro();scrollTo({top:0});loadStorage(true)}
 async function loadStorage(fresh){const r=await (await fetch("/api/storage"+(fresh?"?fresh=1":""),{headers:H})).json();if($("storage").classList.contains("hidden"))return;ST=r;renderStorage();if(r.state=="measuring"||r.state=="idle")setTimeout(()=>loadStorage(false),900)}
 function nameOf(i){const g=i.game&&all().find(x=>x.id==i.game);return g?(g.about?title(g):g.name):i.kind=="padmint"?"PadMint":i.name||i.id}
 function stRow(i){const r=el("div",null,"st-row"),g=i.game&&all().find(x=>x.id==i.game),port=g?g.name:i.name||i.id,game=g&&g.about?title(g):"";let t,sub;
@@ -1046,7 +1137,7 @@ function row(x,i){const kind=groupOf(x.id),b=el("button",null,"item "+kind);b.st
  if(kind=="build"&&x.ready){const on=x.platforms.filter(p=>x.ready.platforms.includes(p.id)).map(p=>p.short||p.label);if(on.length)meta.push(fill("ready_tag",{devices:on.join(", ")}))}
  if(kind=="build"&&x.setup&&x.setup!="easy")meta.push(S["setup_"+x.setup]);if(kind=="later"){if(x.text)meta.push(x.text);else if(x.tag)meta.push(x.tag)}
  body.append(el("span",x.about?title(x):x.name,"t"),el("span",x.name+(systemOf(x)?" · "+systemOf(x):""),"s"),el("span",meta.filter(Boolean).join(" · "),"m"));
- const side=el("span",null,"side"),v=latest(x.id);{const mine=(D.library||[]).filter(l=>l.id==x.id);if(mine.length)side.append(mine.some(l=>v&&l.version!=v)?el("span",S.update_ready_short,"own upd"):el("span","✓ "+S.in_library,"own"))}if(v)side.append(el("span",v,"ver"));
+ const side=el("span",null,"side"),st=stateOf(x.id),v=st.latest;if(st.stale)side.append(el("span",S.update_ready_short,"own upd"));else if(st.copies.some(c=>!c.built))side.append(el("span","✓ "+S.installed,"own"));else if(st.copies.length)side.append(el("span",S.built_short,"own"));if(v)side.append(el("span",v,"ver"));
  side.append(el("span",kind=="later"&&x.status?S["status_"+x.status]:kind=="later"&&x.tag?x.tag:S[{build:"act_build",download:"act_download",later:"act_later"}[kind]],"act "+kind));
  b.append(art(x),body,side);b.onclick=()=>choose(x.id);return b}
 function cards(){const q=$("search").value.trim().toLowerCase();
@@ -1057,27 +1148,28 @@ function cards(){const q=$("search").value.trim().toLowerCase();
  if(sel){group="all";G.all=all().filter(x=>x.id==sel)}
  else if(!G[group].length){const k=["all","build","download","later"].find(k=>G[k].length);if(k)group=k}
  $("finder").classList.toggle("hidden",!!sel);$("changeGame").classList.toggle("hidden",!sel);$("tabs").classList.toggle("hidden",!!sel);$("pills").classList.toggle("hidden",!!sel);const one=sel&&all().find(x=>x.id==sel);$("gamePage").classList.toggle("hidden",!(one&&one.page));if(one&&one.page){$("gamePageLink").href=one.page;$("gamePageLink").textContent=fill("game_page",{name:one.name})+" ↗"}
- for(const b of document.querySelectorAll(".tab")){b.classList.toggle("on",b.dataset.g==group);b.setAttribute("aria-selected",b.dataset.g==group);b.querySelector(".n").textContent=G[b.dataset.g].length}
- $("groupNote").textContent=sel?"":S[{all:"all_note",build:"builds",download:"no_build",later:"later_note"}[group]]+((group=="all"||group=="build")&&D.games.some(g=>g.setup)?" "+S.start_note:"");
- $("pickTitle").textContent=sel?S.step1:S.library;hero(sel?all().find(x=>x.id==sel):null);
+ for(const b of document.querySelectorAll(".tab")){b.classList.toggle("on",b.dataset.g==group);b.setAttribute("aria-selected",b.dataset.g==group);b.querySelector(".n").textContent=G[b.dataset.g].length;b.classList.toggle("hidden",b.dataset.g!="all"&&!all().some(x=>groupOf(x.id)==b.dataset.g))}
+ $("groupNote").textContent=sel?"":S[{all:D.later.length?"all_note":"all_note_plain",build:"builds",download:"no_build",later:"later_note"}[group]]+((group=="all"||group=="build")&&D.games.some(g=>g.setup)?" "+S.start_note:"");
+ $("pickTitle").textContent=S.library;$("pickTitle").classList.toggle("hidden",!!sel);$("pickCard").classList.toggle("hidden",!sel&&view!="library");$("changeGame").textContent="← "+viewName();hero(sel?all().find(x=>x.id==sel):null);
  $("list").replaceChildren(...(sel?[]:G[group].map((x,i)=>row(x,i))));$("list").classList.toggle("hidden",!!sel||!G[group].length);$("list").classList.toggle("settled",listShown);listShown=true;
  $("noMatch").classList.toggle("hidden",!!G[group].length);layout()}
-function back(top){++fileRequest;reading=false;sel=null;file=null;dev=null;for(const id of ["fileBox","deviceBox","planBox","dlBox","readyBox","laterBox","inApp"])$(id).classList.add("hidden");cards();if(top)scrollTo({top:0,behavior:"smooth"});else $("pickCard").scrollIntoView({behavior:"smooth"})}
-let listShown=false;$("shelfMore").onclick=()=>{shelfAll=!shelfAll;shelf()};
-function layout(){intro();shelf()}
-function home(){$("storage").classList.add("hidden");nav("games");closeSheet();if(last&&last.state=="running"){watch=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");back(true);now(last);return}
+function back(top){++fileRequest;reading=false;sel=null;file=null;dev=null;for(const id of ["fileBox","deviceBox","planBox","dlBox","readyBox","laterBox","inApp"])$(id).classList.add("hidden");cards();if(top||view!="library")scrollTo({top:0});else $("pickCard").scrollIntoView({behavior:"smooth"})}
+let listShown=false;
+function layout(){intro();shelf();side()}
+function go(v){view=v;if(v=="storage"){closeSheet();storageView();return}home(true)}
+function home(keep){if(!keep)view=(mineIds().length?"mine":"library");$("storage").classList.add("hidden");closeSheet();if(last&&last.state=="running"){watch=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");back(true);now(last);return}
  last=null;shown=false;$("progress").classList.add("hidden");$("form").classList.remove("hidden");$("finished").replaceChildren();$("finished").classList.add("hidden");
  $("cancel").disabled=false;$("logBox").open=false;$("makeError").textContent="";$("reportLink").href="https://github.com/chrissotraidis/padmint/issues";
  $("search").value="";system="";group="all";watch=true;now(null);filters();back(true)}
-$("home").onclick=e=>{e.preventDefault();home()};$("home").setAttribute("aria-label",S.home||"PadMint");
+$("home").onclick=e=>{e.preventDefault();home()};$("lookAgain").onclick=()=>seen(true);$("home").setAttribute("aria-label",S.home||"PadMint");
 $("search").oninput=cards;$("changeGame").onclick=back;for(const b of document.querySelectorAll(".backBtn"))b.onclick=back;
 function choose(id){++fileRequest;reading=false;sel=id;file=null;dev=null;editFile=editDev=false;$("fileState").textContent="";$("path").value="";cards();const g=game(),a=app(),w=waiting();
  $("laterBox").classList.toggle("hidden",!w);
- if(w){$("laterName").textContent=w.name;$("laterAbout").textContent=[systemOf(w)?fill("original",{system:systemOf(w)}):"",(w.plays_on||[]).length?fill("plays_on",{devices:(w.plays_on.includes("iphone")&&w.plays_on.includes("ipad")?["iPhone/iPad"]:w.plays_on.filter(d=>d!="mac").map(d=>DEVICES[d])).concat(w.plays_on.includes("mac")?["Mac"]:[]).join(", ")}):""].filter(Boolean).join(" · ");$("laterText").textContent=w.text;$("laterLink").href=w.link;$("laterLink").textContent=fill("later_link",{name:w.name});$("laterBox").scrollIntoView({behavior:"smooth"})}
+ if(w){$("laterName").textContent=w.name;$("laterAbout").textContent=[systemOf(w)?fill("original",{system:systemOf(w)}):"",(w.plays_on||[]).length?fill("plays_on",{devices:(w.plays_on.includes("iphone")&&w.plays_on.includes("ipad")?["iPhone/iPad"]:w.plays_on.filter(d=>d!="mac").map(d=>DEVICES[d])).concat(w.plays_on.includes("mac")?["Mac"]:[]).join(", ")}):""].filter(Boolean).join(" · ");$("laterText").textContent=w.text;$("laterLink").href=w.link;$("laterLink").textContent=fill("later_link",{name:w.name});scrollTo({top:0})}
  $("dlBox").classList.toggle("hidden",!a);
  $("readyBox").classList.add("hidden");if(g&&g.ready){$("readyText").textContent=g.ready.text;$("readyLink").href=g.ready.url;$("readyLink").textContent=fill("ready_link",{devices:g.platforms.filter(p=>g.ready.platforms.includes(p.id)).map(p=>p.short||p.label).join(", ")})}
  if(a){$("dlName").textContent=a.name;$("dlIntro").textContent=a.intro;$("dlSteps").replaceChildren(...a.steps.map(s=>linked(s)));
-  const l=el("a",a.guide);l.href=a.guide;l.target="_blank";$("dlGuide").replaceChildren(S.guide+": ",l);$("dlBox").scrollIntoView({behavior:"smooth"})}
+  const l=el("a",a.guide);l.href=a.guide;l.target="_blank";$("dlGuide").replaceChildren(S.guide+": ",l);scrollTo({top:0})}
  for(const id of ["fileBox","deviceBox","planBox"])$(id).classList.add("hidden");$("inApp").classList.add("hidden");if(!g)return;
  if(g.needs_file){$("fileBox").classList.remove("hidden");
   fileHint(g,null);showFiles([]);loadFiles(g.id)}
@@ -1085,7 +1177,7 @@ function choose(id){++fileRequest;reading=false;sel=id;file=null;dev=null;editFi
  $("deviceBox").classList.remove("hidden");$("devices").replaceChildren(...g.platforms.map(p=>{const b=el("button",null,"pick");b.append(el("b",p.label));b.onclick=()=>pickDevice(p.id);b.dataset.id=p.id;return b}),
   ...(g.held||[]).map(h=>{const b=el("button",null,"pick");b.append(el("b",h.label),el("span",h.tag));b.disabled=true;b.setAttribute("aria-describedby","heldNote");return b}));
  const held=g.held||[];$("heldNote").classList.toggle("hidden",!held.length);if(held.length){const l=el("a",fill("later_link",{name:g.name}));l.href=g.page;l.target="_blank";$("heldNote").replaceChildren(held.map(h=>h.text).join(" ")+" ",l)}
- if(g.platforms.length==1)pickDevice(g.platforms[0].id);($("fileBox").classList.contains("hidden")?$("deviceBox"):$("fileBox")).scrollIntoView({behavior:"smooth"});ready()}
+ if(g.platforms.length==1)pickDevice(g.platforms[0].id);scrollTo({top:0});ready()}
 let filesRequest=0;
 function showFiles(files){$("foundBox").classList.toggle("hidden",!files.length);$("found").textContent=fill("found",{folder:D.folder});
  $("files").replaceChildren(...files.map(f=>{const b=el("button",null,"btn file");b.append(el("b",base(f)),el("span","→","muted"));b.title=f;b.onclick=()=>useFile(f);return b}))}
@@ -1137,7 +1229,7 @@ $("use").onclick=()=>useFile($("path").value.trim().replace(/^["']|["']$/g,""));
 $("make").onclick=async()=>{$("make").disabled=true;watch=true;const r=await post("/api/make",{game:sel,platform:dev,path:file});
  if(r.error){$("makeError").textContent=r.error;ready();return}show(r);poll()};
 $("cancel").onclick=async()=>{$("cancel").disabled=true;await post("/api/cancel")};
-$("again").onclick=home;
+$("again").onclick=()=>home();
 $("copy").onclick=async()=>{const text="PadMint "+D.version+" ("+D.host+")\n"+$("tail").textContent;
  try{await navigator.clipboard.writeText(text);$("copy").textContent=S.copied}catch(e){getSelection().selectAllChildren($("tail"))}};
 const clock=s=>[Math.floor(s/3600),Math.floor(s/60)%60,s%60].map((n,i)=>i?String(n).padStart(2,"0"):n).join(":");
@@ -1175,7 +1267,7 @@ function show(r){if(r.state=="idle")return;last=r;now(r);if(!watch)return;$("sto
  $("phases").replaceChildren(...list.map(p=>phaseRow(p,r,g)));
  const pre=$("tail"),stick=pre.scrollTop+pre.clientHeight>=pre.scrollHeight-20;pre.textContent=r.tail.length?r.tail.join("\n"):S.log_empty;if(stick)pre.scrollTop=pre.scrollHeight;$("lineCount").textContent=r.lines?"("+r.lines+")":"";$("copy").disabled=!r.tail.length;
  const over=r.state!="running";$("cancel").classList.toggle("hidden",over);$("cancelNote").classList.toggle("hidden",over);$("again").classList.toggle("hidden",!over);
- if(!over||shown)return;shown=true;const f=$("finished");f.classList.remove("hidden");if(g)$("reportLink").href=g.issues;
+ if(!over||shown)return;shown=true;if(r.state=="done")fetch("/api/player?lang="+D.lang,{headers:H}).then(x=>x.json()).then(x=>{if(x.library){D.library=x.library;layout()}}).catch(()=>{});const f=$("finished");f.classList.remove("hidden");if(g)$("reportLink").href=g.issues;
  if(r.state=="failed"){const p=el("p",S.failed+" ","bad"),a=el("a",g?g.issues:"");a.href=g?g.issues:"";a.target="_blank";p.append(a);f.append(p);$("logBox").open=true}
  if(r.state=="cancelled")f.classList.add("hidden");
  if(r.state=="done"&&r.result){const x=r.result;$("headCard").after(f);
@@ -1186,6 +1278,6 @@ function show(r){if(r.state=="idle")return;last=r;now(r);if(!watch)return;$("sto
   if(x.warning){const w=linked(x.warning,"p");w.className="warn small";f.append(w)}
   const p=el("p",S.guide+": ","small"),a=el("a",x.guide);a.href=x.guide;a.target="_blank";p.append(a);f.append(p,el("p",x.private,"warn small"))}}
 async function poll(){const r=await (await fetch("/api/build?lang="+D.lang,{headers:H})).json();show(r);if(r.state=="running")setTimeout(poll,1500)}
-if(!D.games.length&&!D.downloads.length){$("form").replaceChildren(el("p",S.none,"bad"))}else{filters();cards();poll();vstat();versions()}
+if(!D.games.length&&!D.downloads.length){$("form").replaceChildren(el("p",S.none,"bad"))}else{view=mineIds().length?"mine":"library";filters();cards();poll();vstat();versions();seen(false)}
 </script></body></html>
 """
