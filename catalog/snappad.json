@@ -5,7 +5,8 @@
   "name": "SnapPad",
   "game": "Pokémon Snap (N64)",
   "player_targets": [
-    "ios"
+    "ios",
+    "macos"
   ],
   "game_ids": [
     "NPFE"
@@ -158,6 +159,31 @@
     "publication": {
       "public_binaries": false,
       "reason": "Each copy holds game code made from the player's own ROM on their own Mac, so it stays personal."
+    }
+  },
+  "player_next": {
+    "macos": {
+      "steps": [
+        "Open {file} and move SnapPad.app to your Applications folder.",
+        "Open SnapPad and choose the same Pokémon Snap (USA) ROM when it asks; it keeps a private copy on this Mac.",
+        "Updating? Replace the old SnapPad.app with the new one. Your saves are kept."
+      ],
+      "translations": {
+        "es": {
+          "steps": [
+            "Abre {file} y mueve SnapPad.app a tu carpeta Aplicaciones.",
+            "Abre SnapPad y elige la misma ROM de Pokémon Snap (EE. UU.) cuando te la pida; guarda una copia privada en este Mac.",
+            "¿Actualizando? Reemplaza el SnapPad.app anterior por el nuevo. Tus partidas guardadas se conservan."
+          ]
+        },
+        "pt": {
+          "steps": [
+            "Abra {file} e mova o SnapPad.app para a sua pasta Aplicativos.",
+            "Abra o SnapPad e escolha a mesma ROM de Pokémon Snap (EUA) quando ele pedir; ele guarda uma cópia privada neste Mac.",
+            "Atualizando? Substitua o SnapPad.app antigo pelo novo. Seus saves são mantidos."
+          ]
+        }
+      }
     }
   }
 }
