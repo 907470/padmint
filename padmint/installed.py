@@ -167,5 +167,6 @@ def snapshot():
     with LOCK:
         if STATE["state"] != "idle":
             return json.loads(json.dumps(STATE))
-    return {"state": "idle", "mac": [], "xcode": False, "checked": None,
-            "devices": [dict(entry, reachable=False) for entry in read_saved().values()]}
+    # The Applications folders take a moment to read, so the first view is already right about this Mac.
+    return {"state": "idle", "mac": mac_apps(names()) if sys.platform == "darwin" else [], "xcode": False,
+            "checked": None, "devices": [dict(entry, reachable=False) for entry in read_saved().values()]}
