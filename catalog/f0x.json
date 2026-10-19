@@ -5,7 +5,8 @@
   "name": "F0X",
   "game": "F-Zero X (N64)",
   "player_targets": [
-    "ios"
+    "ios",
+    "macos"
   ],
   "free_space_gb": 5,
   "player_game_file": "in-app",
@@ -108,6 +109,31 @@
     "publication": {
       "public_binaries": false,
       "reason": "Each copy is built on the player's own Mac from F-Zero X decompilation sources, so it stays personal. The ROM is chosen in the app after installing."
+    }
+  },
+  "player_next": {
+    "macos": {
+      "steps": [
+        "Open {file} and move F0X.app to your Applications folder.",
+        "Open F0X and choose Manage Game Data to pick your own F-Zero X (USA, revision 0) ROM; F0X builds its game data on this Mac.",
+        "Updating? Replace the old F0X.app with the new one. Your saves and game data are kept."
+      ],
+      "translations": {
+        "es": {
+          "steps": [
+            "Abre {file} y mueve F0X.app a tu carpeta Aplicaciones.",
+            "Abre F0X y elige Manage Game Data para escoger tu propia ROM de F-Zero X (EE. UU., revisión 0); F0X crea sus datos del juego en este Mac.",
+            "¿Actualizando? Reemplaza el F0X.app anterior por el nuevo. Tus partidas y los datos del juego se conservan."
+          ]
+        },
+        "pt": {
+          "steps": [
+            "Abra {file} e mova o F0X.app para a sua pasta Aplicativos.",
+            "Abra o F0X e escolha Manage Game Data para selecionar a sua própria ROM de F-Zero X (EUA, revisão 0); o F0X cria os dados do jogo neste Mac.",
+            "Atualizando? Substitua o F0X.app antigo pelo novo. Seus saves e os dados do jogo são mantidos."
+          ]
+        }
+      }
     }
   }
 }
