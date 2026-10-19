@@ -18,7 +18,7 @@
   "manifest": null,
   "before_build": {
     "commands": [
-      "brew install cmake ninja python@3.11",
+      "brew install cmake ninja python@3.11 dylibbundler",
       "python3.11 -m pip install --user Pillow"
     ]
   }
