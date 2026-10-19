@@ -1,5 +1,6 @@
 """The PadMint window: token and host checks, what the page offers, and how a build reads."""
 import json
+import os
 import tempfile
 import threading
 import time
@@ -70,12 +71,13 @@ class WindowTests(unittest.TestCase):
                 self.request(path)
         with tempfile.TemporaryDirectory() as folder, \
                 mock.patch.object(cli.tools, "tools_root", return_value=Path(folder) / "tools"):
-            def record(source, run, status, target="ios"):
+            def record(source, run, status, target="ios", when=1_800_000_000):
                 path = Path(folder) / "games" / source / "build/padmint/key/runs" / run / "record.json"
                 path.parent.mkdir(parents=True)
                 path.write_text(json.dumps({"game": "kartpad", "target": target, "status": status}))
-            record("kartpad-v0.7.9", "a", "completed")
-            record("kartpad-v0.8.3", "b", "completed")
+                os.utime(path, (when, when))  # finished at distinct times, as real builds are
+            record("kartpad-v0.7.9", "a", "completed", when=1_800_000_000)
+            record("kartpad-v0.8.3", "b", "completed", when=1_800_000_600)
             record("kartpad-v0.8.4", "c", "failed")
             record("kartpad-v0.8.5.partial", "d", "completed")
             record("kartpad-v0.8.3", "e", "completed", target="android")
