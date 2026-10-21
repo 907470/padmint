@@ -539,8 +539,9 @@ def execute(args, repo, disc):
                 apple = record["package_validation"].get("apple_compatibility", {})
                 if apple.get("scene_startup") == "unverified" and any(
                         int(item["sdk"].split(".")[0]) >= 27 for item in apple["linked_slices"]):
-                    print("Apple scene startup could not be verified from this package. "
-                          "The build is complete, but launch on your device still needs testing.", flush=True)
+                    print("This iPhone app was built with the iOS 27 SDK and PadMint found no UIKit scene "
+                          "startup in it. On iOS or iPadOS 27 it will probably close as soon as it opens, "
+                          "before it can write a log; iOS 26 and earlier aren't affected.", flush=True)
                 record["output_sha256"] = digest(output)
                 record["output"] = output.name
                 args.output_path = output

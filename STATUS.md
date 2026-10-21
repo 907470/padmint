@@ -1,6 +1,6 @@
 # PadMint status
 
-Updated **19 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **21 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
@@ -32,6 +32,13 @@ work and when to revisit it.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.12**: the iOS 27 heads-up says what players actually see: a copy built
+  with Xcode 27 that has no UIKit scene startup will probably close as soon as it
+  opens on iOS or iPadOS 27, before it can write a log. PaperPad 0.2.2 did exactly
+  that on an iPhone 18 Pro and an iPad ([paperpad#21](https://github.com/chrissotraidis/paperpad/issues/21));
+  PaperPad 0.2.3, F0X 0.1.1 and SnapPad 0.2.1 fix it
+  ([details](docs/COMPATIBILITY.md#ios-27-on-a-physical-ipad-18-to-21-october)).
 
 - **v0.5.5**: a launcher. A sidebar lists **My games**, **Updates** and each
   iPhone, iPad and Mac PadMint can see; every game shows which version is on
@@ -169,9 +176,11 @@ public recipe on one Apple Silicon Mac with Xcode 27; all that ran completed,
 including StarshipPad v0.2.0, whose old SDK-selection failure no longer happens
 ([recorded Mac builds](docs/COMPATIBILITY.md#recorded-mac-builds-4-october)).
 **iOS 27:** 10 of those apps were linked with the iOS 27 SDK without UIKit scene
-startup, which Apple requires. Every game now has it in its latest release
-(published 4 October), checked on the iOS 27.0 Simulator, so a PadMint build made
-now includes it ([details](docs/COMPATIBILITY.md#recorded-mac-builds-4-october)).
+startup, which Apple requires. On a physical iPad with iPadOS 27 (18 October), every
+game's latest PadMint build opened except PaperPad 0.2.2, whose 4 October fix had
+reached only PaperPad Original; F0X 0.1.0 and SnapPad 0.2.0, released later, also
+lacked it. PaperPad 0.2.3, F0X 0.1.1 and SnapPad 0.2.1 (21 October) fix them
+([details](docs/COMPATIBILITY.md#ios-27-on-a-physical-ipad-18-to-21-october)).
 
 Families, in order; one game proves each family. Details and next steps per game
 are in [Status by game](docs/COMPATIBILITY.md#status-by-game).

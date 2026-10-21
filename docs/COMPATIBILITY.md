@@ -46,8 +46,8 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [DinoPad v0.2.0](https://github.com/chrissotraidis/dinopad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [EctoPad v0.1.3](https://github.com/chrissotraidis/ectopad/releases/tag/v0.1.3) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [EctoPad v0.1.3](https://github.com/chrissotraidis/ectopad/releases/tag/v0.1.3) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [F0X v0.1.0](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [F0X v0.1.0](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.0) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [F0X v0.1.1](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [F0X v0.1.1](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.1) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [GoldenPad v0.2.2](https://github.com/chrissotraidis/goldenpad/releases/tag/v0.2.2) | iOS IPA | Experimental | Planned / Unavailable | Planned / Unavailable |
 | [HarkinianPad v0.2.0](https://github.com/chrissotraidis/harkinianpad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [KartPad v0.8.2](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.2) | iOS IPA | Experimental | Experimental / Experimental | Experimental / Experimental |
@@ -58,9 +58,9 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [OpenRCT2 Touch touch-v0.1.0](https://github.com/chrissotraidis/OpenRCT2Touch/releases/tag/touch-v0.1.0) | iPad IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [Ottsel v0.1.0](https://github.com/chrissotraidis/ottsel/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [Ottsel v0.1.0](https://github.com/chrissotraidis/ottsel/releases/tag/v0.1.0) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [PaperPad v0.2.1](https://github.com/chrissotraidis/paperpad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [SnapPad v0.2.0](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
-| [SnapPad v0.2.0](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.0) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [PaperPad v0.2.3](https://github.com/chrissotraidis/paperpad/releases/tag/v0.2.3) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [SnapPad v0.2.1](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
+| [SnapPad v0.2.1](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.1) | macOS app | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [SpaghettiPad v0.2.1](https://github.com/chrissotraidis/spaghettipad/releases/tag/v0.2.1) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [SquirrelPad v0.1.0](https://github.com/chrissotraidis/squirrelpad/releases/tag/v0.1.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
 | [StarshipPad v0.2.0](https://github.com/chrissotraidis/starshippad/releases/tag/v0.2.0) | iOS IPA | Experimental | Unavailable / Unavailable | Unavailable / Unavailable |
@@ -230,7 +230,7 @@ and the version below is its latest release, so PadMint builds it:
 | HarkinianPad | already on main (pinned forks) | [0.2.1](https://github.com/chrissotraidis/harkinianpad/releases/tag/v0.2.1) | Opens (first-run dialog) |
 | MaskPad | [#17](https://github.com/chrissotraidis/maskpad/pull/17) | [0.2.1](https://github.com/chrissotraidis/maskpad/releases/tag/v0.2.1) | Opens (ROM prompt) |
 | MeleePad | [#42](https://github.com/chrissotraidis/meleepad/pull/42) | [0.2.2](https://github.com/chrissotraidis/meleepad/releases/tag/v0.2.2) (with the app) | Opens (home screen) |
-| PaperPad | [#19](https://github.com/chrissotraidis/paperpad/pull/19) | [0.2.2](https://github.com/chrissotraidis/paperpad/releases/tag/v0.2.2) | Opens (Choose ROM) |
+| PaperPad | [#19](https://github.com/chrissotraidis/paperpad/pull/19) reached PaperPad Original only; [#22](https://github.com/chrissotraidis/paperpad/pull/22) | [0.2.3](https://github.com/chrissotraidis/paperpad/releases/tag/v0.2.3) (21 October) | 0.2.2's "Opens" was the Original app; see below |
 | StarshipPad | [#22](https://github.com/chrissotraidis/starshippad/pull/22) | [0.2.1](https://github.com/chrissotraidis/starshippad/releases/tag/v0.2.1) | Opens (setup) |
 | SunPad | [#55](https://github.com/chrissotraidis/sunpad/pull/55) | [0.2.1](https://github.com/chrissotraidis/sunpad/releases/tag/v0.2.1) (with the app) | Opens (game screen) |
 
@@ -241,6 +241,42 @@ app with the old startup stops at launch. No physical iOS 27 device was used. A 
 built before these releases may not open on iOS 27: build the game again with
 PadMint and install it over the old one. PadMint's finish screen still warns if a
 copy may not open on iOS 27.
+
+## iOS 27 on a physical iPad, 18 to 21 October
+
+On 18 October, PadMint builds of each catalog game's latest release (Xcode 27.1)
+were installed over the existing copies on an iPad Pro with iPadOS 27.0.1 and
+opened. AgePad, AnnePad, BallPad, BananaPad, BarrelPad, BearBirdPad, BellPad,
+BlueWake, BrawlerPad, CTRPad, DinoPad, GalaxyPad, GoldenPad, HaloPad, HarkinianPad,
+KartPad, MaskPad, MeleePad, SpaghettiPad, SquirrelPad, StarshipPad and SunPad each
+reached their intro, title screen or launcher. BananaPad's one crash on first
+launch is a known game fault, not startup. These are launch checks, not gameplay.
+
+**PaperPad 0.2.2 closed at launch**, in UIKit's check for apps that skip scene
+startup, so it never wrote a log. Its fix (#19) reached PaperPad Original only;
+PadMint builds PaperBoat, which kept plain SDL and no scene manifest. The Simulator
+"Opens" above came from the Original app. PadMint's finish screen did warn.
+[PaperPad 0.2.3](https://github.com/chrissotraidis/paperpad/releases/tag/v0.2.3)
+([#22](https://github.com/chrissotraidis/paperpad/pull/22)) fixes it: it opened on
+the same iPad with its saves, after an
+[iPhone 18 Pro report](https://github.com/chrissotraidis/paperpad/issues/21).
+
+**Releases since then**, checked on 21 October:
+
+| Game | Release | iOS 27 startup |
+|---|---|---|
+| AnnePad, BellPad, BrawlerPad, KartPad, HaloPad | 0.2.3, 0.2.2, 0.2.2, 0.8.5, 0.3.11 | No startup files changed since the iPad check |
+| DinoPad, SunPad, MeleePad | 0.2.3, 0.2.2, 0.2.3 | PadMint builds of the release record scene startup |
+| UTP, OpenRCT2 Touch | 0.1.0, 0.1.0 | Scene manifest in source (not built here) |
+| EctoPad | 0.1.3 | SDL 3.4's scene startup in source (not built here) |
+| F0X | [0.1.1](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.1) | 0.1.0 had none (libultraship fetched plain SDL); fixed |
+| SnapPad | [0.2.1](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.1) | 0.2.0 had none (it kept PaperPad's old SDL pin); fixed |
+
+F0X, SnapPad and PaperPad now use the same SDL fork commit as the other SDL games.
+Their PadMint builds record scene startup; none of the three was opened on an
+iOS 27 iPhone here. A copy built from F0X 0.1.0, SnapPad 0.2.0 or PaperPad 0.2.2
+with Xcode 27 will close at launch on iOS 27: build the game again and install it
+over the old one.
 
 ## Recorded KartPad builds on x64
 
