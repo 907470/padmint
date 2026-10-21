@@ -83,7 +83,7 @@ class InAppInputTests(unittest.TestCase):
         printed = io.StringIO()
         with redirect_stdout(printed):
             self.assertEqual(execute(self.args, repo, disc), 0)
-        self.assertIn("startup could not be verified", printed.getvalue())
+        self.assertIn("found no UIKit scene startup", printed.getvalue())
         record = json.loads(next((self.repo / "build/padmint").glob("*/runs/*/record.json")).read_text())
         self.assertEqual(record["status"], "completed")
         self.assertEqual(record["package_validation"]["apple_compatibility"]["scene_startup"], "unverified")

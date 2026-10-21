@@ -632,9 +632,9 @@ MESSAGES = {
     },
     "w_copy": {"en": "Copy", "es": "Copiar", "pt": "Copiar"},
     "w_ios27": {
-        "en": "Heads-up: this app was built with Apple's iOS 27 tools, and PadMint couldn't confirm it uses the app startup Apple requires with them. It may not open on iOS or iPadOS 27 until {name} is updated; iOS 26 and earlier aren't affected. If it doesn't open, please say so at {issues}",
-        "es": "Aviso: esta app se creó con las herramientas de iOS 27 de Apple y PadMint no pudo confirmar que use el inicio de app que Apple exige con ellas. Puede que no abra en iOS o iPadOS 27 hasta que {name} se actualice; iOS 26 y anteriores no se ven afectados. Si no abre, avísanos en {issues}",
-        "pt": "Atenção: este app foi criado com as ferramentas do iOS 27 da Apple e o PadMint não conseguiu confirmar que ele usa a inicialização de app que a Apple exige com elas. Ele pode não abrir no iOS ou iPadOS 27 até que {name} seja atualizado; o iOS 26 e anteriores não são afetados. Se não abrir, avise em {issues}",
+        "en": "Heads-up: this app was built with Apple's iOS 27 tools, and PadMint found no sign of the app startup Apple requires with them. On iOS or iPadOS 27 it will probably close as soon as you open it, before it can write a log; iOS 26 and earlier aren't affected. Look for a fixed version of {name} at {issues}, or say there that it closes.",
+        "es": "Aviso: esta app se creó con las herramientas de iOS 27 de Apple y PadMint no encontró el inicio de app que Apple exige con ellas. En iOS o iPadOS 27 probablemente se cerrará en cuanto la abras, antes de poder guardar un registro; iOS 26 y anteriores no se ven afectados. Busca una versión corregida de {name} en {issues}, o avisa allí de que se cierra.",
+        "pt": "Atenção: este app foi criado com as ferramentas do iOS 27 da Apple e o PadMint não encontrou a inicialização de app que a Apple exige com elas. No iOS ou iPadOS 27 ele provavelmente vai fechar assim que você abrir, antes de conseguir gravar um registro; o iOS 26 e anteriores não são afetados. Procure uma versão corrigida de {name} em {issues}, ou avise lá que ele fecha.",
     },
     "w_needs_mac": {
         "en": "PadMint makes {name} for iPhone and iPad on a Mac with Apple Silicon (M1 or newer) and Xcode, so it can't make it on this computer yet. If you have such a Mac, open PadMint there and choose {name}. The game's page has the latest on other computers.",
