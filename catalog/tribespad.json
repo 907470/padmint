@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "tribespad",
+  "repo_url": "https://github.com/chrissotraidis/tribespad",
+  "name": "TribesPad",
+  "game": "Tribes 2 (free official download) with the TribesNEXT client",
+  "player_targets": [
+    "ios",
+    "macos"
+  ],
+  "free_space_gb": 25,
+  "player_help": "https://github.com/chrissotraidis/tribespad#get-tribespad",
+  "reviewed_revision": null,
+  "notes": "TribesPad owns its release recipe. The build downloads the free official Tribes 2 installer and the TribesNEXT client itself and checks them by SHA-256, so there is no game file to select. Personal builds contain translated game code and the game data and are never published. iPhone and iPad builds without a Mac: Actions → Build TribesPad for iPhone and iPad in a fork of the repository.",
+  "manifest": null,
+  "player_game_file": "in-app",
+  "before_build": {
+    "commands": [
+      "brew install llvm@20 cmake ninja sevenzip zstd"
+    ]
+  },
+  "player_next": {
+    "ios": {
+      "sideload": true,
+      "steps": [
+        "Open TribesPad. The game is already inside. Sign in with your TribesNEXT account (CREATE NEW ACCOUNT makes a free one), then PLAY GAME → JOIN lists the internet servers. You join as an observer: press Fire (RT on a controller) to join a team.",
+        "No players online? Turn off Settings → Online Play in the ··· menu to start offline, then choose LAN GAME → HOST, enable bots and start a match."
+      ]
+    },
+    "macos": {
+      "steps": [
+        "Unzip {file}, move TribesPad to your Applications folder and open it. It needs no Apple account.",
+        "Sign in with your TribesNEXT account to join internet servers, or choose LAN GAME → HOST, enable bots and start an offline match."
+      ]
+    }
+  }
+}
