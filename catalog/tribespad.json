@@ -3,7 +3,7 @@
   "id": "tribespad",
   "repo_url": "https://github.com/chrissotraidis/tribespad",
   "name": "TribesPad",
-  "game": "Tribes 2 (free official download) with the TribesNEXT client",
+  "game": "Tribes 2 (PC)",
   "player_targets": [
     "ios",
     "macos"

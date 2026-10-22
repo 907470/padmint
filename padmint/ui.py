@@ -882,7 +882,7 @@ html{min-height:100%;background:var(--bg)}body{min-height:100vh;background-attac
 #copies{margin:.7rem 0 .2rem;padding:.9rem 1.15rem;border-radius:16px;border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:.35rem}
 #copies h3{margin:0 0 .15rem;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}#copies .cp{font-size:.93rem}
 .item .side{gap:.8rem}.own{font-size:.8rem}.act{padding:0;border-radius:0;background:none!important;font-size:.84rem;min-width:5.5rem;text-align:right}
-.act.build{color:var(--mint)}.act.build.upd{color:var(--warn)}.act.download{color:#5bb8f0}.act.later{color:var(--muted)}.act.build:after,.act.download:after{content:" ›";font-size:1.05rem}
+.act.build{color:var(--mint)}.act.build.upd,.act.download.upd{color:var(--warn)}.act.download{color:#5bb8f0}.act.later{color:var(--muted)}.act.build:after,.act.download:after{content:" ›";font-size:1.05rem}.act.open{color:var(--muted)}.act.open:after{content:" ›";font-size:1.05rem}
 @media (max-width:820px){.app{display:block}#side{position:sticky;z-index:6;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;padding:.6rem .8rem;border-right:0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
  #side .brand{padding:0}.sidenav{order:3;flex:1 1 100%;flex-direction:row;overflow-x:auto;gap:.2rem;scrollbar-width:none}.sidenav::-webkit-scrollbar{display:none}.sh{display:none}.sn{width:auto;white-space:nowrap;flex:none}.sn .l{overflow:visible}
  .sidefoot{flex-direction:row;align-items:center;padding:0;margin-left:auto}.sidefoot .vstat{width:auto}.sidefoot .btn.link{display:none}.wrap{padding:.2rem 1rem 2rem}#shelf>.sechead{flex-direction:column;gap:.4rem}}
@@ -1068,7 +1068,7 @@ function mgRow(id,i){const x=all().find(y=>y.id==id),st=stateOf(id),shown=st.cop
  where.append(...shown.map(c=>whereLine(c,st.latest)));body.append(where);
  const side=el("div",null,"side");
  if(old.length){const g=D.games.find(y=>y.id==id),p=g&&g.platforms.find(q=>q.id==old[0].platform),b=el("button",fill("update_to",{version:st.latest}),"btn main small");b.onclick=e=>{e.stopPropagation();choose(id);if(p)pickDevice(p.id)};side.append(b)}
- else if(st.latest&&shown.some(c=>c.version))side.append(el("span","✓ "+S.latest_short,"okt"));else if(shown.length)side.append(el("span","✓ "+S.installed,"okt soft"));
+ else if(st.latest&&shown.some(c=>c.version))side.append(el("span","✓ "+S.latest_short,"okt"));else if(shown.length){const s=el("span","✓ "+S.installed,"okt soft");s.title=S.installed_tip;side.append(s)}
  side.append(el("span","›","chev"));r.append(art(x),body,side);r.onclick=()=>choose(id);return r}
 function shelf(){const busy=!!sel||view=="library"||view=="storage"||!$("progress").classList.contains("hidden");$("shelf").classList.toggle("hidden",busy);if(busy)return;
  const ids=mineIds().filter(id=>inView(id,view)).sort((a,b)=>sortKey(all().find(x=>x.id==a)).localeCompare(sortKey(all().find(x=>x.id==b))));
@@ -1191,7 +1191,8 @@ function row(x,i){const kind=groupOf(x.id),b=el("button",null,"item "+kind);b.st
  const side=el("span",null,"side"),st=stateOf(x.id),v=st.latest,where=[...new Set(st.copies.map(kindName))].join(" · ");
  if(kind=="later"){}else if(st.stale){const o=st.old.map(c=>c.version).sort(cmpv)[0];side.append(el("span",(o?"v"+o+" → ":"")+v,"own upd"))}
  else if(st.copies.length)side.append(el("span","✓ "+fill("lib_on",{where}),"own"));else if(mineIds().length)side.append(el("span",S.lib_not_installed,"own none"));
- side.append(el("span",kind=="later"&&x.status?S["status_"+x.status]:kind=="later"&&x.tag?x.tag:S[kind=="build"&&st.stale?"act_update":{build:"act_build",download:"act_download",later:"act_later"}[kind]],"act "+kind+(kind=="build"&&st.stale?" upd":"")));
+ const have=kind!="later"&&st.copies.length&&!st.stale;
+ side.append(el("span",kind=="later"&&x.status?S["status_"+x.status]:kind=="later"&&x.tag?x.tag:S[kind!="later"&&st.stale?"act_update":have?"act_open":{build:"act_build",download:"act_download",later:"act_later"}[kind]],"act "+(have?"open":kind)+(kind!="later"&&st.stale?" upd":"")));
  b.append(art(x),body,side);b.onclick=()=>choose(x.id);return b}
 function cards(){const q=$("search").value.trim().toLowerCase();
  const words=fold_text(q).split(" ").filter(Boolean),match=x=>{const hay=fold_text([x.name,x.about,title(x),systemOf(x),...(x.platforms||[]).map(p=>p.label)].filter(Boolean).join(" "));return words.every(w=>hay.includes(w))&&(!system||systemOf(x)==system)};
