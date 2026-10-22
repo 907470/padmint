@@ -1,6 +1,6 @@
 # PadMint status
 
-Updated **21 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **22 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
@@ -32,6 +32,14 @@ work and when to revisit it.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.13**: a clearer library. The filters say what they hold (**Build your
+  copy**, **Ready-made apps**, **Not on your devices**, **All systems**); a game
+  that is already installed and current shows **Details** instead of a build or
+  download button; ready-made apps with a newer release show **Update**; and My
+  games groups everything without an update as **Installed, nothing to update**,
+  with a note on apps PadMint can't check for updates. Tribes 2 (TribesPad) joins
+  the catalog with its own icon.
 
 - **v0.5.12**: the iOS 27 heads-up says what players actually see: a copy built
   with Xcode 27 that has no UIKit scene startup will probably close as soon as it
