@@ -40,7 +40,7 @@ Tracking issue: #75.
 5. **My games** shows only copies PadMint built on this PC: PadMint can't see
    what's on an iPhone or iPad without a Mac with Xcode, and can't check Android
    phones.
-6. **Games that take the game file in the app** (16, marked `github_build` in the
+6. **Games that take the game file in the app** (15, marked `github_build` in the
    catalog): their page says **Build on GitHub** and gives the steps. The player
    forks PadMint and runs **Build a game for iPhone and iPad** in Actions; GitHub's
    free Mac runs the same `padmint make GAME ios` a Mac player runs, and the IPA
@@ -57,11 +57,16 @@ when it reads the player's game file:
 
 | The game reads your file | Route | Games |
 |---|---|---|
-| Inside the app, after installing | GitHub's Mac builds the whole app (`build-for-iphone.yml`); one workflow for all of them, no per-game work | BallPad, BarrelPad, BellPad, BrawlerPad, CTRPad, EctoPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad, SpaghettiPad, StarshipPad, TribesPad, UTP |
+| Inside the app, after installing | GitHub's Mac builds the whole app (`build-for-iphone.yml`); one workflow for all of them, no per-game work | BallPad, BarrelPad, BellPad, BrawlerPad, CTRPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad, SpaghettiPad, StarshipPad, TribesPad, UTP |
 | While building | The KartPad route on the player's own computer: the release's app without game code, plus the game part PadMint builds from the file (D13, D14) | KartPad (done); SunPad, MeleePad, BlueWake (apps published, translators next); the N64 recompilations; Ottsel; HaloPad's Custom Edition |
 
 Uploading a player's disc or ROM to GitHub stays out (D15), which is why the
 second group needs the local route.
+
+EctoPad also takes its game in the app, but it can't build anywhere on 24 October
+2026: its pinned Metaforce source (github.com/AxioDL/metaforce, commit 621ee0f)
+returns 404, and git.axiodl.com is down. It joins the GitHub route once its
+source is reachable again.
 
 ## The rule
 

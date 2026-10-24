@@ -145,7 +145,7 @@ see what exists.
 | Your computer | What PadMint does there |
 |---|---|
 | **Mac with Apple Silicon** (M1 or newer) and [Xcode](https://apps.apple.com/app/xcode/id497799835) | Builds every game for iPhone and iPad. Builds a Mac version of Animal Crossing, Crash Team Racing, F-Zero X, Halo, Jak and Daxter, Mario Kart Wii, Metroid Prime, Pokémon Snap, Pokémon Stadium, Super Mario Sunshine, Super Smash Bros. and Melee. Shows which games are on the iPhones and iPads you've connected to the Mac once, and which need an update. |
-| **Windows, Linux or an Intel Mac** | Builds Mario Kart Wii (KartPad): game data for the Android app, and the iPhone and iPad app (experimental). Gets the ready-made iPad apps. Sixteen more games can be made for iPhone and iPad on [GitHub's free Mac](#no-mac-build-on-githubs-mac). The rest are listed under **Needs a Mac**, with what each one needs. |
+| **Windows, Linux or an Intel Mac** | Builds Mario Kart Wii (KartPad): game data for the Android app, and the iPhone and iPad app (experimental). Gets the ready-made iPad apps. Fifteen more games can be made for iPhone and iPad on [GitHub's free Mac](#no-mac-build-on-githubs-mac). The rest are listed under **Needs a Mac**, with what each one needs. |
 
 The library sorts games into groups. Use **All games** to see them all, or the
 tabs to narrow the list:
@@ -207,7 +207,7 @@ your Downloads folder and **What to do next**. If it stops, it says why: open
 
 These games take your own game file inside the app, after installing, so the build
 itself needs nothing of yours: BallPad, BarrelPad, BellPad, BrawlerPad, CTRPad,
-EctoPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad,
+F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad,
 SpaghettiPad, StarshipPad, TribesPad and UTP. GitHub lends a Mac for free to
 public repositories, and it can make your iPhone and iPad copy from Windows,
 Linux or any computer with a web browser:
@@ -396,7 +396,7 @@ caches and saves; none need deleting to restore the Mac option.
 <details>
 <summary><strong>Can I build iPhone apps on Windows or Linux?</strong></summary>
 
-On your own computer, only KartPad today, and that is experimental. Sixteen
+On your own computer, only KartPad today, and that is experimental. Fifteen
 games that take your game file inside the app can be made on
 [GitHub's free Mac](#no-mac-build-on-githubs-mac) instead, and HaloPad's Xbox
 edition has [its own GitHub route](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer).
