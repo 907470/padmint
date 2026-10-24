@@ -218,8 +218,8 @@ Linux or any computer with a web browser:
 2. In your fork, open **Actions**. If GitHub asks, press **I understand my
    workflows, go ahead and enable them**.
 3. Choose **Build a game for iPhone and iPad**, press **Run workflow**, pick the
-   game and press the green **Run workflow**. It takes from about 20 minutes to a
-   couple of hours, depending on the game.
+   game and press the green **Run workflow**. It takes a few minutes for small
+   games and about 40 minutes for the largest.
 4. Open the finished run and download the file under **Artifacts**. Unzip it to
    get the `.ipa`. GitHub keeps it for one day.
 5. Install the `.ipa` with Sideloadly ([Installing what you made](#installing-what-you-made)),
