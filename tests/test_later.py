@@ -51,12 +51,32 @@ class LaterTests(unittest.TestCase):
         built = {game["id"] for game in data["games"]}
         waiting = {game["id"]: game for game in data["later"]}
         self.assertIn("kartpad", built)
+        self.assertNotIn("sunpad", built)
+        self.assertIn("Apple Silicon", waiting["sunpad"]["text"])
+        self.assertEqual(waiting["sunpad"]["tag"], "Needs an M1+ Mac")
+        self.assertEqual(waiting["sunpad"]["about"], "Super Mario Sunshine (GameCube)")
+        # A game that takes its game file in the app points to GitHub's Mac instead.
         self.assertNotIn("bellpad", built)
-        self.assertIn("Apple Silicon", waiting["bellpad"]["text"])
-        self.assertEqual(waiting["bellpad"]["tag"], "Needs an M1+ Mac")
-        self.assertEqual(waiting["bellpad"]["about"], "Animal Crossing (GameCube)")
+        self.assertEqual(waiting["bellpad"]["tag"], "Build on GitHub")
+        self.assertIn("pick bellpad", waiting["bellpad"]["text"])
+        self.assertEqual(waiting["bellpad"]["link"], ui.GITHUB_BUILD_HELP)
         everything = built | set(waiting) | {app["id"] for app in data["downloads"]}
         self.assertEqual(everything, set(manifest.catalog()))
+
+    def test_github_builds_match_the_workflow_and_need_no_game_file_while_building(self):
+        # The workflow's game menu is the catalog's github_build list; a game that reads
+        # the player's game file while building must never be offered there.
+        import re
+        workflow = (manifest.CATALOG.parent / ".github/workflows/build-for-iphone.yml").read_text()
+        menu = re.search(r"options:\n((?:\s+- \S+\n)+)", workflow).group(1).split()
+        menu = [item for item in menu if item != "-"]
+        marked = sorted(game for game, entry in manifest.catalog().items() if entry.get("github_build"))
+        self.assertEqual(menu, marked)
+        self.assertIn(json.dumps(marked, separators=(",", ":")), workflow)  # the pull request matrix
+        for game in marked:
+            entry = manifest.catalog()[game]
+            self.assertIn("ios", entry["player_targets"], game)
+            self.assertFalse(entry.get("off_mac"), game)
 
     def test_a_device_held_back_is_shown_on_the_computer_that_would_make_it(self):
         # A Mac copy PadMint holds back (KartPad's, before 0.8.0) is shown dimmed in step 3 on

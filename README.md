@@ -145,7 +145,7 @@ see what exists.
 | Your computer | What PadMint does there |
 |---|---|
 | **Mac with Apple Silicon** (M1 or newer) and [Xcode](https://apps.apple.com/app/xcode/id497799835) | Builds every game for iPhone and iPad. Builds a Mac version of Animal Crossing, Crash Team Racing, F-Zero X, Halo, Jak and Daxter, Mario Kart Wii, Metroid Prime, Pokémon Snap, Pokémon Stadium, Super Mario Sunshine, Super Smash Bros. and Melee. Shows which games are on the iPhones and iPads you've connected to the Mac once, and which need an update. |
-| **Windows, Linux or an Intel Mac** | Builds Mario Kart Wii (KartPad): game data for the Android app, and the iPhone and iPad app (experimental). Gets the ready-made iPad apps. The other games are listed under **Needs a Mac**, with what each one needs. |
+| **Windows, Linux or an Intel Mac** | Builds Mario Kart Wii (KartPad): game data for the Android app, and the iPhone and iPad app (experimental). Gets the ready-made iPad apps. Fifteen more games can be made for iPhone and iPad on [GitHub's free Mac](#no-mac-build-on-githubs-mac). The rest are listed under **Needs a Mac**, with what each one needs. |
 
 The library sorts games into groups. Use **All games** to see them all, or the
 tabs to narrow the list:
@@ -202,6 +202,32 @@ work is kept, so **Cancel** and later builds are safe and quicker.
 When it finishes, the page shows **Your copy is ready**, the file it saved in
 your Downloads folder and **What to do next**. If it stops, it says why: open
 **Technical log** and use **Copy log for a bug report** when asking for help.
+
+## No Mac? Build on GitHub's Mac
+
+These games take your own game file inside the app, after installing, so the build
+itself needs nothing of yours: BallPad, BarrelPad, BellPad, BrawlerPad, CTRPad,
+F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad,
+SpaghettiPad, StarshipPad, TribesPad and UTP. GitHub lends a Mac for free to
+public repositories, and it can make your iPhone and iPad copy from Windows,
+Linux or any computer with a web browser:
+
+1. Sign in to [GitHub](https://github.com) (a free account is enough) and open
+   [PadMint's page](https://github.com/chrissotraidis/padmint). Press **Fork**, then
+   **Create fork**.
+2. In your fork, open **Actions**. If GitHub asks, press **I understand my
+   workflows, go ahead and enable them**.
+3. Choose **Build a game for iPhone and iPad**, press **Run workflow**, pick the
+   game and press the green **Run workflow**. It takes a few minutes for small
+   games and about 40 minutes for the largest.
+4. Open the finished run and download the file under **Artifacts**. Unzip it to
+   get the `.ipa`. GitHub keeps it for one day.
+5. Install the `.ipa` with Sideloadly ([Installing what you made](#installing-what-you-made)),
+   then open the game and add your own game file as its page explains.
+
+To update a game later, press **Sync fork** in your fork, run the workflow again
+and install the new `.ipa` over the old app with the same Apple ID, so your saves
+stay. The copy holds game code made for you: keep it to yourself.
 
 ## Installing what you made
 
@@ -370,13 +396,13 @@ caches and saves; none need deleting to restore the Mac option.
 <details>
 <summary><strong>Can I build iPhone apps on Windows or Linux?</strong></summary>
 
-In PadMint, only KartPad today, and that is experimental. HaloPad's Xbox
-edition has its own route without a Mac:
-[GitHub's free Mac runner builds it](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer)
-in your own copy of HaloPad's repository. Every other iPhone/iPad game needs a
-Mac with Apple Silicon and Xcode for now. Building them on Windows is the next
-priority, BlueWake first; PadMint will offer each one on Windows once that
-game's release supports it.
+On your own computer, only KartPad today, and that is experimental. Fifteen
+games that take your game file inside the app can be made on
+[GitHub's free Mac](#no-mac-build-on-githubs-mac) instead, and HaloPad's Xbox
+edition has [its own GitHub route](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer).
+The games that read your disc or ROM while building (BlueWake, SunPad, MeleePad,
+the N64 recompilations, Jak and Daxter) need a Mac with Apple Silicon and Xcode
+for now; PadMint will offer each one on Windows once that game's release supports it.
 
 </details>
 <details>
