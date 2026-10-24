@@ -1,6 +1,6 @@
 # PadMint status
 
-Updated **22 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **25 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
@@ -32,6 +32,18 @@ work and when to revisit it.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.14**: no Mac? Fifteen games (BallPad, BarrelPad, BellPad, BrawlerPad,
+  CTRPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad,
+  SpaghettiPad, StarshipPad, TribesPad, UTP) can be built for iPhone and iPad on
+  GitHub's free Mac from Windows, Linux or any browser (\`build-for-iphone.yml\`;
+  README "No Mac? Build on GitHub's Mac"). Off a Mac they get their own **Build on
+  GitHub** tab, and each game page gives numbered steps with Fork PadMint,
+  Step-by-step guide and Get Sideloadly buttons. Game pages on a Mac say how the
+  copy gets onto the device (an .ipa installed with Sideloadly), fold the game-file
+  note into one line, and label setup as **Setup: Xcode + Homebrew**. EctoPad is
+  paused while Metaforce is private. SquirrelPad asks for 6 GB free instead of 30.
+  EctoPad's and MeleePad's Rust setup lines work on a fresh Mac again.
 
 - **v0.5.13**: a clearer library. The filters say what they hold (**Build your
   copy**, **Ready-made apps**, **Not on your devices**, **All systems**); a game

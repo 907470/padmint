@@ -60,6 +60,10 @@ class LaterTests(unittest.TestCase):
         self.assertEqual(waiting["bellpad"]["tag"], "Build on GitHub")
         self.assertIn("pick bellpad", waiting["bellpad"]["text"])
         self.assertEqual(waiting["bellpad"]["link"], ui.GITHUB_BUILD_HELP)
+        self.assertTrue(waiting["bellpad"]["github"])
+        self.assertEqual(len(waiting["bellpad"]["steps"]), 5)
+        self.assertIn("pick bellpad", waiting["bellpad"]["steps"][2])
+        self.assertFalse(waiting["sunpad"]["github"])
         everything = built | set(waiting) | {app["id"] for app in data["downloads"]}
         self.assertEqual(everything, set(manifest.catalog()))
 
