@@ -4,155 +4,23 @@
   "repo_url": "https://github.com/chrissotraidis/ectopad",
   "name": "EctoPad",
   "game": "Metroid Prime (GameCube)",
-  "player_targets": [
-    "ios",
-    "macos"
+  "plays_on": [
+    "iphone",
+    "ipad",
+    "mac"
   ],
-  "game_ids": [
-    "GM8E01"
-  ],
-  "free_space_gb": 8,
-  "player_game_file": "in-app",
-  "before_build": {
-    "commands": [
-      "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y",
-      ". \"$HOME/.cargo/env\"",
-      "rustup target add aarch64-apple-ios"
-    ]
-  },
-  "player_help": "https://github.com/chrissotraidis/ectopad#first-launch-and-game-data",
-  "reviewed_revision": null,
-  "notes": "Manifest owned by the game repository: Metaforce and its components at EctoPad's tested pins plus EctoPad's changes (scripts/bootstrap-workspace.sh), built with no game data; players import their disc image in the app.",
-  "manifest": {
-    "schema_version": 1,
-    "id": "ectopad",
-    "name": "EctoPad",
-    "game": "Metroid Prime (GameCube, GM8E01)",
-    "kind": "upstream-engine",
-    "status": "experimental",
-    "inputs": [
-      {
-        "type": "gamecube-disc",
-        "formats": [
-          "iso",
-          "gcm"
-        ],
-        "when": "in-app",
-        "description": "Your own Metroid Prime (USA, Rev 2, GM8E01) disc image. You import it in EctoPad after installing; the build does not read it."
+  "later": {
+    "status": "paused",
+    "text": "EctoPad is paused. It is built on Metaforce, whose developers made its source private until their own public release, so PadMint can't download what a build needs. PadMint will offer EctoPad again once Metaforce's source is public.",
+    "translations": {
+      "es": {
+        "text": "EctoPad está en pausa. Se basa en Metaforce, cuyo código sus desarrolladores han hecho privado hasta su propio lanzamiento público, así que PadMint no puede descargar lo que necesita la compilación. PadMint volverá a ofrecer EctoPad cuando el código de Metaforce sea público."
+      },
+      "pt": {
+        "text": "O EctoPad está em pausa. Ele é feito com o Metaforce, cujo código os desenvolvedores tornaram privado até o próprio lançamento público, então o PadMint não consegue baixar o que a compilação precisa. O PadMint voltará a oferecer o EctoPad quando o código do Metaforce for público."
       }
-    ],
-    "targets": {
-      "ios": {
-        "hosts": {
-          "macos-arm64": "experimental"
-        },
-        "tools": [
-          "git",
-          "cmake",
-          "ninja"
-        ],
-        "output": "ipa",
-        "check": "ipa",
-        "steps": [
-          {
-            "stage": "build",
-            "command": [
-              "/bin/bash",
-              "{repo}/scripts/build-padmint-ios.sh",
-              "{output}"
-            ],
-            "env": {
-              "ECTOPAD_BUILD_JOBS": "{jobs}"
-            }
-          }
-        ]
-      }
-    },
-    "requirements": {
-      "disk_gb": 8,
-      "tools": [
-        {
-          "name": "git",
-          "version_args": [
-            "--version"
-          ]
-        },
-        {
-          "name": "cmake",
-          "version_args": [
-            "--version"
-          ]
-        },
-        {
-          "name": "ninja",
-          "version_args": [
-            "--version"
-          ]
-        },
-        {
-          "name": "python3",
-          "version_args": [
-            "--version"
-          ]
-        },
-        {
-          "name": "rustup",
-          "version_args": [
-            "--version"
-          ],
-          "player": true,
-          "note": "Install Rust with rustup and add the iPhone target; see PadMint's before-build line for this game."
-        },
-        {
-          "name": "xcodebuild",
-          "version_args": [
-            "-version"
-          ],
-          "min_version": "26",
-          "player": true,
-          "note": "Install Xcode 26 or newer with its iOS platform, then select it in Xcode Settings > Locations > Command Line Tools; Command Line Tools alone are not enough."
-        },
-        {
-          "name": "xcrun",
-          "label": "Xcode iPhoneOS SDK",
-          "version_args": [
-            "--sdk",
-            "iphoneos",
-            "--show-sdk-path"
-          ],
-          "player": true,
-          "note": "Install Xcode 26 or newer with its iOS platform, then select it in Xcode Settings > Locations > Command Line Tools; Command Line Tools alone are not enough."
-        }
-      ]
-    },
-    "publication": {
-      "public_binaries": false,
-      "reason": "EctoPad publishes source; each player builds and signs their own copy. The Metroid Prime disc image is imported in the app."
     }
   },
-  "player_next": {
-    "macos": {
-      "steps": [
-        "Open {file} and move EctoPad.app to your Applications folder.",
-        "Open EctoPad and choose Select Game to pick your own Metroid Prime (USA, Rev 2) disc image; next time, Load Previous Game opens it again.",
-        "Updating? Replace the old EctoPad.app with the new one. Your saves and disc choice are kept."
-      ],
-      "translations": {
-        "es": {
-          "steps": [
-            "Abre {file} y mueve EctoPad.app a tu carpeta Aplicaciones.",
-            "Abre EctoPad y elige Select Game para escoger tu propia imagen de disco de Metroid Prime (EE. UU., Rev 2); la próxima vez, Load Previous Game la vuelve a abrir.",
-            "¿Actualizando? Reemplaza el EctoPad.app anterior por el nuevo. Tus partidas y el disco elegido se conservan."
-          ]
-        },
-        "pt": {
-          "steps": [
-            "Abra {file} e mova o EctoPad.app para a sua pasta Aplicativos.",
-            "Abra o EctoPad e escolha Select Game para selecionar a sua própria imagem de disco de Metroid Prime (EUA, Rev 2); da próxima vez, Load Previous Game a abre de novo.",
-            "Atualizando? Substitua o EctoPad.app antigo pelo novo. Seus saves e o disco escolhido são mantidos."
-          ]
-        }
-      }
-    }
-  }
+  "notes": "Paused 24 Oct 2026: AxioDL made Metaforce and Zeus private until their public release, so scripts/bootstrap-workspace.sh cannot fetch them. Restore the build entry from git history (catalog/ectopad.json before this change) when they are public again.",
+  "manifest": null
 }
