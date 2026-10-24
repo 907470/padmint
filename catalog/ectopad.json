@@ -16,8 +16,8 @@
   "player_game_file": "in-app",
   "before_build": {
     "commands": [
-      "brew install rustup",
-      "rustup-init -y",
+      "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y",
+      ". \"$HOME/.cargo/env\"",
       "rustup target add aarch64-apple-ios"
     ]
   },
