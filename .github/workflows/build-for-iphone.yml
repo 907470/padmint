@@ -1,0 +1,77 @@
+name: Build a game for iPhone and iPad
+# For players without a Mac with Apple Silicon. Fork PadMint, open Actions in your fork,
+# choose this workflow, pick a game and press Run workflow. GitHub's free Mac makes your
+# copy from the game's latest release, the same way PadMint does on a Mac. These games
+# take your own game file inside the app after installing, so nothing of yours is
+# uploaded. The IPA stays with your run for one day: download it, install it with
+# Sideloadly and add your game in the app. README: "No Mac? Build on GitHub's Mac".
+# On a pull request that changes this route, every listed game is built and nothing is kept.
+on:
+  workflow_dispatch:
+    inputs:
+      game:
+        description: Game
+        required: true
+        type: choice
+        options:
+          - ballpad
+          - barrelpad
+          - bellpad
+          - brawlerpad
+          - ctrpad
+          - ectopad
+          - f0x
+          - galaxypad
+          - harkinianpad
+          - maskpad
+          - openrct2touch
+          - paperpad
+          - spaghettipad
+          - starshippad
+          - tribespad
+          - utp
+  pull_request:
+    paths:
+      - .github/workflows/build-for-iphone.yml
+      - scripts/github-build.py
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        game: ${{ fromJSON(github.event_name == 'workflow_dispatch' && format('["{0}"]', inputs.game) || '["ballpad","barrelpad","bellpad","brawlerpad","ctrpad","ectopad","f0x","galaxypad","harkinianpad","maskpad","openrct2touch","paperpad","spaghettipad","starshippad","tribespad","utp"]') }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+      PADMINT_HOME: ${{ runner.temp }}/padmint
+      GAME: ${{ matrix.game }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Prepare this Mac like a player's
+        run: |
+          xcodebuild -version
+          df -h "$RUNNER_TEMP"
+          /usr/bin/python3 scripts/github-build.py "$GAME"
+      - name: Make your copy
+        run: /usr/bin/python3 -m padmint make "$GAME" ios --out "$RUNNER_TEMP/out"
+      - name: Checksums
+        working-directory: ${{ runner.temp }}/out
+        run: |
+          ls -la
+          shasum -a 256 *.ipa | tee SHA256SUMS
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.game }}-iphone-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/out/*.ipa
+            ${{ runner.temp }}/out/SHA256SUMS
+          retention-days: 1
+          if-no-files-found: error

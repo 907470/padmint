@@ -8,6 +8,7 @@
     "ios",
     "macos"
   ],
+  "github_build": true,
   "free_space_gb": 5,
   "player_game_file": "in-app",
   "player_help": "https://github.com/chrissotraidis/f0x#first-launch",

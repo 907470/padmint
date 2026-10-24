@@ -8,6 +8,7 @@
     "ios",
     "macos"
   ],
+  "github_build": true,
   "game_ids": [
     "GM8E01"
   ],

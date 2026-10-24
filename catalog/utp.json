@@ -7,6 +7,7 @@
   "player_targets": [
     "ios"
   ],
+  "github_build": true,
   "free_space_gb": 4,
   "player_game_file": "in-app",
   "before_build": {
