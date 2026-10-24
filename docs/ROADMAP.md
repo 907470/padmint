@@ -63,10 +63,10 @@ when it reads the player's game file:
 Uploading a player's disc or ROM to GitHub stays out (D15), which is why the
 second group needs the local route.
 
-EctoPad also takes its game in the app, but it can't build anywhere on 24 October
-2026: its pinned Metaforce source (github.com/AxioDL/metaforce, commit 621ee0f)
-returns 404, and git.axiodl.com is down. It joins the GitHub route once its
-source is reachable again.
+EctoPad is paused (24 October 2026). It takes its game in the app, but its engine,
+Metaforce, and Metaforce's Zeus library were made private by their developers
+(AxioDL) until their own public release, so no build can download them. EctoPad
+is listed as paused and returns, on the GitHub route too, once they are public.
 
 ## The rule
 
