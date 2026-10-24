@@ -87,21 +87,36 @@ def player_data(lang):
                "link": catalog()[game].get("player_help") or catalog()[game]["repo_url"]}
                for game, name in cli.later()]
     # Games PadMint builds, but not here: listed with the reason, never silently left out.
-    waiting += [{"id": game, "name": name,
-                 "about": catalog()[game].get("game") or (catalog()[game].get("manifest") or {}).get("game", ""),
-                 "text": (localized(catalog()[game]["off_mac"], "text", lang) if catalog()[game].get("off_mac")
-                          else phrase("w_needs_mac" if "ios" in targets else "w_needs_windows", lang, name=name)),
-                 "tag": (None if catalog()[game].get("off_mac")
-                         else phrase("w_needs_mac_tag", lang) if "ios" in targets else None),
-                 "plays_on": ["iphone", "ipad"] if "ios" in targets else [],
-                 "link": ((catalog()[game].get("off_mac") or {}).get("url")
-                          or catalog()[game].get("player_help") or catalog()[game]["repo_url"])}
-                for game, name, targets in cli.elsewhere()]
+    waiting += [elsewhere_card(game, name, targets, lang) for game, name, targets in cli.elsewhere()]
     return {"lang": lang, "version": __version__, "host": cli.host_id(), "folder": str(folder),
             "saved_in": phrase("saved_in", lang, folder=folder), "games": games, "downloads": apps, "later": waiting,
             "text": strings(lang), "picker": not cli.on_android(), "reveal": not cli.on_android(),
             "art": sorted(path.stem for path in ART.glob("*.png")), "library": library(),
             "self_update": bool(update.platform()), "installed": installed.snapshot()}
+
+
+GITHUB_BUILD_HELP = "https://github.com/chrissotraidis/padmint#no-mac-build-on-githubs-mac"
+
+
+def elsewhere_card(game, name, targets, lang):
+    """A game PadMint builds, but not on this computer, with what the player can do instead:
+    the game's own route (off_mac), GitHub's free Mac for games that take the game file in
+    the app (github_build), or the Mac it needs."""
+    entry = catalog()[game]
+    ios = "ios" in targets
+    if entry.get("off_mac"):
+        text, tag, link = localized(entry["off_mac"], "text", lang), None, entry["off_mac"]["url"]
+    elif ios and entry.get("github_build"):
+        text, tag, link = (phrase("w_github_build", lang, name=name, game=game),
+                           phrase("w_github_build_tag", lang), GITHUB_BUILD_HELP)
+        if "macos" in targets:
+            text += " " + phrase("w_github_build_mac", lang, name=name)
+    else:
+        text = phrase("w_needs_mac" if ios else "w_needs_windows", lang, name=name)
+        tag = phrase("w_needs_mac_tag", lang) if ios else None
+        link = entry.get("player_help") or entry["repo_url"]
+    return {"id": game, "name": name, "about": entry.get("game") or (entry.get("manifest") or {}).get("game", ""),
+            "text": text, "tag": tag, "plays_on": ["iphone", "ipad"] if ios else [], "link": link}
 
 
 def library():

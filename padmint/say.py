@@ -641,6 +641,17 @@ MESSAGES = {
         "es": "PadMint crea {name} para iPhone y iPad en un Mac con Apple Silicon (M1 o posterior) y Xcode, así que todavía no puede crearlo en esta computadora. Si tienes uno de esos Mac, abre PadMint allí y elige {name}. La página del juego tiene las novedades para otras computadoras.",
         "pt": "O PadMint cria {name} para iPhone e iPad num Mac com Apple Silicon (M1 ou mais novo) e Xcode, então ainda não consegue criá-lo neste computador. Se você tem um Mac assim, abra o PadMint nele e escolha {name}. A página do jogo tem as novidades para outros computadores.",
     },
+    "w_github_build": {
+        "en": "No Mac needed: GitHub's free Mac can make {name} for you. Sign in to GitHub, fork PadMint, open Actions in your fork, choose Build a game for iPhone and iPad, pick {game} and press Run workflow. When it finishes, download the IPA from the run, install it with Sideloadly and add your own game in {name}. Nothing of yours is uploaded.",
+        "es": "No hace falta un Mac: el Mac gratuito de GitHub puede crear {name} por ti. Inicia sesión en GitHub, haz un fork de PadMint, abre Actions en tu fork, elige Build a game for iPhone and iPad, selecciona {game} y pulsa Run workflow. Cuando termine, descarga el IPA de esa ejecución, instálalo con Sideloadly y añade tu propio juego en {name}. No se sube nada tuyo.",
+        "pt": "Não precisa de Mac: o Mac gratuito do GitHub pode criar {name} para você. Entre no GitHub, faça um fork do PadMint, abra Actions no seu fork, escolha Build a game for iPhone and iPad, selecione {game} e toque em Run workflow. Quando terminar, baixe o IPA dessa execução, instale com o Sideloadly e adicione o seu próprio jogo no {name}. Nada seu é enviado.",
+    },
+    "w_github_build_tag": {"en": "Build on GitHub", "es": "Crear en GitHub", "pt": "Criar no GitHub"},
+    "w_github_build_mac": {
+        "en": "The Mac version of {name} is made on a Mac with Apple Silicon (M1 or newer).",
+        "es": "La versión para Mac de {name} se crea en un Mac con Apple Silicon (M1 o posterior).",
+        "pt": "A versão para Mac de {name} é criada num Mac com Apple Silicon (M1 ou mais novo).",
+    },
     "w_needs_windows": {
         "en": "{name}'s Windows copy is made on the Windows PC it will run on: open PadMint on that PC and choose {name}.",
         "es": "La copia de {name} para Windows se crea en el PC con Windows donde vas a jugar: abre PadMint en ese PC y elige {name}.",

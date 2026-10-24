@@ -48,7 +48,6 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
       HOMEBREW_NO_AUTO_UPDATE: '1'
       HOMEBREW_NO_INSTALL_CLEANUP: '1'
-      PADMINT_HOME: ${{ runner.temp }}/padmint
       GAME: ${{ matrix.game }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -58,6 +57,7 @@ jobs:
         run: |
           xcodebuild -version
           df -h "$RUNNER_TEMP"
+          echo "PADMINT_HOME=$RUNNER_TEMP/padmint" >> "$GITHUB_ENV"
           /usr/bin/python3 scripts/github-build.py "$GAME"
       - name: Make your copy
         run: /usr/bin/python3 -m padmint make "$GAME" ios --out "$RUNNER_TEMP/out"
@@ -65,7 +65,7 @@ jobs:
         working-directory: ${{ runner.temp }}/out
         run: |
           ls -la
-          shasum -a 256 *.ipa | tee SHA256SUMS
+          shasum -a 256 ./*.ipa | tee SHA256SUMS
       - if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
