@@ -10,7 +10,7 @@
   "game_ids": [
     "NFUE"
   ],
-  "free_space_gb": 30,
+  "free_space_gb": 6,
   "player_game_file": "build",
   "player_help": "https://github.com/chrissotraidis/squirrelpad#get-started",
   "reviewed_revision": "19db910236b8fadbba580a88ecc457956b439436",
