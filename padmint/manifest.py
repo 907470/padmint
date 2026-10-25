@@ -1,4 +1,4 @@
-"""`padmint.json` schema v1: what a game repository declares to PadMint.
+"""`padmint.json` schemas v1/v2: what a game repository declares to PadMint.
 
 A game repository owns its manifest. PadMint's catalog (`catalog/*.json`) lists
 supported games and may carry an interim manifest for a repository that has not
@@ -11,7 +11,7 @@ import platform
 import re
 import string
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 KINDS = {"disc-translation", "emulator-shell", "decomp-patches", "upstream-engine", "clean-engine"}
 STATUSES = {"draft-untested", "experimental", "supported", "retired"}
 HOSTS = {"macos-arm64", "macos-x86_64", "linux-x86_64", "linux-arm64", "windows-x86_64", "windows-arm64"}
@@ -32,7 +32,7 @@ _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,39}")
 
 
 class NeedsNewerPadMint(ValueError):
-    """A game's recipe uses a tool this PadMint does not know: the player needs a newer PadMint."""
+    """A game's recipe uses a schema or tool that needs a newer PadMint."""
 
 
 def _require(condition, message):
@@ -52,7 +52,10 @@ def _argv(value, where):
 def validate_manifest(data):
     """Validate a manifest dictionary and return it unchanged."""
     _require(isinstance(data, dict), "manifest must be an object")
-    _require(data.get("schema_version") == SCHEMA_VERSION, f"schema_version must be {SCHEMA_VERSION}")
+    version = data.get("schema_version")
+    if isinstance(version, int) and version > SCHEMA_VERSION:
+        raise NeedsNewerPadMint(f"This recipe uses schema {version}; update PadMint before building it.")
+    _require(version in (1, SCHEMA_VERSION), "schema_version must be 1 or 2")
     _require(isinstance(data.get("id"), str) and _ID.fullmatch(data["id"]), "id must be a short lowercase slug")
     for field in ("name", "game"):
         _require(isinstance(data.get(field), str) and data[field], f"{field} is required")
@@ -64,6 +67,11 @@ def validate_manifest(data):
         _require(isinstance(item, dict) and isinstance(item.get("type"), str), "each input needs a type")
         _require(isinstance(item.get("formats", []), list), "input formats must be a list")
         _require(item.get("when", "build") in INPUT_TIMES, f"input when must be one of {sorted(INPUT_TIMES)}")
+        if "selection" in item:
+            _require(item["selection"] in ("file", "installed"), "input selection must be file or installed")
+            _require(item.get("when", "build") == "build", "input selection applies only to build inputs")
+            _require(item["selection"] != "installed" or version >= 2,
+                     "installed input selection requires schema_version 2 so older PadMint refuses it safely")
         for digest in item.get("verified_sha256", []):
             _require(isinstance(digest, str) and re.fullmatch(r"[0-9a-f]{64}", digest),
                      "verified_sha256 entries must be lowercase SHA-256 digests")
@@ -208,8 +216,19 @@ def manifest_sha256(data):
 
 
 def needs_build_input(data):
-    """True when the backend reads the player's disc/ROM during the build."""
+    """True when the backend reads private game inputs, including local installations."""
     return any(item.get("when", "build") == "build" for item in data["inputs"])
+
+
+def selected_inputs(data):
+    """Build inputs supplied with --disc; installed inputs stay with the backend."""
+    return [item for item in data.get("inputs", [])
+            if item.get("when", "build") == "build" and item.get("selection", "file") == "file"]
+
+
+def player_input_mode(data):
+    """The catalog's input choice, derived from the selected recipe."""
+    return "build" if selected_inputs(data) else "installed" if needs_build_input(data) else "in-app"
 
 
 def ios_build_hosts(entry):
@@ -260,8 +279,8 @@ def catalog():
         targets = entry.get("player_targets", [])
         if not isinstance(targets, list) or not set(targets) <= {"android", "ios", "macos", "windows"}:
             raise ValueError(f"catalog/{path.name}: player_targets lists android, ios, macos or windows")
-        if entry.get("player_game_file", "build") not in ("build", "in-app"):
-            raise ValueError(f"catalog/{path.name}: player_game_file is build or in-app")
+        if entry.get("player_game_file", "build") not in ("build", "installed", "in-app"):
+            raise ValueError(f"catalog/{path.name}: player_game_file is build, installed or in-app")
         for flag in ("ios_off_mac", "ios_intel_mac"):
             if not isinstance(entry.get(flag, False), bool) or (entry.get(flag) and "ios" not in targets):
                 raise ValueError(f"catalog/{path.name}: {flag} is true or false, for an ios player target")

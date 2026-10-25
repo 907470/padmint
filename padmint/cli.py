@@ -26,7 +26,7 @@ import uuid
 from . import __version__, awake, game_file, gate, ios_module, tools
 from .say import MESSAGES, localized, phrase, t
 from .manifest import (RUNNABLE_STATES, NeedsNewerPadMint, catalog, expand, host_id, ios_build_hosts, load_manifest,
-                       manifest_for, manifest_sha256, needs_build_input, on_android,
+                       manifest_for, manifest_sha256, needs_build_input, selected_inputs, on_android,
                        repository_manifest, steps_here)
 from .package import validate_ipa
 
@@ -112,13 +112,15 @@ def validate(args):
     check_checkout(repo, args.revision)
     manifest, _name, target = selection(args, repo)
     disc = None
-    if needs_build_input(manifest):
+    if selected_inputs(manifest):
         if getattr(args, "disc", None) is None:
             raise ValueError(f"{manifest['name']} needs --disc: your own game image is read during the build")
         disc = args.disc.expanduser().resolve()
         if not disc.is_file():
             raise ValueError("Disc image must be an existing local file")
     elif getattr(args, "disc", None) is not None:
+        if needs_build_input(manifest):
+            raise ValueError(f"{manifest['name']} finds its installed game inputs locally; --disc is not used")
         raise ValueError(f"{manifest['name']} does not read game files during the build; "
                          "import them in the app instead of passing --disc")
     templates = [target["command"]] if "command" in target else [step["command"] for step in steps_here(target)]
@@ -841,8 +843,10 @@ def _make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results
     # Explicit refs skip release preflight/network lookup; both paths must
     # trust the actual selected checkout's recipe before installing tools.
     target = player_target(manifest, platform_name)
-    if not needs_build_input(manifest):
-        disc = None  # the game file is added in the app, not read by the build
+    if not selected_inputs(manifest):
+        if disc is not None and needs_build_input(manifest):
+            raise ValueError(f"{manifest['name']} finds its installed game inputs locally; --disc is not used")
+        disc = None  # supplied later in-app, or discovered locally by the backend
     elif disc is None:
         raise ValueError(f"{manifest['name']} needs your own game file (--disc)")
     require_programs(manifest, platform_name, disc)
@@ -1335,7 +1339,7 @@ def player_folder():
 
 def game_files(folder, manifest):
     """Files in folder with an extension one of the manifest's inputs accepts, newest first."""
-    formats = {"." + name for item in (manifest or {}).get("inputs", []) for name in item.get("formats", [])}
+    formats = {"." + name for item in selected_inputs(manifest or {}) for name in item.get("formats", [])}
     try:
         found = [path for path in folder.iterdir() if path.is_file() and path.suffix.lower() in formats]
     except OSError:
@@ -1546,7 +1550,11 @@ def start(ask=input, stream=None):
     ready = catalog()[game].get("ready_to_play")
     if ready and target in ready.get("platforms", platforms):
         print(f"\n{localized(ready, 'text')}\n  {ready['url']}\n", file=stream, flush=True)
-    if catalog()[game].get("player_game_file", "build") == "in-app":
+    input_mode = catalog()[game].get("player_game_file", "build")
+    if input_mode == "installed":
+        disc = None
+        print(t("w_file_installed", name=name), file=stream)
+    elif input_mode == "in-app":
         disc = None
         print(f"{name} asks for your own game file inside the app, after you install it.", file=stream)
     elif disc is None:

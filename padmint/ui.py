@@ -24,7 +24,7 @@ from urllib.parse import parse_qs, urlparse
 import webbrowser
 
 from . import __version__, cli, installed, storage, tools, update
-from .manifest import catalog
+from .manifest import catalog, selected_inputs
 from .say import LANGUAGES, MESSAGES, language, localized, phrase
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -59,11 +59,14 @@ def player_data(lang):
     games = []
     for game, name, platforms in cli.player_games():
         entry = catalog()[game]
-        needs_file = entry.get("player_game_file", "build") != "in-app"
+        input_mode = entry.get("player_game_file", "build")
+        needs_file = input_mode == "build"
         games.append({"id": game, "name": name, "needs_file": needs_file,
+                      "input_note": phrase("w_file_installed" if input_mode == "installed" else "w_file_in_app", lang, name=name),
+                      "build_note": phrase("w_plan_build" if needs_file else
+                                           "w_plan_build_installed" if input_mode == "installed" else "w_plan_build_app", lang),
                       "about": entry.get("game") or (entry.get("manifest") or {}).get("game", ""),
-                      "formats": [f.upper() for f in input_formats([item for item in (entry.get("manifest") or {}).get("inputs", [])
-                                                                 if item.get("when", "build") == "build"])],
+                      "formats": [f.upper() for f in input_formats(selected_inputs(entry.get("manifest") or {}))],
                       "ids": entry.get("game_ids") or [],
                       "platforms": [{"id": p, "label": cli.platform_label(p, lang),
                                      "short": phrase(f"w_short_{p}", lang) if f"w_short_{p}" in MESSAGES else p}
@@ -259,7 +262,7 @@ def plan(game, platform_name, lang, disc=None):
             "app": bool(target.get("published_app")), "space_gb": cli.player_free_space(entry, platform_name),
             "folder": str(cli.player_folder()), "needs": needs, "mac_setup": mac_setup, "install": install,
             "output": phrase(key, lang, name=name) if key in MESSAGES else "",
-            "inputs": [item for item in manifest.get("inputs", []) if item.get("when", "build") == "build"]}
+            "inputs": selected_inputs(manifest)}
 
 
 RECIPES = {}
@@ -345,7 +348,7 @@ def check_file(game, path, lang):
         return problem
     # A player may pick the game's app (an APK or IPA) or a ZIP instead of the game file.
     manifest = release_recipe(game) or catalog()[game].get("manifest") or {}
-    inputs = [item for item in manifest.get("inputs", []) if item.get("when", "build") == "build"]
+    inputs = selected_inputs(manifest)
     formats = input_formats(inputs)
     if formats and disc.suffix.lower().lstrip(".") not in formats:
         return phrase("w_not_game_file", lang, file=disc.name, name=manifest.get("name", game),
@@ -1261,7 +1264,7 @@ function choose(id){++fileRequest;reading=false;sel=id;file=null;dev=null;editFi
  for(const id of ["fileBox","deviceBox","planBox"])$(id).classList.add("hidden");$("inApp").classList.add("hidden");if(!g)return;
  if(g.needs_file){$("fileBox").classList.remove("hidden");
   fileHint(g,null);showFiles([]);loadFiles(g.id)}
- else{$("inAppText").textContent=fill("file_in_app",{name:g.name});$("inApp").classList.remove("hidden")}
+ else{$("inAppText").textContent=g.input_note;$("inApp").classList.remove("hidden")}
  $("deviceBox").classList.remove("hidden");$("installHint").classList.toggle("hidden",!g.platforms.some(p=>p.id=="ios"));$("devices").replaceChildren(...g.platforms.map(p=>{const b=el("button",null,"pick");b.append(el("b",p.label));b.onclick=()=>pickDevice(p.id);b.dataset.id=p.id;return b}),
   ...(g.held||[]).map(h=>{const b=el("button",null,"pick");b.append(el("b",h.label),el("span",h.tag));b.disabled=true;b.setAttribute("aria-describedby","heldNote");return b}));
  const held=g.held||[];$("heldNote").classList.toggle("hidden",!held.length);if(held.length){const l=el("a",fill("later_link",{name:g.name}));l.href=g.page;l.target="_blank";$("heldNote").replaceChildren(held.map(h=>h.text).join(" ")+" ",l)}
@@ -1296,7 +1299,7 @@ function showPlan(p){const g=game(),box=$("plan");box.replaceChildren();if(p.err
   const d=el("details"),u=el("ul",null,"tools");d.append(el("summary",S.details));
   for(const t of p.tools){const r=el("li");r.append(el("span",t.name+" "+t.version+" · "+fill("from",{host:t.source})),el("span",t.here?S.tool_here:gb(t.size),t.here?"ok":"muted"));u.append(r)}
   d.append(u,el("p",fill("tools_folder",{folder:p.tools_folder}),"muted small"));li.append(d);o.append(li)}if(p.app)o.append(el("li",fill("plan_app",{name:g.name})));
- o.append(el("li",g.needs_file?S.plan_build:S.plan_build_app),el("li",fill("plan_save",{folder:p.folder})));box.append(o);
+ o.append(el("li",g.build_note),el("li",fill("plan_save",{folder:p.folder})));box.append(o);
  if(p.space_gb)box.append(el("p",fill("plan_space",{gb:p.space_gb}),"muted small"));
  if(p.install){const d=el("details"),ol=el("ol",null,"next");d.append(el("summary",S.install_preview));for(const s of p.install.steps)ol.append(linked(s));d.append(ol,el("p",p.install.note,"muted small"));box.append(d)}}
 // The button is disabled by the state itself; the line under it only says which state it is.

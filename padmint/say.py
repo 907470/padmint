@@ -231,6 +231,11 @@ MESSAGES = {
         "es": "Aquí no hace falta el archivo del juego: añades el tuyo dentro de {name} después de instalarla.",
         "pt": "Não precisa do arquivo do jogo aqui: você adiciona o seu dentro do {name} depois de instalar.",
     },
+    "w_file_installed": {
+        "en": "Your own game must already be installed on this computer. {name} finds and checks the local installation while building; there is no file to choose here.",
+        "es": "Tu juego ya debe estar instalado en esta computadora. {name} busca y comprueba la instalación local al crear la copia; aquí no hay ningún archivo que elegir.",
+        "pt": "Seu jogo já deve estar instalado neste computador. {name} encontra e verifica a instalação local ao criar a cópia; não há arquivo para escolher aqui.",
+    },
     "w_choose": {"en": "Choose file…", "es": "Elegir archivo…", "pt": "Escolher arquivo…"},
     "w_found": {"en": "Game files in {folder}:", "es": "Archivos de juegos en {folder}:",
                 "pt": "Arquivos de jogos em {folder}:"},
@@ -726,6 +731,11 @@ MESSAGES = {
                      "es": "Crear tu copia aquí con tu archivo del juego: la primera vez tarda de unos minutos a unas horas; después se reutiliza lo hecho",
                      "pt": "Criar sua cópia aqui com o seu arquivo do jogo: a primeira vez leva de alguns minutos a algumas horas; depois o que foi feito é reaproveitado"},
     "w_plan_save": {"en": "Save your copy in {folder}", "es": "Guardar tu copia en {folder}", "pt": "Salvar sua cópia em {folder}"},
+    "w_plan_build_installed": {
+        "en": "Check your own installed game files and build your copy here on this computer",
+        "es": "Comprueba tus archivos del juego instalado y crea tu copia aquí, en esta computadora",
+        "pt": "Verifica seus arquivos do jogo instalado e cria sua cópia aqui neste computador",
+    },
     "w_plan_build_app": {"en": "Build the app here (you add your game file inside the app afterwards): the first time takes a few minutes to a few hours, later builds reuse finished work",
                          "es": "Crear la app aquí (añades tu archivo del juego dentro de la app después): la primera vez tarda de unos minutos a unas horas; después se reutiliza lo hecho",
                          "pt": "Criar o app aqui (você adiciona o seu arquivo do jogo dentro do app depois): a primeira vez leva de alguns minutos a algumas horas; depois o que foi feito é reaproveitado"},

@@ -58,6 +58,15 @@ class CatalogRouteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "game file"):
             manifest.validate_github_build(entry(), released)
 
+    def test_catalog_and_release_must_agree_about_installed_inputs(self):
+        released = recipe()
+        released["inputs"] = [{"when": "build", "selection": "installed"}]
+        declared = dict(entry(), github_build=False, player_game_file="installed")
+        self.assertEqual(audit_catalog.route_problems(declared, released), [])
+        problems = audit_catalog.route_problems(dict(declared, player_game_file="in-app"), released)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("recipe needs installed input", problems[0])
+
     def test_hosted_build_requires_the_matching_game_and_runnable_mac_target(self):
         self.assertIsNotNone(manifest.validate_github_build(entry(), recipe()))
         for change in ({"id": "otherpad"}, {"targets": {}},

@@ -29,7 +29,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from padmint import cli  # noqa: E402
-from padmint.manifest import catalog, ios_build_hosts, needs_build_input, validate_github_build  # noqa: E402
+from padmint.manifest import catalog, ios_build_hosts, needs_build_input, player_input_mode, validate_github_build  # noqa: E402
 
 SHORT = {"macos-arm64": "Mac", "macos-x86_64": "Intel Mac", "windows-x86_64": "Windows",
          "windows-arm64": "Windows ARM", "linux-x86_64": "Linux", "linux-arm64": "Linux ARM"}
@@ -41,6 +41,9 @@ def route_problems(entry, recipe):
     problems = []
     if recipe.get("id") != entry["id"]:
         problems.append(f"the published recipe declares {recipe.get('id')}, not {entry['id']}")
+    if entry.get("player_game_file", "build") != player_input_mode(recipe):
+        problems.append(f"catalog player_game_file is {entry.get('player_game_file', 'build')}, "
+                        f"but the recipe needs {player_input_mode(recipe)} input")
     ios_hosts = recipe.get("targets", {}).get("ios", {}).get("hosts", {})
     if "ios" in entry.get("player_targets", []):
         for host in ios_build_hosts(entry):
@@ -151,7 +154,7 @@ def audit(json_output=False):
             row["error"] = str(error)
             continue
         row.update(release=release[0], recipe_source=source, kind=recipe.get("kind"),
-                   build_input=needs_build_input(recipe))
+                   build_input=needs_build_input(recipe), input_mode=player_input_mode(recipe))
         row["targets"] = {name: {"hosts": target.get("hosts", {}),
                                  "published_app": target.get("published_app"),
                                  "offered": name in targets}
@@ -204,10 +207,6 @@ def audit(json_output=False):
                             if tool["name"] in ("xcodebuild", "xcrun")]
                 if asks:
                     found(f"{name} on {SHORT.get(host, host)} asks for {', '.join(asks)}")
-        if (entry.get("player_game_file", "build") == "in-app") == needs_build_input(recipe):
-            when = "reads" if needs_build_input(recipe) else "does not read"
-            found(f"catalog player_game_file is {entry.get('player_game_file', 'build')}, "
-                  f"but the build {when} the game file")
         for tool in cli.player_requirements(recipe):
             if not tool.get("note"):
                 found(f"player tool {tool['name']} has no install note")

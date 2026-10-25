@@ -51,6 +51,23 @@ as a stage, shows progress, stops at the first failure and audits the result.
 - **Inputs:** use `"when": "build"` when a script reads the player's disc or ROM
   (then `--disc` is required and passed as `{disc}`), or `"in-app"` when the
   player chooses it after installing (then `--disc` is refused).
+  For private files discovered by the backend in a local game installation, use
+  `"schema_version": 2` with `"when": "build", "selection": "installed"`. PadMint then shows installed-game
+  guidance without a file chooser or `--disc`; the backend must find and validate
+  the installation. Omitted `selection` means `"file"`, preserving existing recipes.
+  The catalog's `player_game_file` is `"installed"` when all build inputs use this
+  mode (`"build"` if any input still needs a selected file). These are private local
+  builds and are never eligible for the GitHub build route.
+  Existing recipes can remain on schema 1; schema 2 makes older PadMint refuse
+  installed-input recipes instead of incorrectly demanding `--disc`.
+
+  Release order matters: ship PadMint with schema 2 support, then the corrected
+  game recipe, then change its catalog input mode. AgePad's current v0.1.0 recipe
+  still declares `in-app`, although its injector reads the local Mac game and Steam
+  installation. Keep `catalog/agepad.json` unchanged until a released schema 2
+  recipe declares installed selection; then change only `player_game_file` to
+  `installed` and require a clean catalog audit. This does not enable Windows hosts
+  or a GitHub build route.
 - **Input guidance:** describe the required original file in `inputs[].description`.
   The window uses the latest release recipe for guidance and extension checks,
   falling back to the catalog when that recipe is unavailable.
