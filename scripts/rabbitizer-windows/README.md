@@ -35,7 +35,11 @@ Python runtime or system setting is installed. Build requirements belong in the
 new build environment. They are checked again before compiling.
 
 The producer adds MSVC's `/std:c11`, while retaining the upstream source build
-settings. It records the compiler path, hash, banner and x64 PE architecture,
+settings. Visual Studio discovery uses explicit UTF-8 output and compiler setup
+captures Unicode environment text, preserving non-English temporary directories
+and inherited values. Windows CLI output uses UTF-8 so printing a successfully
+built wheel's path cannot turn the run into an encoding failure. It records the
+compiler path, hash, banner and x64 PE architecture,
 Python identity, input pins, selected SDK hashes, commands and wheel checksum in
 `provenance.json`. `build.log` retains compiler output. `notices/` contains the
 upstream MIT license, Python license, exact pins and patch. A fixed wheel ZIP
@@ -47,7 +51,8 @@ loaded by the same interpreter. Four hand-authored API tests cover high-bit
 addresses, half-float bit patterns, unset state and unchanged signed/jump values.
 The wheel is never installed by this script. Ordinary repository tests also run
 the offline archive, architecture and preservation checks. Windows CI builds the
-actual public source and runs the four API tests with an explicit x64 interpreter;
+actual public source in Japanese work and temporary paths and runs the four API
+tests with an explicit x64 interpreter;
 it does not upload the wheel or use game inputs.
 
 ## Source and maintenance
