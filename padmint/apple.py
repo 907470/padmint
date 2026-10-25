@@ -14,7 +14,7 @@ def version(value):
     return f"{value >> 16}.{(value >> 8) & 255}.{value & 255}"
 
 
-def linked_sdks(stream, size):
+def linked_sdks(stream, size, filetype=2):
     def read(offset, length, end):
         if offset < 0 or length < 0 or offset + length > end:
             raise ValueError("Mach-O load commands exceed the executable bounds")
@@ -31,8 +31,11 @@ def linked_sdks(stream, size):
         if endian is None:
             raise ValueError("IPA requires a supported 64-bit Mach-O executable")
         header = struct.unpack(endian + "8I", read(start, 32, end))
-        if header[1] != 0x100000C or header[3] != 2:
-            raise ValueError("IPA main executable must be an arm64 device executable")
+        if header[1] != 0x100000C or header[3] != filetype:
+            kind = "dynamic library" if filetype == 6 else "device executable"
+            raise ValueError(f"Mach-O must be an arm64 {kind}")
+        if filetype == 6 and (endian != "<" or header[2] & 0xFFFFFF not in (0, 1)):
+            raise ValueError("game modules require the standard little-endian arm64 ABI")
         count, command_bytes = header[4:6]
         if command_bytes > 16 * 1024 * 1024 or count > command_bytes // 8:
             raise ValueError("Mach-O load command table is invalid")

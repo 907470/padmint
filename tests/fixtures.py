@@ -6,9 +6,9 @@ import struct
 import zipfile
 
 
-def macho(sdk=26, platform=2, symbols=(), swiftui=False):
+def macho(sdk=26, platform=2, symbols=(), swiftui=False, filetype=2, minimum=15):
     # Structurally valid metadata only; this fixture is deliberately not runnable.
-    commands = struct.pack("<6I", 0x32, 24, platform, 15 << 16, sdk << 16, 0)
+    commands = struct.pack("<6I", 0x32, 24, platform, minimum << 16, sdk << 16, 0)
     count = 1
     if swiftui:
         name = b"/System/Library/Frameworks/SwiftUI.framework/SwiftUI\0"
@@ -28,7 +28,7 @@ def macho(sdk=26, platform=2, symbols=(), swiftui=False):
         commands += struct.pack("<6I", 0x2, 24, offset, len(symbols), offset + len(data), len(strings))
         count += 2
         data = b"\0" * 4 + data + strings
-    return (struct.pack("<8I", 0xFEEDFACF, 0x100000C, 0, 2, count, len(commands), 0, 0)
+    return (struct.pack("<8I", 0xFEEDFACF, 0x100000C, 0, filetype, count, len(commands), 0, 0)
             + commands + data + b"synthetic non-runnable fixture")
 
 

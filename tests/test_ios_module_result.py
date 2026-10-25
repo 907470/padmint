@@ -26,7 +26,7 @@ class ModuleResultTests(unittest.TestCase):
         self.work = self.root / "work"
         self.work.mkdir()
         self.module = self.work / "selected.dylib"
-        self.module.write_bytes(macho())
+        self.module.write_bytes(macho(filetype=6))
         self.identity = self.work / "selected.identity"
         self.identity.write_text("a" * 64 + "\n", encoding="utf-8")
         self.result = self.work / "result.json"
@@ -144,7 +144,7 @@ class ModuleResultTests(unittest.TestCase):
             # An existing backend output in the old fixed staging path is safe too.
             ios_module.insert(self.app, self.module, self.module.name, output, self.llvm, self.work)
         self.assertEqual(identity.read_bytes(), b"private input identity\n")
-        self.assertEqual(self.module.read_bytes(), macho())
+        self.assertEqual(self.module.read_bytes(), macho(filetype=6))
 
     def test_package_staging_does_not_overwrite_companion(self):
         output = self.root / "personal.ipa"
@@ -189,7 +189,7 @@ class ModuleResultTests(unittest.TestCase):
         repo = self.root / "backend"
         repo.mkdir()
         (repo / ".gitignore").write_text("build/\n")
-        (repo / "library.bin").write_bytes(macho())
+        (repo / "library.bin").write_bytes(macho(filetype=6))
         recipe = self.recipe()
         recipe["targets"]["ios"]["hosts"] = {"windows-arm64": "experimental", "linux-x86_64": "experimental"}
         recipe["targets"]["ios"]["ios_module"]["on"] = ["windows", "linux"]

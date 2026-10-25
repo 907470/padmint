@@ -371,8 +371,10 @@ def llvm_tool(llvm: Path, name: str) -> Path:
     return tool
 
 
-def toolchain(sdk: Path, llvm: Path) -> Path:
+def toolchain(sdk: Path, llvm: Path, deployment_target=DEPLOYMENT_TARGET) -> Path:
     """A CMake toolchain file: LLVM's clang and ld64.lld with this SDK."""
+    _os_version(deployment_target)
+    triple = f"arm64-apple-ios{deployment_target}"
     def cm(path: Path) -> str:
         return path.as_posix()
     clang, clangxx = llvm_tool(llvm, "clang"), llvm_tool(llvm, "clang++")
@@ -382,13 +384,14 @@ set(CMAKE_SYSTEM_NAME iOS)
 set(CMAKE_SYSTEM_PROCESSOR arm64)
 set(CMAKE_OSX_SYSROOT "{cm(sdk)}" CACHE PATH "")
 set(CMAKE_OSX_ARCHITECTURES arm64 CACHE STRING "")
-set(CMAKE_OSX_DEPLOYMENT_TARGET {DEPLOYMENT_TARGET} CACHE STRING "")
+# The app-compatible floor must also replace an older build directory's cache.
+set(CMAKE_OSX_DEPLOYMENT_TARGET {deployment_target} CACHE STRING "" FORCE)
 set(CMAKE_C_COMPILER "{cm(clang)}")
 set(CMAKE_CXX_COMPILER "{cm(clangxx)}")
 set(CMAKE_ASM_COMPILER "{cm(clang)}")
-set(CMAKE_C_COMPILER_TARGET {TRIPLE})
-set(CMAKE_CXX_COMPILER_TARGET {TRIPLE})
-set(CMAKE_ASM_COMPILER_TARGET {TRIPLE})
+set(CMAKE_C_COMPILER_TARGET {triple})
+set(CMAKE_CXX_COMPILER_TARGET {triple})
+set(CMAKE_ASM_COMPILER_TARGET {triple})
 set(CMAKE_AR "{cm(llvm_tool(llvm, 'llvm-ar'))}" CACHE FILEPATH "")
 set(CMAKE_RANLIB "{cm(llvm_tool(llvm, 'llvm-ranlib'))}" CACHE FILEPATH "")
 set(CMAKE_INSTALL_NAME_TOOL "{cm(llvm_tool(llvm, 'llvm-install-name-tool'))}" CACHE FILEPATH "")
@@ -415,20 +418,62 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 # --- One pipeline for every game: prepare, check and insert ---------------------------------
 
 
+def _published_app(archive):
+    import plistlib
+    plists = [name for name in archive.namelist() if name.startswith("Payload/")
+              and name.count("/") == 2 and name.endswith(".app/Info.plist")]
+    if len(plists) != 1:
+        raise ModuleError("the published IPA must have one Payload/*.app/Info.plist")
+    try:
+        info = plistlib.loads(archive.read(plists[0]))
+    except (ValueError, TypeError) as error:
+        raise ModuleError("the published app has an invalid Info.plist") from error
+    executable = info.get("CFBundleExecutable") if isinstance(info, dict) else None
+    if (not isinstance(executable, str) or not executable or executable in (".", "..")
+            or any(c in executable for c in ("/", "\\", "\0"))):
+        raise ModuleError("the published app names no valid main executable")
+    app = plists[0].rsplit("/", 1)[0]
+    member = f"{app}/{executable}"
+    if archive.namelist().count(member) != 1:
+        raise ModuleError("the published app must contain exactly one main executable")
+    return app, member, info
+
+
+def _os_version(value):
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9]+(?:\.[0-9]+){0,2}", value):
+        raise ModuleError(f"invalid minimum iOS version: {value!r}")
+    parts = tuple(int(part) for part in value.split("."))
+    parts += (0,) * (3 - len(parts))
+    if not 1 <= parts[0] <= 65535 or any(part > 255 for part in parts[1:]):
+        raise ModuleError(f"invalid minimum iOS version: {value!r}")
+    return parts
+
+
+def app_minimum(app_ipa: Path) -> str:
+    """The app's declared iOS floor, checked against its linked executable."""
+    from .apple import linked_sdks
+    with zipfile.ZipFile(app_ipa) as archive:
+        _app, member, info = _published_app(archive)
+        try:
+            with archive.open(member) as stream:
+                slices = linked_sdks(stream, archive.getinfo(member).file_size)
+        except ValueError as error:
+            raise ModuleError(f"invalid published app: {error}") from error
+    if any(item["platform"] != "ios" for item in slices):
+        raise ModuleError("iPhone game modules require an iOS app for a physical device")
+    binary_minimum = max(_os_version(item["minimum_os"]) for item in slices)
+    minimum = _os_version(info["MinimumOSVersion"]) if "MinimumOSVersion" in info else binary_minimum
+    if minimum < binary_minimum:
+        raise ModuleError("the published app's MinimumOSVersion is older than its executable requires")
+    return ".".join(map(str, minimum))
+
+
 def published_executable(app_ipa: Path, destination: Path) -> tuple[str, Path]:
     """Write the published app's main executable to destination; returns (app folder, path)."""
-    import plistlib
     with zipfile.ZipFile(app_ipa) as archive:
-        plists = [name for name in archive.namelist() if name.startswith("Payload/")
-                  and name.count("/") == 2 and name.endswith(".app/Info.plist")]
-        if len(plists) != 1:
-            raise ModuleError(f"{app_ipa.name} is not an iPhone app with one Payload/*.app")
-        app = plists[0].rsplit("/", 1)[0]
-        executable = plistlib.loads(archive.read(plists[0])).get("CFBundleExecutable")
-        if not isinstance(executable, str) or not executable or "/" in executable:
-            raise ModuleError(f"{app_ipa.name} names no valid main executable")
+        app, member, _info = _published_app(archive)
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_bytes(archive.read(f"{app}/{executable}"))
+        destination.write_bytes(archive.read(member))
     return app, destination
 
 
@@ -451,10 +496,15 @@ def llvm_root(env=None) -> Path:
 def prepare(folder: Path, app_ipa: Path, env=None) -> dict:
     """Assemble the SDK in folder for the published app: {"sdk", "toolchain", "executable"}."""
     roots, llvm = source_roots(env), llvm_root(env)
+    minimum = app_minimum(app_ipa)
+    # Keep the existing target for newer apps, but do not silently drop older
+    # devices the published app supports. Import classification is still not an
+    # OS-version availability or runtime launch test.
+    target = minimum if _os_version(minimum) < _os_version(DEPLOYMENT_TARGET) else DEPLOYMENT_TARGET
     _app, executable = published_executable(app_ipa, folder / "app-executable")
     sdk = assemble(folder / FOLDER, roots)
     write_stubs(sdk, app_thread_locals(llvm, executable))
-    return {"sdk": sdk, "toolchain": toolchain(sdk, llvm), "executable": executable}
+    return {"sdk": sdk, "toolchain": toolchain(sdk, llvm, target), "executable": executable}
 
 
 def _names(command: list) -> set:
@@ -602,9 +652,8 @@ def insert(app_ipa: Path, module: Path, into: str, output: Path, llvm: Path, wor
         raise ModuleError("the personal IPA output must not replace a build input")
     if not module.is_file() or module.stat().st_size == 0:
         raise ModuleError(f"the build made no game module at {module}")
-    with module.open("rb") as stream:
-        if stream.read(4) not in (b"\xcf\xfa\xed\xfe", b"\xfe\xed\xfa\xcf"):
-            raise ModuleError(f"{module.name} is not a 64-bit Mach-O library")
+    minimum = app_minimum(app_ipa)
+    check_compatibility(module, minimum)
     work.mkdir(parents=True, exist_ok=True)
     # The backend may already keep its module or companions in this work folder.
     # Never overwrite one of those inputs while finalizing the library.
@@ -614,17 +663,15 @@ def insert(app_ipa: Path, module: Path, into: str, output: Path, llvm: Path, wor
         subprocess.run([str(llvm_tool(llvm, "llvm-strip")), "-x", str(ready)], check=True)
         subprocess.run([str(llvm_tool(llvm, "llvm-install-name-tool")), "-id", f"@rpath/{ready.name}", str(ready)],
                        check=True)
+        check_compatibility(ready, minimum)
         return _insert_ready(app_ipa, ready, into, output, companions)
 
 
 def _insert_ready(app_ipa, ready, into, output, companions):
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(app_ipa) as source:
-        plists = [n for n in source.namelist() if n.startswith("Payload/") and n.count("/") == 2
-                  and n.endswith(".app/Info.plist")]
-        if len(plists) != 1:
-            raise ModuleError(f"{app_ipa.name} is not an iPhone app with one Payload/*.app")
-        prefix = plists[0].rsplit('/', 1)[0] + "/"
+        app, _member, _info = _published_app(source)
+        prefix = app + "/"
         additions = [(ready, into, 0o755), *[(path, name, 0o644) for path, name in companions]]
         occupied = {name.rstrip('/').casefold(): name.endswith('/') for name in source.namelist()}
         for path, name, _mode in additions:
@@ -652,23 +699,24 @@ def _insert_ready(app_ipa, ready, into, output, companions):
 
 
 def linked(module: Path) -> dict:
-    """A module's platform and minimum OS from its LC_BUILD_VERSION (64-bit arm64 dylib)."""
-    import struct
-    from .apple import PLATFORMS, version
-    data = module.read_bytes()
-    if len(data) < 32 or data[:4] != b"\xcf\xfa\xed\xfe":
-        raise ModuleError(f"{module.name} is not a 64-bit little-endian Mach-O file")
-    cputype, _sub, filetype, count, size = struct.unpack_from("<5I", data, 4)
-    if cputype != 0x100000C or filetype != 6:
-        raise ModuleError(f"{module.name} is not an arm64 dynamic library")
-    offset, end = 32, 32 + size
-    for _ in range(count):
-        command, length = struct.unpack_from("<2I", data, offset)
-        if length < 8 or offset + length > end:
-            break
-        if command == 0x32:
-            platform, minimum, sdk = struct.unpack_from("<3I", data, offset + 8)
-            return {"platform": PLATFORMS.get(platform, str(platform)), "minimum_os": version(minimum),
-                    "sdk": version(sdk)}
-        offset += length
-    raise ModuleError(f"{module.name} declares no platform")
+    """Validate a thin arm64 iOS dylib and return its platform, minimum OS and SDK."""
+    from .apple import linked_sdks
+    with module.open("rb") as stream:
+        if stream.read(4) != b"\xcf\xfa\xed\xfe":
+            raise ModuleError(f"{module.name} is not a thin 64-bit little-endian Mach-O library")
+        try:
+            item, = linked_sdks(stream, module.stat().st_size, filetype=6)
+        except ValueError as error:
+            raise ModuleError(f"invalid game module {module.name}: {error}") from error
+    if item["platform"] != "ios":
+        raise ModuleError("the game module must target iOS for a physical device")
+    _os_version(item["minimum_os"])
+    return {key: item[key] for key in ("platform", "minimum_os", "sdk")}
+
+
+def check_compatibility(module: Path, minimum: str) -> dict:
+    report = linked(module)
+    if _os_version(report["minimum_os"]) > _os_version(minimum):
+        raise ModuleError(f"the game module requires iOS {report['minimum_os']}, but the published app "
+                          f"supports iOS {minimum}; rebuild the module for the app's minimum iOS version")
+    return report

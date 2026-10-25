@@ -150,7 +150,7 @@ class InsertAndCheckTests(unittest.TestCase):
         self.app = self.root / "app.ipa"
         write_ipa(self.app, members)
         self.module = self.root / "libgame.dylib"
-        self.module.write_bytes(macho())
+        self.module.write_bytes(macho(filetype=6))
 
     def test_module_goes_into_a_copy_of_the_app_as_an_executable_file(self):
         llvm = fake_llvm(self.root / "llvm")
@@ -159,7 +159,7 @@ class InsertAndCheckTests(unittest.TestCase):
         with zipfile.ZipFile(output) as archive:
             info = archive.getinfo("Payload/Synthetic.app/Frameworks/libgame.dylib")
             self.assertEqual(stat.S_IMODE(info.external_attr >> 16), 0o755)
-            self.assertEqual(archive.read(info), macho())
+            self.assertEqual(archive.read(info), macho(filetype=6))
             self.assertIn("Payload/Synthetic.app/Synthetic", archive.namelist())
         with zipfile.ZipFile(self.app) as original:
             self.assertNotIn("Payload/Synthetic.app/Frameworks/libgame.dylib", original.namelist())
@@ -172,7 +172,7 @@ class InsertAndCheckTests(unittest.TestCase):
             ios_module.insert(once, self.module, "Frameworks/libgame.dylib", self.root / "twice.ipa", llvm,
                               self.root / "w2")
         self.module.write_bytes(b"not a library")
-        with self.assertRaisesRegex(ios_module.ModuleError, "not a 64-bit Mach-O"):
+        with self.assertRaisesRegex(ios_module.ModuleError, "not a thin 64-bit"):
             ios_module.insert(self.app, self.module, "Frameworks/libgame.dylib", self.root / "bad.ipa", llvm,
                               self.root / "w3")
         self.assertFalse((self.root / "bad.ipa").exists())
@@ -207,7 +207,7 @@ class BuildFlowTests(unittest.TestCase):
         write_ipa(self.app, members)
         self.seen = root / "toolchain-seen"
         library = root / "built.dylib"
-        library.write_bytes(macho())
+        library.write_bytes(macho(filetype=6))
         (self.repo / ".gitignore").write_text("build/\n")
         (self.repo / "scripts/compile.sh").write_text(
             'echo "$1" > %s\nmkdir -p "$(dirname "$2")"\ncp %s "$2"\n'
