@@ -22,7 +22,7 @@ class ImportCheckTests(unittest.TestCase):
         # These are the C-linkage imports the first empty SquirrelPad shell omitted.
         for name in ("_conker_interpreter_exit", "_conker_kseg1_read32", "_osPiRawReadIo_recomp",
                      "_conker_widen_sprite_cull_left", "_recomp_syscall_handler", "_app_function",
-                     "_bogus_runtime_symbol", "_memcpy_typo", "___cxa_not_a_runtime_function"):
+                     "_bogus_runtime_symbol", "_memcpy_typo", "_getenv_typo", "___cxa_not_a_runtime_function"):
             with self.subTest(name=name), self.assertRaisesRegex(ios_module.ModuleError, name) as failure:
                 self.check([name])
             self.assertIn("legitimate system-library names need review", str(failure.exception))
@@ -47,7 +47,7 @@ class ImportCheckTests(unittest.TestCase):
             ___stack_chk_guard ___assert_rtn ___stderrp _abort _bzero _feclearexcept
             _fetestexcept _fegetround _fesetround _fflush _fprintf _printf _ldexp _ldexpf
             _longjmp _memcpy _memmove _memset _mmap _mprotect _munmap _setjmp _snprintf
-            _strlen dyld_stub_binder""".split()
+            _strlen _getenv dyld_stub_binder""".split()
         self.assertIn(f"{len(imports)} known runtime names, 0 standard C++ names", self.check(imports))
 
     def test_cpp_namespace_classification_stays_explicitly_limited(self):

@@ -43,6 +43,7 @@ import subprocess
 import sys
 from pathlib import Path
 import stat
+import tempfile
 import zipfile
 
 
@@ -467,7 +468,7 @@ _STANDARD = re.compile(r"((typeinfo name|typeinfo|construction vtable|vtable|VTT
 # linkage. Keep this baseline small; verify new runtime names before adding them.
 # Public source references (symbol declarations/exports, not copied SDK files):
 # - apple-oss-distributions/Libc, Libc-1752.120.2: include/_assert.h,
-#   _abort.h, _stdio.h, _string.h, _strings.h, secure/_string.h; stdlib/FreeBSD/atexit.c;
+#   _abort.h, _stdio.h, _stdlib.h, _string.h, _strings.h, secure/_string.h; stdlib/FreeBSD/atexit.c;
 #   sys/OpenBSD/stack_protector.c.
 # - apple-oss-distributions/libmalloc, libmalloc-812.100.31: include/malloc/_malloc.h.
 # - apple-oss-distributions/xnu, xnu-12377.121.6: bsd/sys/mman.h.
@@ -480,7 +481,7 @@ _STANDARD = re.compile(r"((typeinfo name|typeinfo|construction vtable|vtable|VTT
 # test or an exhaustive export/availability list for each supported iOS version.
 _RUNTIME_IMPORTS = frozenset({
     "___assert_rtn", "_abort", "_bzero", "_memcpy", "_memmove", "_memset", "_strlen",
-    "_malloc", "_calloc", "_realloc", "_free", "_memchr", "_memcmp",
+    "_malloc", "_calloc", "_realloc", "_free", "_memchr", "_memcmp", "_getenv",
     "_strcmp", "_strncmp", "_strcpy", "_strncpy", "_strcat", "_strncat", "_strchr", "_strrchr",
     "_strstr", "_strcspn", "_strspn", "_strpbrk", "_strtok", "_strerror",
     "___memcpy_chk", "___memmove_chk", "___memset_chk",
@@ -522,47 +523,131 @@ def check_imports(llvm: Path, module: Path, executable: Path, stream=None) -> No
           file=stream or sys.stdout, flush=True)
 
 
+def _relative_file(value: str) -> str:
+    if (not isinstance(value, str) or not value or value.startswith("/")
+            or any(c in value for c in ("\\", ":", "\0"))
+            or any(part in ("", ".", "..") for part in value.split("/"))):
+        raise ModuleError(f"expected a relative file path with forward slashes, not {value!r}")
+    return value
+
+
 def _member(into: str) -> str:
-    parts = into.split("/")
-    if (not into or into.startswith("/") or "\\" in into or any(part in ("", ".", "..") for part in parts)
-            or not into.endswith(".dylib")):
+    try:
+        _relative_file(into)
+    except ModuleError:
+        raise ModuleError(f"ios_module.into must be a relative .dylib path inside the app, not {into!r}") from None
+    if not into.endswith(".dylib"):
         raise ModuleError(f"ios_module.into must be a relative .dylib path inside the app, not {into!r}")
     return into
 
 
-def insert(app_ipa: Path, module: Path, into: str, output: Path, llvm: Path, work: Path) -> Path:
+_MACHO_MAGICS = frozenset(bytes.fromhex(value) for value in (
+    "feedface", "cefaedfe", "feedfacf", "cffaedfe",  # thin, both widths and byte orders
+    "cafebabe", "bebafeca", "cafebabf", "bfbafeca",  # universal/fat
+))
+
+
+def read_result(path: Path, work: Path) -> tuple[Path, str, list]:
+    """Resolve a build's chosen module and companion files, all within this workspace.
+
+    The game owns revision selection and identity contents. PadMint verifies the
+    reported file hashes and retains responsibility for imports and IPA insertion.
+    """
+    root = work.resolve()
+    path = path.resolve()
+    if root not in path.parents:
+        raise ModuleError("the iPhone module result must be inside this build's workspace")
+    try:
+        result = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        raise ModuleError(f"cannot read the iPhone module result at {path}: {error}") from error
+    if not isinstance(result, dict) or set(result) - {"file", "into", "sha256", "companions"}:
+        raise ModuleError("the iPhone module result needs file, into, sha256 and optional companions")
+    companions = result.get("companions", [])
+    if not isinstance(companions, list):
+        raise ModuleError("iPhone module companions must be a list")
+
+    def resolve(item, is_module):
+        if not isinstance(item, dict) or set(item) != {"file", "into", "sha256"}:
+            raise ModuleError("each iPhone module result file needs file, into and sha256")
+        source = (path.parent / _relative_file(item["file"])).resolve()
+        if root not in source.parents or not source.is_file():
+            raise ModuleError(f"the module result file is missing or outside this workspace: {item['file']}")
+        into = _member(item["into"]) if is_module else _relative_file(item["into"])
+        digest = item["sha256"]
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise ModuleError(f"the module result needs a lowercase SHA-256 for {item['file']}")
+        data = source.read_bytes()
+        if hashlib.sha256(data).hexdigest() != digest:
+            raise ModuleError(f"the module result hash does not match {item['file']}; run the build again")
+        if not is_module and (into.lower().endswith(".dylib") or data[:4] in _MACHO_MAGICS):
+            raise ModuleError("companions are data files; extra libraries need their own import checks")
+        return source, into
+
+    module, into = resolve({key: value for key, value in result.items() if key != "companions"}, True)
+    extra = [resolve(item, False) for item in companions]
+    destinations = [into, *[name for _source, name in extra]]
+    if len({name.casefold() for name in destinations}) != len(destinations):
+        raise ModuleError("the module result contains duplicate app destinations")
+    return module, into, extra
+
+
+def insert(app_ipa: Path, module: Path, into: str, output: Path, llvm: Path, work: Path,
+           companions=()) -> Path:
     """A copy of the published app with the module at <app>/<into>, stripped of local
     symbols and named @rpath/<file> (unsigned: the player's sideloading tool signs it)."""
     into = _member(into)
+    companions = [(Path(path), _relative_file(name)) for path, name in companions]
+    if output.resolve() in {path.resolve() for path in (app_ipa, module, *[path for path, _name in companions])}:
+        raise ModuleError("the personal IPA output must not replace a build input")
     if not module.is_file() or module.stat().st_size == 0:
         raise ModuleError(f"the build made no game module at {module}")
     with module.open("rb") as stream:
         if stream.read(4) not in (b"\xcf\xfa\xed\xfe", b"\xfe\xed\xfa\xcf"):
             raise ModuleError(f"{module.name} is not a 64-bit Mach-O library")
     work.mkdir(parents=True, exist_ok=True)
-    ready = work / Path(into).name
-    shutil.copyfile(module, ready)
-    subprocess.run([str(llvm_tool(llvm, "llvm-strip")), "-x", str(ready)], check=True)
-    subprocess.run([str(llvm_tool(llvm, "llvm-install-name-tool")), "-id", f"@rpath/{ready.name}", str(ready)],
-                   check=True)
+    # The backend may already keep its module or companions in this work folder.
+    # Never overwrite one of those inputs while finalizing the library.
+    with tempfile.TemporaryDirectory(prefix="insert-", dir=work) as temporary:
+        ready = Path(temporary) / Path(into).name
+        shutil.copyfile(module, ready)
+        subprocess.run([str(llvm_tool(llvm, "llvm-strip")), "-x", str(ready)], check=True)
+        subprocess.run([str(llvm_tool(llvm, "llvm-install-name-tool")), "-id", f"@rpath/{ready.name}", str(ready)],
+                       check=True)
+        return _insert_ready(app_ipa, ready, into, output, companions)
+
+
+def _insert_ready(app_ipa, ready, into, output, companions):
     output.parent.mkdir(parents=True, exist_ok=True)
-    partial = output.with_name(output.name + ".partial")
     with zipfile.ZipFile(app_ipa) as source:
         plists = [n for n in source.namelist() if n.startswith("Payload/") and n.count("/") == 2
                   and n.endswith(".app/Info.plist")]
         if len(plists) != 1:
             raise ModuleError(f"{app_ipa.name} is not an iPhone app with one Payload/*.app")
-        member = f"{plists[0].rsplit('/', 1)[0]}/{into}"
-        if member in source.namelist():
-            raise ModuleError(f"the published app already contains {into}; use the app without game code")
-        with zipfile.ZipFile(partial, "w", compression=zipfile.ZIP_DEFLATED) as target:
-            for item in source.infolist():
-                target.writestr(item, source.read(item))
-            info = zipfile.ZipInfo(member, (1980, 1, 1, 0, 0, 0))
-            info.create_system = 3
-            info.external_attr = (stat.S_IFREG | 0o755) << 16
-            target.writestr(info, ready.read_bytes(), compress_type=zipfile.ZIP_DEFLATED)
-    partial.replace(output)
+        prefix = plists[0].rsplit('/', 1)[0] + "/"
+        additions = [(ready, into, 0o755), *[(path, name, 0o644) for path, name in companions]]
+        occupied = {name.rstrip('/').casefold(): name.endswith('/') for name in source.namelist()}
+        for path, name, _mode in additions:
+            member = (prefix + name).casefold()
+            if member in occupied:
+                raise ModuleError(f"the published app already contains {name}; use the app without game code")
+            if (any(member.startswith(existing + '/') and not directory for existing, directory in occupied.items())
+                    or any(existing.startswith(member + '/') for existing in occupied)):
+                raise ModuleError(f"the module result conflicts with an app file or folder: {name}")
+            if not path.is_file():
+                raise ModuleError(f"the module result file is missing: {path}")
+            occupied[member] = False
+        with tempfile.TemporaryDirectory(prefix=".padmint-insert-", dir=output.parent) as temporary:
+            partial = Path(temporary) / "personal.ipa"
+            with zipfile.ZipFile(partial, "w", compression=zipfile.ZIP_DEFLATED) as target:
+                for item in source.infolist():
+                    target.writestr(item, source.read(item))
+                for path, name, mode in additions:
+                    info = zipfile.ZipInfo(prefix + name, (1980, 1, 1, 0, 0, 0))
+                    info.create_system = 3
+                    info.external_attr = (stat.S_IFREG | mode) << 16
+                    target.writestr(info, path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED)
+            partial.replace(output)
     return output
 
 

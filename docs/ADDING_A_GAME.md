@@ -147,6 +147,36 @@ before extending it. The C++ namespace classification is a heuristic: it does no
 verify every symbol's availability on the target iOS version. Passing the import
 check still requires device install, launch and gameplay acceptance.
 
+Some games choose a different library name for each supported disc revision and
+need an identity file beside it. Use schema 2 and
+`"ios_module": {"result": "{work}/module-result.json"}` instead of `file`/`into`.
+After a successful build, write this result (the hashes below are placeholders):
+
+```json
+{
+  "file": "module/selected.dylib",
+  "into": "game-r2.dylib",
+  "sha256": "<SHA-256 of the compiled module>",
+  "companions": [
+    {"file": "module/identity.txt", "into": "game-r2.dylib.dol-sha256",
+     "sha256": "<SHA-256 of the identity file>"}
+  ]
+}
+```
+
+Source paths use forward slashes, relative to the result file, and must resolve
+inside this build's `{work}` folder. Write the result last, after checking the
+selected input and completing all outputs. PadMint verifies every hash before
+the import check and insertion. Companion files are data, not extra libraries;
+destinations must be distinct and cannot replace any file in the published app.
+The module is installed executable (`0755`) and companions as data (`0644`);
+the base app's bytes and ZIP metadata are preserved.
+
+Result hashes identify the backend's files **before** PadMint strips local symbols
+and sets the library's install name. Companion contents are unchanged. For example,
+MeleePad's companion identifies its original game executable, not the final dylib.
+Schema 1 and the existing fixed `file`/`into` form continue to work unchanged.
+
 ### Checking Windows support across releases
 
 Keep local Windows builds separate from builds started in a browser that run on

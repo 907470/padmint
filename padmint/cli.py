@@ -519,13 +519,20 @@ def execute(args, repo, disc):
                                                               bool(module_spec)))
             recheck("after-exit")
             if code == 0 and module_spec:
-                module_file = Path(expand([module_spec["file"]],
-                                          placeholder_values(args, repo, disc, work, output))[0])
+                values = placeholder_values(args, repo, disc, work, output)
+                if "result" in module_spec:
+                    result_path = Path(expand([module_spec["result"]], values)[0])
+                    module_file, into, companions = ios_module.read_result(result_path, work)
+                    shutil.copyfile(result_path, attempt / "module-result.json")
+                    record["module_result_sha256"] = digest(attempt / "module-result.json")
+                else:
+                    module_file = Path(expand([module_spec["file"]], values)[0])
+                    into, companions = module_spec["into"], []
                 llvm = ios_module.llvm_root(module_env)
                 ios_module.check_imports(llvm, module_file, prepared["executable"])
-                ios_module.insert(Path(app_path(args)), module_file, module_spec["into"], output, llvm,
-                                  work / "padmint-ios-module")
-                print(f"Added your game module to the app: {module_spec['into']}", flush=True)
+                ios_module.insert(Path(app_path(args)), module_file, into, output, llvm,
+                                  work / "padmint-ios-module", companions=companions)
+                print(f"Added your game module to the app: {into}", flush=True)
             if code == 0 and folder_output and not args.source_only:
                 finished = Path(expand([target["folder"]], placeholder_values(args, repo, disc, work, output))[0])
                 if finished.is_dir():
