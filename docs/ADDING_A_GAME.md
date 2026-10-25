@@ -44,6 +44,14 @@ as a stage, shows progress, stops at the first failure and audits the result.
   script that needs a newer Python should run as `python3` and list `python3`
   with that `min_version` in `requirements.tools`, so the check and the build use
   the same program.
+- **Windows Python imports:** bundled Python isolates its module search path.
+  Invoke a repository backend by its script path, such as
+  `"{repo}/scripts/build-module.py"`. Use `-m` only for a package installed in that
+  interpreter. A script importing sibling helpers must explicitly add its own
+  directory to `sys.path`; test that path with `python -I` as well as bundled
+  Windows Python. Pass `-B` to Python children that import from verified source
+  or tool folders, so imports do not create `__pycache__` files there. Isolated
+  Python ignores the `PYTHONDONTWRITEBYTECODE` environment variable.
 - **Job cap:** every step runs with `CMAKE_BUILD_PARALLEL_LEVEL` set to
   `--jobs`, which `cmake --build` honors. Scripts that call `ninja`, `make`
   or `xcodebuild` directly should pass `{jobs}` themselves. Check the actual
@@ -126,7 +134,7 @@ Linux and Macs alike, with no Xcode:
   "published_app": "ExamplePad-v{version}-ios-unsigned.ipa",
   "ios_module": {"file": "{work}/module/libexample_game.dylib", "into": "Frameworks/libexample_game.dylib"},
   "steps": [
-    {"stage": "compile", "command": ["{python}", "-m", "example_builder", "--toolchain", "{ios_toolchain}",
+    {"stage": "compile", "command": ["{python}", "-B", "{repo}/scripts/build-module.py", "--toolchain", "{ios_toolchain}",
                                      "--out", "{work}/module/libexample_game.dylib"]}
   ]
 }
