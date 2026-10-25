@@ -22,7 +22,8 @@ class ImportCheckTests(unittest.TestCase):
         # These are the C-linkage imports the first empty SquirrelPad shell omitted.
         for name in ("_conker_interpreter_exit", "_conker_kseg1_read32", "_osPiRawReadIo_recomp",
                      "_conker_widen_sprite_cull_left", "_recomp_syscall_handler", "_app_function",
-                     "_bogus_runtime_symbol", "_memcpy_typo", "_getenv_typo", "___cxa_not_a_runtime_function"):
+                     "_bogus_runtime_symbol", "_memcpy_typo", "_getenv_typo", "_atexit_game", "_strtol_typo",
+                     "_pthread_missing", "_pthread_create_recomp", "___cxa_not_a_runtime_function"):
             with self.subTest(name=name), self.assertRaisesRegex(ios_module.ModuleError, name) as failure:
                 self.check([name])
             self.assertIn("legitimate system-library names need review", str(failure.exception))
@@ -56,6 +57,12 @@ class ImportCheckTests(unittest.TestCase):
             self.check(["__ZN4Game7missingEv"], demangled="Game::missing()\n")
         with self.assertRaisesRegex(ios_module.ModuleError, "could not classify every"):
             self.check(["__ZN4Game7missingEv"], demangled="")
+
+    def test_recorded_bluewake_worker_pool_imports_are_exact_runtime_names(self):
+        names = ["_atexit", "_strtol", "_pthread_create", "_pthread_join", "_pthread_once",
+                 "_pthread_mutex_lock", "_pthread_mutex_unlock", "_pthread_cond_broadcast",
+                 "_pthread_cond_signal", "_pthread_cond_wait"]
+        self.assertIn("0 from the app, 10 known runtime names", self.check(names))
 
 
 if __name__ == "__main__":
