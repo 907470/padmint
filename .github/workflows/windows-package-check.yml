@@ -153,6 +153,8 @@ jobs:
           python-version: '3.13'
       - name: Check pinned IDO producer input and failure paths
         run: python -B scripts/ido-windows/test_build.py
+      - name: Check pinned asm-processor preparation
+        run: python -B scripts/asm-processor-windows/test_prepare.py
       - uses: actions/cache@v4
         with:
           path: ~/.padmint/tools
