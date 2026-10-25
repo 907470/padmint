@@ -151,6 +151,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: Check pinned IDO producer input and failure paths
+        run: python -B scripts/ido-windows/test_build.py
       - uses: actions/cache@v4
         with:
           path: ~/.padmint/tools
