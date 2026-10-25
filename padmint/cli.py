@@ -1620,8 +1620,8 @@ def finish_submodules(repo, stream=None):
     command = [git_program(), "-C", str(repo)]
     status = subprocess.run(command + ["status", "--porcelain=v1", "-z", "--untracked-files=normal",
                                        "--ignore-submodules=none"],
-                            capture_output=True, text=True)
-    stage = subprocess.run(command + ["ls-files", "--stage", "-z"], capture_output=True, text=True)
+                            capture_output=True, text=True, encoding="utf-8")
+    stage = subprocess.run(command + ["ls-files", "--stage", "-z"], capture_output=True, text=True, encoding="utf-8")
     if status.returncode or stage.returncode or not status.stdout:
         return []
     gitlinks = {entry.split("\t", 1)[1] for entry in stage.stdout.split("\0") if entry.startswith("160000 ")}
@@ -1644,7 +1644,7 @@ def finish_submodules(repo, stream=None):
         # distinct from tracked deletions, which must keep the normal refusal.
         if all(path.name == ".git" for path in folder.iterdir()):
             index = subprocess.run(nested + ["rev-parse", "--git-path", "index"],
-                                   capture_output=True, text=True)
+                                   capture_output=True, text=True, encoding="utf-8")
             if index.returncode:
                 return False
             if not (folder / index.stdout.strip()).exists():
@@ -1652,8 +1652,8 @@ def finish_submodules(repo, stream=None):
                 return True
         status = subprocess.run(nested + ["status", "--porcelain=v1", "-z", "--untracked-files=all",
                                          "--ignore-submodules=none", "--ignored"],
-                                capture_output=True, text=True)
-        stage = subprocess.run(nested + ["ls-files", "--stage", "-z"], capture_output=True, text=True)
+                                capture_output=True, text=True, encoding="utf-8")
+        stage = subprocess.run(nested + ["ls-files", "--stage", "-z"], capture_output=True, text=True, encoding="utf-8")
         if status.returncode or stage.returncode:
             return False
         links = {entry.split("\t", 1)[1] for entry in stage.stdout.split("\0")
@@ -1897,7 +1897,17 @@ def homebrew_on_path(environ=None):
         environ["PATH"] = os.pathsep.join(parts + extra)
 
 
+def configure_output():
+    # Embedded Windows Python ignores PYTHONIOENCODING. Redirected output must
+    # still accept the player's paths, including after a successful build.
+    if os.name == "nt":
+        for stream in (sys.stdout, sys.stderr):
+            if hasattr(stream, "reconfigure"):
+                stream.reconfigure(encoding="utf-8")
+
+
 def main(argv=None):
+    configure_output()
     args = build_parser().parse_args(argv)
     homebrew_on_path()
     try:

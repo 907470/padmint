@@ -140,6 +140,23 @@ class FinishSubmodulesTests(unittest.TestCase):
         (library / "a.txt").write_text("player's work\n")
         self.assert_refused_unchanged(folder, library)
 
+    def test_unicode_submodule_path_finishes_without_losing_local_edits(self):
+        relative = "lib/library \u96ea"
+        git(self.source, "mv", "lib/library", relative)
+        git(self.source, "commit", "-qm", "Unicode submodule path")
+        folder = self.download(self.root / "home/games", rewind=False)
+        library = folder / relative
+        git(library, "checkout", "-q", self.first)
+        note = library / "personal \u96ea.txt"
+        note.write_text("keep this file", encoding="utf-8")
+        self.assertEqual(cli.finish_submodules(folder, stream=io.StringIO()), [])
+        self.assertEqual(note.read_text(encoding="utf-8"), "keep this file")
+        self.assertEqual(git(library, "rev-parse", "HEAD"), self.first)
+        note.unlink()  # Only the hand-authored temporary fixture.
+        self.assertEqual(cli.finish_submodules(folder, stream=io.StringIO()), [relative])
+        self.assertEqual((library / "a.txt").read_text(), "two\n")
+        cli.check_checkout(folder, git(folder, "rev-parse", "HEAD"))
+
     def test_a_git_only_clone_without_an_index_finishes_its_initial_checkout(self):
         folder = self.root / "home/games/half-clone"
         git(self.root, "clone", "-q", self.source.as_uri(), str(folder))

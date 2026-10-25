@@ -100,11 +100,11 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $zip = (Get-ChildItem release-check/*-windows.zip).FullName
           $probe = Join-Path $PWD 'scripts/player-flow-probe.py'
-          Expand-Archive $zip "$env:RUNNER_TEMP/package check with spaces"
-          $package = (Get-ChildItem "$env:RUNNER_TEMP/package check with spaces" -Directory).FullName
+          Expand-Archive $zip "$env:RUNNER_TEMP/package check with spaces 雪"
+          $package = (Get-ChildItem "$env:RUNNER_TEMP/package check with spaces 雪" -Directory).FullName
           $tests = "$env:RUNNER_TEMP/player-checks"
           New-Item -ItemType Directory $tests | Out-Null
-          Copy-Item tests/test_start.py, tests/test_finish_submodules.py, tests/test_source_download.py, tests/test_host_preflight.py, tests/test_progress_output.py, tests/test_package.py, tests/test_tools.py, tests/test_python_path.py, tests/test_ios_hosts.py, tests/test_ios_imports.py, tests/test_ios_module_result.py, tests/test_ios_module_hosts.py, tests/test_ios_module_compatibility.py, tests/test_installed_input.py, tests/fixtures.py, tests/test_next_steps.py, tests/test_game_data_folder.py, tests/test_ui.py $tests
+          Copy-Item tests/test_cli_encoding.py, tests/test_start.py, tests/test_finish_submodules.py, tests/test_source_download.py, tests/test_host_preflight.py, tests/test_progress_output.py, tests/test_package.py, tests/test_tools.py, tests/test_python_path.py, tests/test_ios_hosts.py, tests/test_ios_imports.py, tests/test_ios_module_result.py, tests/test_ios_module_hosts.py, tests/test_ios_module_compatibility.py, tests/test_installed_input.py, tests/fixtures.py, tests/test_next_steps.py, tests/test_game_data_folder.py, tests/test_ui.py $tests
           foreach ($top in 'PadMint.cmd', 'Start here.txt', 'app/python/python.exe') { if (-not (Test-Path (Join-Path $package $top))) { throw "Missing $top" } }
           Push-Location (Join-Path $package app)
           try {
@@ -114,7 +114,7 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'Guided setup, safe recovery or IPA validation failed' }
             & ./python/python.exe -m padmint audit $zip
             if ($LASTEXITCODE -ne 0) { throw 'Packaged content audit failed' }
-            & ./python/python.exe $probe "$env:RUNNER_TEMP/PadMint player probe" --app (Join-Path $package app)
+            & ./python/python.exe $probe "$env:RUNNER_TEMP/PadMint player probe 雪" --app (Join-Path $package app)
             if ($LASTEXITCODE -ne 0) { throw 'Packaged player build, retry or preservation probe failed' }
           } finally {
             Pop-Location
@@ -128,7 +128,7 @@ jobs:
         if: always()
         with:
           name: player-probe-${{ matrix.os }}
-          path: ${{ runner.temp }}/PadMint player probe/probe-result.json
+          path: ${{ runner.temp }}/PadMint player probe 雪/probe-result.json
           retention-days: 7
 
   packaged-linux-player-flow:
