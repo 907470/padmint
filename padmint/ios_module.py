@@ -74,9 +74,9 @@ SOURCES = {
 # (source, folder there, folder under usr/include, file names or "*").
 HEADERS = (
     ("libc", "include", "",
-     "___wctype.h __wctype.h __xlocale.h _abort.h _bounds.h _ctermid.h _ctype.h _locale.h "
-     "_locale_posix2008.h _mb_cur_max.h _printf.h _stdio.h _stdlib.h _string.h _strings.h _time.h "
-     "_types.h _wchar.h _wctype.h _xlocale.h alloca.h ctype.h errno.h limits.h locale.h runetype.h "
+     "___wctype.h __wctype.h __xlocale.h _abort.h _assert.h _bounds.h _ctermid.h _ctype.h _locale.h "
+     "_locale_posix2008.h _mb_cur_max.h _printf.h _static_assert.h _stdio.h _stdlib.h _string.h _strings.h _time.h "
+     "_types.h _wchar.h _wctype.h _xlocale.h alloca.h assert.h ctype.h errno.h limits.h locale.h runetype.h "
      "stddef.h stdint.h stdio.h stdlib.h string.h time.h unistd.h wchar.h wctype.h xlocale.h"),
     ("libc", "include/_types", "_types", "*"),
     # Optimized builds turn on Apple's fortified string and stdio functions (__memcpy_chk
@@ -85,7 +85,7 @@ HEADERS = (
     ("libc", "include/xlocale", "xlocale", "*"),
     ("libc", "include/FreeBSD", "", "nl_types.h"),
     ("xnu", "bsd/sys", "sys",
-     "__endian.h _endian.h _types.h appleapiopts.h cdefs.h errno.h resource.h signal.h stdio.h "
+     "__endian.h _endian.h _types.h appleapiopts.h cdefs.h errno.h mman.h resource.h signal.h stdio.h "
      "syslimits.h types.h wait.h"),
     ("xnu", "bsd/sys/_types", "sys/_types", "*"),
     ("xnu", "bsd/arm", "arm", "_endian.h _limits.h _mcontext.h _types.h endian.h limits.h signal.h types.h"),
