@@ -27,7 +27,8 @@ deployment keep their separate approval and validation gates.
   [BlueWake's releases](https://github.com/chrissotraidis/bluewake/releases/latest).
   The iPhone module route from Windows remains
   [draft #100](https://github.com/chrissotraidis/bluewake/pull/100), refreshed on
-  current main but still awaiting a complete current Windows disc build.
+  current main. A native Windows backend build from preserved extracted inputs
+  and its warm repeat passed; a complete current original-disc build is pending.
 - **Every other Pad game** builds through PadMint, or is a no-build download
   listed in PadMint.
 
@@ -204,9 +205,13 @@ lacked it. PaperPad 0.2.3, F0X 0.1.1 and SnapPad 0.2.1 (21 October) fix them
 
 Current Windows work, with [per-game evidence and remaining gates](docs/COMPATIBILITY.md#status-by-game):
 
-- All 15 games offered through the hosted Mac route passed fresh builds at
-  PadMint `4a78bb0` ([run](https://github.com/chrissotraidis/padmint/actions/runs/40209016384)).
-  This is the existing route available from Windows; the builds execute on Macs.
+- All 15 games offered through the hosted Mac route passed the earlier matrix at
+  `4a78bb0` ([run](https://github.com/chrissotraidis/padmint/actions/runs/40209016384)).
+  A later matrix passed 14 and exposed PaperPad 0.2.3's stale dependency URL;
+  [PaperPad draft #24](https://github.com/chrissotraidis/paperpad/pull/24) fixes it
+  with immutable, checksummed downloads and passed its Mac build. The published
+  recipe still needs that release. A fresh matrix at `2c2079a` is in progress.
+  This route is available from Windows; its app builds execute on Macs.
 - Shared drafts [#177](https://github.com/chrissotraidis/padmint/pull/177),
   [#178](https://github.com/chrissotraidis/padmint/pull/178),
   [#179](https://github.com/chrissotraidis/padmint/pull/179),
@@ -215,23 +220,39 @@ Current Windows work, with [per-game evidence and remaining gates](docs/COMPATIB
   attempts, validate released recipes, distinguish installed build inputs, package
   revision-specific modules with identity files, and provide Windows MIPS patch
   compilation. Host selection keeps existing Mac packagers and options intact.
-  At `05c48ae`, 435 tests and native Windows x64/ARM64 packaged runner and
-  compiler probes passed. These are unreleased changes.
+  Later drafts, through [#192](https://github.com/chrissotraidis/padmint/pull/192),
+  add source/tool provenance, safe cache reuse, native host-tool producers and
+  Unicode-path fixes. At `cb43178`, 487 Apple Python 3.9 tests passed, alongside
+  native Windows x64/ARM64 packaged runner and public module checks. The IDO
+  compiler producer also passed a fresh offline Windows build: only its corrected
+  IDO 5.3 diagnostic catalog and provenance changed, with every compiler executable
+  and reference object preserved. These changes and tool artifacts are unreleased.
 - SquirrelPad and GoldenPad have complete private Windows ARM64 module builds
   through packaged PadMint. Their private x64-toolchain backends also passed
   under ARM emulation, with native x64 generator CI as separate evidence.
   Matching empty shells exist locally; recipes and shells still need review,
   device testing and authorized releases.
 - MeleePad's offline route builds both supported revisions on Mac without
-  rebuilding Slippi. The actual packaged Windows ARM64 build also passed with
-  maintained compiler defaults and cached inputs/tools. Native Slippi online
-  builds remain a separate developer route.
+  rebuilding Slippi. Packaged Windows ARM64 and an emulated x64-toolchain backend
+  passed with maintained compiler defaults. SunPad also completed both private
+  Windows ARM64 and emulated x64-toolchain builds. Native generator CI is separate
+  from private hardware acceptance; Unicode-path follow-ups are in progress.
+  Native Slippi online builds remain a separate developer route.
 - BearBirdPad's matching shell/module and static Mac builds passed. Private
   Windows ARM64 and emulated x64 backends passed with identical output. The
   normal packaged Windows ARM64 recipe also passed with fresh source preparation
-  and cached tools. BananaPad, AnnePad, DinoPad,
-  SnapPad and the remaining private-input ports still need individual work.
-  Existing BlueWake and SunPad drafts retain their own release and runtime gates.
+  and cached tools. GoldenPad, BearBirdPad, BananaPad and SnapPad subsequently
+  passed complete Windows backends in non-English work/TEMP folders with
+  independent IPA readback. SnapPad's fresh ROM-to-IPA pipeline and no-build warm
+  repeat also passed. Matching shells and private outputs remain local.
+- AnnePad reproduces the original ROM on Mac and Windows, with semantic CPU-source
+  parity; its full module route is still being built. DinoPad's public checks and
+  empty shell pass, but its supported ROM is missing. AgePad's real-input Windows
+  run correctly rejects incompatible installed Steam files; successful injection
+  still needs matching files. Ottsel's Windows route remains unimplemented.
+- BlueWake completed a native Windows backend from preserved extracted inputs,
+  independent module/IPA checks and a no-build warm repeat. Current original-disc
+  extraction and preparation passed; the full original-disc build remains pending.
 
 No published catalog host flags or releases are changed by this evidence.
 The generic pipeline must ship before recipes that require it, followed by each matching game release
