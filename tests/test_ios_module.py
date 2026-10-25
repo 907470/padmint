@@ -184,9 +184,10 @@ class InsertAndCheckTests(unittest.TestCase):
                          app_exports=["_app_function"])
         output = io.StringIO()
         ios_module.check_imports(good, self.module, executable, output)
-        self.assertIn("1 from the app, 2 from the device's C and C++ libraries", output.getvalue())
+        self.assertIn("1 from the app, 1 known runtime names, 1 standard C++ names", output.getvalue())
+        self.assertIn("device availability not verified", output.getvalue())
         bad = fake_llvm(self.root / "bad", imports=["__ZN7KartPad7missingEv"], app_exports=[])
-        with self.assertRaisesRegex(ios_module.ModuleError, "does not export: KartPad::missing"):
+        with self.assertRaisesRegex(ios_module.ModuleError, "does not export.*KartPad::missing"):
             ios_module.check_imports(bad, self.module, executable)
 
 

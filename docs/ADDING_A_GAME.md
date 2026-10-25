@@ -118,10 +118,17 @@ Linux and Macs alike, with no Xcode:
 Before the steps, PadMint assembles an iPhone SDK from Apple's open-source headers and
 LLVM's libc++ (`{ios_sdk}`) and a CMake toolchain file for its LLVM (`{ios_toolchain}`),
 with stubs for the published app's thread-local exports. Your steps compile only the game
-library. Afterwards PadMint checks that every name the library imports comes from the
-app or the device's C and C++ libraries, strips it, names it `@rpath/<file>` and puts it at
+library. Afterwards PadMint checks imports against the app's exports, an explicit list
+of known C/runtime symbols and standard C++ namespaces, strips it, names it `@rpath/<file>` and puts it at
 `into` inside a copy of the published app. `scripts/ios-module-probe.py` runs the whole
 pipeline with a small probe library and no game code.
+
+Unknown C imports fail the build; a missing game callback must be exported by the
+app, never added to the runtime list. The list's pinned public source references
+are beside `_RUNTIME_IMPORTS` in `padmint/ios_module.py`. Verify new runtime names
+before extending it. The C++ namespace classification is a heuristic: it does not
+verify every symbol's availability on the target iOS version. Passing the import
+check still requires device install, launch and gameplay acceptance.
 
 ### Checking Windows support across releases
 
@@ -132,9 +139,18 @@ recipe before setup and uses that same release for the build. The workflow's tes
 matrix comes from the catalog; its player-facing choice menu must also include the
 game. Catalog, runner and tool changes rerun the hosted builds.
 
-`ios_off_mac: true` currently offers local iOS builds on Windows and Linux, on both
-x64 and ARM64. Each of those recipe hosts must be runnable before enabling that
-catalog flag. A runnable recipe is not a device acceptance result.
+For local iOS builds, prefer an exact catalog `ios_hosts` list, for example
+`["macos-arm64", "windows-arm64"]` when only those computers have the required
+evidence. It is a nonempty list of unique host IDs and requires an `ios` player
+target. The list overrides both `ios_off_mac` and `ios_intel_mac`; include every
+host you intend to offer, including Apple Silicon. A Windows ARM64 entry does not
+enable Windows x64 or Linux. Android phones remain excluded from iOS builds.
+The UI names the permitted computers when a route is unavailable here.
+
+Without `ios_hosts`, existing entries keep their behavior: Apple Silicon by
+default, Intel Mac with `ios_intel_mac: true`, and Windows/Linux on both x64 and
+ARM64 with `ios_off_mac: true`. Every offered host must be runnable in the selected
+release recipe. A runnable recipe is not a device acceptance result.
 
 ```sh
 python3 scripts/audit-catalog.py --json > catalog-audit.json

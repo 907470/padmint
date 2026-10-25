@@ -212,6 +212,18 @@ def needs_build_input(data):
     return any(item.get("when", "build") == "build" for item in data["inputs"])
 
 
+def ios_build_hosts(entry):
+    """Exact local iOS hosts, or the unchanged legacy catalog policy when omitted."""
+    if "ios_hosts" in entry:
+        return list(entry["ios_hosts"])
+    hosts = ["macos-arm64"]
+    if entry.get("ios_intel_mac"):
+        hosts.append("macos-x86_64")
+    if entry.get("ios_off_mac"):
+        hosts.extend(("windows-x86_64", "windows-arm64", "linux-x86_64", "linux-arm64"))
+    return hosts
+
+
 def validate_github_build(entry, recipe):
     """Refuse a hosted build unless the selected recipe needs no private game input."""
     if not entry.get("github_build") or entry.get("player_game_file") != "in-app" \
@@ -253,6 +265,13 @@ def catalog():
         for flag in ("ios_off_mac", "ios_intel_mac"):
             if not isinstance(entry.get(flag, False), bool) or (entry.get(flag) and "ios" not in targets):
                 raise ValueError(f"catalog/{path.name}: {flag} is true or false, for an ios player target")
+        if "ios_hosts" in entry:
+            hosts = entry["ios_hosts"]
+            if not isinstance(hosts, list) or not hosts or "ios" not in targets \
+                    or not all(isinstance(host, str) and host in HOSTS for host in hosts) \
+                    or len(set(hosts)) != len(hosts):
+                raise ValueError(f"catalog/{path.name}: ios_hosts is a nonempty list of unique known hosts, "
+                                 "for an ios player target")
         github = entry.get("github_build", False)
         if not isinstance(github, bool) or (github and (
                 "ios" not in targets or entry.get("player_game_file") != "in-app")):

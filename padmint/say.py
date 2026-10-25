@@ -564,6 +564,33 @@ MESSAGES = {
     "w_game_page": {"en": "About {name}: install guide and updates", "es": "Sobre {name}: guía de instalación y novedades", "pt": "Sobre {name}: guia de instalação e novidades"},
     "w_about_title": {"en": "How it works", "es": "Cómo funciona", "pt": "Como funciona"},
     "w_needs_mac_head": {"en": "Needs a Mac", "es": "Necesitan un Mac", "pt": "Precisam de um Mac"},
+    "w_build_elsewhere_tag": {"en": "Build on another computer", "es": "Crear en otra computadora", "pt": "Criar em outro computador"},
+    "host_macos_arm64": {"en": "Mac with Apple Silicon", "es": "Mac con Apple Silicon", "pt": "Mac com Apple Silicon"},
+    "host_macos_x86_64": {"en": "Intel Mac", "es": "Mac Intel", "pt": "Mac Intel"},
+    "host_windows_x86_64": {"en": "Windows x64", "es": "Windows x64", "pt": "Windows x64"},
+    "host_windows_arm64": {"en": "Windows ARM64", "es": "Windows ARM64", "pt": "Windows ARM64"},
+    "host_linux_x86_64": {"en": "Linux x64", "es": "Linux x64", "pt": "Linux x64"},
+    "host_linux_arm64": {"en": "Linux ARM64", "es": "Linux ARM64", "pt": "Linux ARM64"},
+    "ios_requires_hosts": {
+        "en": "Build {name} for iPhone or iPad on: {hosts}.",
+        "es": "Crea {name} para iPhone o iPad en: {hosts}.",
+        "pt": "Crie {name} para iPhone ou iPad em: {hosts}."},
+    "w_other_computers_note": {
+        "en": "These games need another build computer or are not available yet. Choose a game to see its options.",
+        "es": "Estos juegos necesitan otra computadora para crearse o aún no están disponibles. Elige un juego para ver sus opciones.",
+        "pt": "Estes jogos precisam de outro computador para a compilação ou ainda não estão disponíveis. Escolha um jogo para ver as opções."},
+    "w_all_note_other_hosts": {
+        "en": "Every game, by name. Choose a dimmed game to see its build options.",
+        "es": "Todos los juegos, por nombre. Elige un juego atenuado para ver sus opciones de compilación.",
+        "pt": "Todos os jogos, por nome. Escolha um jogo esmaecido para ver as opções de compilação."},
+    "w_here_other_hosts": {
+        "en": "On this computer you can build {names} and get {apps} ready-made apps for iPhone and iPad. {github}The other {mac} games need another build computer or are not available yet.",
+        "es": "En esta computadora puedes crear {names} y obtener {apps} apps listas para iPhone y iPad. {github}Los otros {mac} juegos necesitan otra computadora para crearse o aún no están disponibles.",
+        "pt": "Neste computador você pode criar {names} e obter {apps} apps prontos para iPhone e iPad. {github}Os outros {mac} jogos precisam de outro computador para a compilação ou ainda não estão disponíveis."},
+    "w_here_other_hosts_none": {
+        "en": "On this computer you can get {apps} ready-made apps for iPhone and iPad. {github}The other {mac} games need another build computer or are not available yet.",
+        "es": "En esta computadora puedes obtener {apps} apps listas para iPhone y iPad. {github}Los otros {mac} juegos necesitan otra computadora para crearse o aún no están disponibles.",
+        "pt": "Neste computador você pode obter {apps} apps prontos para iPhone e iPad. {github}Os outros {mac} jogos precisam de outro computador para a compilação ou ainda não estão disponíveis."},
     "w_needs_mac_note": {"en": "These are built on a Mac with Apple Silicon (M1 or newer). They're listed so you know they exist: choose one to see its options.",
                          "es": "Estos se crean en un Mac con Apple Silicon (M1 o posterior). Aparecen para que sepas que existen: elige uno para ver sus opciones.",
                          "pt": "Estes são criados em um Mac com Apple Silicon (M1 ou mais novo). Aparecem para você saber que existem: escolha um para ver as opções."},

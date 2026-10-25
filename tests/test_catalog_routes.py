@@ -84,6 +84,17 @@ class CatalogRouteTests(unittest.TestCase):
                 self.assertEqual(len(audit_catalog.route_problems(data, broken)), 1)
                 self.assertIn(host, audit_catalog.route_problems(data, broken)[0])
 
+    def test_exact_advertised_hosts_override_flags_without_requiring_linux(self):
+        data = dict(entry(), github_build=False, ios_hosts=["windows-arm64"],
+                    ios_off_mac=True, ios_intel_mac=True)
+        released = recipe()
+        released["targets"]["ios"]["hosts"] = {"windows-arm64": "experimental"}
+        self.assertEqual(audit_catalog.route_problems(data, released), [])
+        released["targets"]["ios"]["hosts"] = {"windows-x86_64": "experimental"}
+        problems = audit_catalog.route_problems(data, released)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("windows-arm64", problems[0])
+
     def test_audit_rejects_a_release_recipe_for_a_different_game(self):
         findings = audit_catalog.route_problems(dict(entry(), github_build=False), dict(recipe(), id="otherpad"))
         self.assertEqual(findings, ["the published recipe declares otherpad, not testpad"])

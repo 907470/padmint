@@ -29,7 +29,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from padmint import cli  # noqa: E402
-from padmint.manifest import catalog, needs_build_input, validate_github_build  # noqa: E402
+from padmint.manifest import catalog, ios_build_hosts, needs_build_input, validate_github_build  # noqa: E402
 
 SHORT = {"macos-arm64": "Mac", "macos-x86_64": "Intel Mac", "windows-x86_64": "Windows",
          "windows-arm64": "Windows ARM", "linux-x86_64": "Linux", "linux-arm64": "Linux ARM"}
@@ -42,8 +42,8 @@ def route_problems(entry, recipe):
     if recipe.get("id") != entry["id"]:
         problems.append(f"the published recipe declares {recipe.get('id')}, not {entry['id']}")
     ios_hosts = recipe.get("targets", {}).get("ios", {}).get("hosts", {})
-    if entry.get("ios_off_mac"):
-        for host in OFF_MAC_HOSTS:
+    if "ios" in entry.get("player_targets", []):
+        for host in ios_build_hosts(entry):
             if ios_hosts.get(host) not in cli.RUNNABLE_STATES:
                 problems.append(f"catalog offers iPhone on {host}, but the published recipe does not")
     if entry.get("github_build"):
@@ -136,6 +136,7 @@ def audit(json_output=False):
         targets = entry.get("player_targets") or []
         row = {"game": game, "repo_url": entry["repo_url"], "player_targets": targets,
                "route": "build" if targets else "download" if entry.get("download") else "paused",
+               "ios_hosts": ios_build_hosts(entry) if "ios" in targets else [],
                "github_mac_ios": bool(entry.get("github_build")),
                "other_route": (entry.get("off_mac") or {}).get("url"), "targets": {}}
         rows.append(row)
@@ -186,9 +187,6 @@ def audit(json_output=False):
             where.append(f"{name}: {', '.join(hosts) or 'nowhere'}")
             if not hosts:
                 found(f"{name} has no host it can build on")
-            if name == "ios" and entry.get("ios_intel_mac") \
-                    and target.get("hosts", {}).get("macos-x86_64") not in cli.RUNNABLE_STATES:
-                found("catalog offers iPhone on Intel Mac but the published recipe does not")
             if cli.platform_label(name, "en") == name:
                 found(f"the menu would show the raw target name {name}")
             if name != "ios" and not (entry.get("player_next") or {}).get(name):
