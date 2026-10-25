@@ -37,6 +37,7 @@ def probe(root, work):
             (cwd / 'fixture.c').write_bytes((HERE / 'probe.c').read_bytes())
             env = os.environ.copy()
             env['TMPDIR'] = '/tmp'
+            env['USR_LIB'] = '/usr/bin'
             command = [str(compiler.resolve()), '-G', '0', '-non_shared', '-' + optimization,
                        '-mips2', '-c', '-o', 'output.o', 'fixture.c']
             result = subprocess.run(command, cwd=cwd, env=env, capture_output=True)
