@@ -24,7 +24,7 @@ from urllib.parse import parse_qs, urlparse
 import webbrowser
 
 from . import __version__, cli, installed, storage, tools, update
-from .manifest import catalog, selected_inputs
+from .manifest import catalog, module_here, selected_inputs
 from .say import LANGUAGES, MESSAGES, language, localized, phrase
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -227,7 +227,7 @@ def plan(game, platform_name, lang, disc=None):
     manifest = release_recipe(game) or entry.get("manifest") or {}
     target = (manifest.get("targets") or {}).get(platform_name) or {}
     host, table = cli.host_id(), tools.lock()
-    any_host = bool(target.get("ios_module"))
+    any_host = bool(module_here(target, host))
     items = []
     for name in tools._with_companions([n for n in target.get("tools", []) if n in table], host, table, any_host):
         download = tools.host_entry(table[name], host, any_host)

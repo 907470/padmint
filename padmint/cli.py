@@ -26,7 +26,7 @@ import uuid
 from . import __version__, awake, game_file, gate, ios_module, tools
 from .say import MESSAGES, localized, phrase, t
 from .manifest import (RUNNABLE_STATES, NeedsNewerPadMint, catalog, expand, host_id, ios_build_hosts, load_manifest,
-                       manifest_for, manifest_sha256, needs_build_input, selected_inputs, on_android,
+                       manifest_for, manifest_sha256, module_here, needs_build_input, selected_inputs, on_android,
                        repository_manifest, steps_here)
 from .package import validate_ipa
 
@@ -493,7 +493,7 @@ def execute(args, repo, disc):
             record["checkout_check"] = phase + "-passed"
 
         try:
-            module_spec = None if args.source_only else target.get("ios_module")
+            module_spec = None if args.source_only else module_here(target, host_id())
             if module_spec:
                 # The universal iPhone pipeline: PadMint's open-source SDK for the steps,
                 # then PadMint checks the module and puts it in the published app.
@@ -865,7 +865,7 @@ def _make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results
         print(f"Your game file: {accepted}", flush=True)
     print(t("step_tools"), flush=True)
     report("tools", state="running", folder=str(tools.tools_root()))
-    tools.install(target.get("tools", []), host_id(), any_host=bool(target.get("ios_module")),
+    tools.install(target.get("tools", []), host_id(), any_host=bool(module_here(target, host_id())),
                   report=lambda **fields: report("tool", **fields))
     report("tools", state="done", folder=str(tools.tools_root()))
     version = (read_game_version(source) or {}).get("version") or ref.lstrip("v")
@@ -1929,7 +1929,7 @@ def main(argv=None):
             target = manifest["targets"].get(args.target)
             if target is None:
                 raise ValueError(f"{manifest['name']} has no {args.target} target")
-            tools.install(target.get("tools", []), host_id(), any_host=bool(target.get("ios_module")))
+            tools.install(target.get("tools", []), host_id(), any_host=bool(module_here(target, host_id())))
             print(f"Tools ready in {tools.tools_root()}")
             return 0
         if args.action == "get":

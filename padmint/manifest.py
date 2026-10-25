@@ -147,12 +147,20 @@ def validate_manifest(data):
             module = target["ios_module"]
             _require(name == "ios", f"{where}.ios_module is only for the ios target")
             _require(isinstance(module, dict), f"{where}.ios_module must be an object")
+            if "on" in module:
+                _require(version >= 2, f"{where}.ios_module.on requires schema_version 2")
+                on = module["on"]
+                _require(isinstance(on, list) and on and
+                         all(isinstance(system, str) and system in SYSTEMS for system in on) and
+                         len(on) == len(set(on)),
+                         f"{where}.ios_module.on must list unique systems from {sorted(SYSTEMS)}")
             if "result" in module:
                 _require(version >= 2, f"{where}.ios_module.result requires schema_version 2")
-                _require(set(module) == {"result"} and isinstance(module["result"], str) and module["result"],
+                _require(set(module) <= {"result", "on"} and isinstance(module["result"], str) and module["result"],
                          f"{where}.ios_module uses result or file and into, not both")
                 _argv([module["result"]], f"{where}.ios_module.result")
             else:
+                _require(set(module) <= {"file", "into", "on"}, f"{where}.ios_module has an unknown field")
                 _require(isinstance(module.get("file"), str) and isinstance(module.get("into"), str),
                          f"{where}.ios_module needs file and into")
                 _argv([module["file"]], f"{where}.ios_module.file")
@@ -436,6 +444,17 @@ def steps_here(target, host=None):
     builder on Windows, then share the steps that are the same everywhere."""
     system = (host or host_id()).split("-")[0]
     return [step for step in target["steps"] if system in step.get("on", [system])]
+
+
+def module_here(target, host=None):
+    """Use shared module packaging only on the recipe's selected systems.
+
+    Without "on", existing recipes use it everywhere. Other systems keep the
+    game's own full-app command, including its modes and options.
+    """
+    module = target.get("ios_module")
+    system = (host or host_id()).split("-")[0]
+    return module if module and system in module.get("on", [system]) else None
 
 
 ANDROID_MARK = Path("/system/build.prop")

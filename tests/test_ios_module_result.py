@@ -190,7 +190,10 @@ class ModuleResultTests(unittest.TestCase):
         repo.mkdir()
         (repo / ".gitignore").write_text("build/\n")
         (repo / "library.bin").write_bytes(macho())
-        (repo / "padmint.json").write_text(json.dumps(self.recipe()))
+        recipe = self.recipe()
+        recipe["targets"]["ios"]["hosts"] = {"windows-arm64": "experimental", "linux-x86_64": "experimental"}
+        recipe["targets"]["ios"]["ios_module"]["on"] = ["windows", "linux"]
+        (repo / "padmint.json").write_text(json.dumps(recipe))
         (repo / "builder.py").write_text('''from pathlib import Path
 import hashlib, json, shutil, sys
 disc, work = Path(sys.argv[1]), Path(sys.argv[2])
@@ -217,17 +220,18 @@ result['companions'] = [item(identity, result['into'] + '.identity')]
             if Path(command[0]).name.removesuffix(".exe") in ("llvm-strip", "llvm-install-name-tool"):
                 return subprocess.CompletedProcess(command, 0)
             return real_run(command, *args, **kwargs)
-        for selected in ("r0", "r2"):
+        for selected, host in (("r0", "windows-arm64"), ("r2", "linux-x86_64")):
             disc = self.root / (selected + ".disc")
             disc.write_text(selected)
             args = argparse.Namespace(game="resultpad", repo=repo, disc=disc, revision=revision,
                                       target="ios", source_only=False, no_mods=False, jobs=1, app=self.app)
-            validated_repo, checked_disc = cli.validate(args)
-            with mock.patch.object(ios_module, "prepare", return_value=prepared), \
+            with mock.patch.object(cli, "host_id", return_value=host), \
+                    mock.patch.object(ios_module, "prepare", return_value=prepared), \
                     mock.patch.object(ios_module, "llvm_root", return_value=self.llvm), \
                     mock.patch.object(ios_module, "check_imports") as check, \
                     mock.patch.object(cli, "backend_env", return_value=dict(os.environ)), \
                     mock.patch.object(subprocess, "run", side_effect=run), redirect_stdout(io.StringIO()):
+                validated_repo, checked_disc = cli.validate(args)
                 self.assertEqual(cli.execute(args, validated_repo, checked_disc), 0)
                 check.assert_called_once()
         records = list((repo / "build/padmint").glob("*/runs/*/record.json"))
@@ -248,7 +252,8 @@ result['companions'] = [item(identity, result['into'] + '.identity')]
         earlier_outputs = {path.parent / "personal.ipa": (path.parent / "personal.ipa").read_bytes()
                            for path in records}
         # Reusing the same result format still cannot bypass the shared import check.
-        with mock.patch.object(ios_module, "prepare", return_value=prepared), \
+        with mock.patch.object(cli, "host_id", return_value=host), \
+                mock.patch.object(ios_module, "prepare", return_value=prepared), \
                 mock.patch.object(ios_module, "llvm_root", return_value=self.llvm), \
                 mock.patch.object(ios_module, "check_imports", side_effect=ios_module.ModuleError("missing callback")), \
                 mock.patch.object(cli, "backend_env", return_value=dict(os.environ)), \
