@@ -464,3 +464,18 @@ Each game still needs its own full build and runtime evidence.
 
 Release order: ship PadMint with this tool before publishing any game recipe
 that names it. Older PadMint releases reject the unknown tool before building.
+
+## D17. Windows build hardening resumes (26 Oct 2026)
+
+The owner requested sustained work to make every offered game buildable from
+Windows, beginning with SquirrelPad. This resumes implementation beyond the
+5 October pause in D15. Prefer fixes to the shared runner, recipe contracts,
+managed tools and portable private-module builds that future releases can reuse.
+Preserve the existing Mac routes and private inputs.
+
+Record each host architecture and the actual validation performed. Native CI,
+emulated tool execution, private game builds, device launch and gameplay are
+separate evidence. Drafts and completed builds do not authorize game releases,
+device deployment or broader published catalog support. A game release still
+requires its current-main PadMint player checks before tagging and after
+publication, along with its repository's review and content gates.

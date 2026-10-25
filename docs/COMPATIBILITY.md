@@ -99,10 +99,13 @@ download and data-import steps. RAtouch joined them in 0.5.5.
 ## Status by game
 
 Where each tracker app stands on the shared pipeline, and the smallest next step.
-Games are grouped by family: one game proves a family, and the rest follow it.
-Off-Mac work is paused by owner decision
-([D15](DECISIONS.md#d15-any-device-from-any-computer-is-the-goal-off-mac-work-is-paused-owner-decision-5-oct-2026));
-the next steps below are kept for when it resumes.
+Games are grouped by family so shared build work can be reused; each port still
+requires its own validation.
+Windows build hardening resumed on 26 October 2026
+([D17](DECISIONS.md#d17-windows-build-hardening-resumes-26-oct-2026)).
+The rows distinguish published routes from source-only drafts; a completed build
+does not establish device launch or gameplay. The 5 October pause remains a
+historical decision, not the current implementation scope.
 **Off-Mac** means a build on a Windows or Linux computer, as recorded below.
 
 **GameCube and Wii recompilations** (reference: BlueWake)
@@ -110,27 +113,29 @@ the next steps below are kept for when it resumes.
 | Game | Status | Smallest next step |
 |---|---|---|
 | KartPad | **Android is a ready-to-play download** on [its releases](https://github.com/chrissotraidis/kartpad/releases/latest): the APK includes the game code, so on Android PadMint's useful output is the `KartPad game data` folder. iPhone/iPad is built through PadMint (the release's `ios-for-padmint.ipa` has no game code). The Mac copy builds through PadMint on Apple Silicon Macs. The 0.7.9–0.7.13 ready-to-play Apple downloads won't get updates. Earlier: Android packs built on Mac, Windows and Linux raced on an Android 16 emulator; iPhone off a Mac is experimental | A data-only Android target in KartPad's recipe, so PadMint skips the 1 GB NDK and the unused pack |
-| BlueWake | iPhone module built through PadMint's open-source SDK on Linux x64 and on an Apple Silicon Mac, inserted into the v0.1.0 app, IPA check passed ([draft #42](https://github.com/chrissotraidis/bluewake/pull/42); Mac: 757 units in 57 minutes). **Windows** downloads come from BlueWake's own releases as ready-to-play builds, outside PadMint; PadMint's Windows route ([draft #46](https://github.com/chrissotraidis/bluewake/pull/46)) stays experimental and unused | A device check of the module, then a release under its tracker row |
-| SunPad | iPhone module built on Linux ARM64 through PadMint's open-source SDK and inserted into the v0.2.0 app, IPA check passed ([draft #57](https://github.com/chrissotraidis/sunpad/pull/57)) | A device check, then a release under its tracker row (releases are paused) |
-| MeleePad | Mac only. Its game module also carries Slippi's native code: `build-slippi-dependencies.py` builds open-vcdiff, semver and Slippi's Rust library for iOS with `xcrun`, and `package-ios.sh` adds Slippi's settings, bootloader and game files to the app (with `ditto` and `codesign`, which are Mac-only) | Three parts: a pinned Rust toolchain for `aarch64-apple-ios` in PadMint, the Slippi C++ libraries through `{ios_toolchain}`, and module insertion that can add several files (or a portable packager). Then SunPad's [#57](https://github.com/chrissotraidis/sunpad/pull/57) changes apply |
+| BlueWake | Ready-to-play Windows desktop downloads remain outside PadMint. The current iPhone module [draft #100](https://github.com/chrissotraidis/bluewake/pull/100) is open and conflicts with main; older Linux/Mac build records do not prove this current Windows route | Reconcile the existing draft and revalidate its current source; keep its module, device and release gates |
+| SunPad | [Draft #78](https://github.com/chrissotraidis/sunpad/pull/78), stacked on #57, records a complete private Windows ARM64 PadMint build. Native x64 CI covers tools and synthetic/module checks; a private x64 disc build is still unverified | Device launch, audio and saves; private x64 build; review and authorized release |
+| MeleePad | [Draft #52](https://github.com/chrissotraidis/meleepad/pull/52) builds the offline module directly with pinned DolRecomp. Both supported revisions built on Mac; a full private Windows ARM64 backend build and packaging passed. Shared [#179](https://github.com/chrissotraidis/padmint/pull/179) preserves revision-specific names and DOL identity sidecars. Slippi online builds stay separate | Finish packaged Windows validation, then device checks and release ordering; no public Windows recipe yet |
 
 **N64 recompilations** (reference: GoldenPad)
 
 | Game | Status | Smallest next step |
 |---|---|---|
-| GoldenPad | Mac only: builds the whole app with Xcode from the generated sources | A published app without game code that loads a module (the SpaghettiPad #29 pattern); about one to two days, plus its tracker release decision |
-| AnnePad, BananaPad, BearBirdPad, DinoPad | Mac only | Follow GoldenPad once it is proven |
+| SquirrelPad | [Draft #7](https://github.com/chrissotraidis/squirrelpad/pull/7) completed a packaged Windows ARM64 build from a fresh PadMint home, with all 127 generated files matching Mac after newline normalization. Native x64 generator CI also passes; a private x64-toolchain backend build passed under ARM emulation | Matching empty shell and prerequisite PadMint release, plus device launch/audio/save checks. Emulation is not native x64 private-hardware acceptance |
+| GoldenPad | [Draft #52](https://github.com/chrissotraidis/goldenpad/pull/52) builds a private module and matching empty shell. Packaged PadMint completed a Windows ARM64 build using the managed MIPS compiler; the static Mac route also passed. A private x64-toolchain backend build passed under ARM emulation, alongside native x64/ARM64 generator CI | Device testing, matching shell release and PadMint prerequisites; native private x64 hardware remains unverified |
+| BearBirdPad | Private module implementation in progress. The portable decoder matches the existing pinned decompressor output; no full Windows build is claimed | Finish module/shell boundary, full build and runtime checks |
+| AnnePad, BananaPad, DinoPad, SnapPad | Published local iPhone builds remain Mac-only | Implement and validate each private-module route |
 
 **Engine and decompilation ports** (reference: SpaghettiPad)
 
 | Game | Status | Smallest next step |
 |---|---|---|
-| SpaghettiPad | [Draft #29](https://github.com/chrissotraidis/spaghettipad/pull/29) builds iPhone modules on Windows and Linux x64/ARM64 | A complete released recipe with matching runtime delivery |
-| HarkinianPad | Resources build on five hosts ([#35](https://github.com/chrissotraidis/harkinianpad/pull/35)); app is Mac only | Follow SpaghettiPad #29 |
-| MaskPad, StarshipPad, PaperPad, BrawlerPad, BarrelPad, BellPad, BallPad | Mac only | Follow SpaghettiPad #29. StarshipPad's merged recipe fix (#22) waits on its tracker row |
-| CTRPad | Mac only (iPhone/iPad app and Mac app) | Follow SpaghettiPad #29 |
-| AgePad | Mac only by design: it packages the Mac edition from Steam | None planned off a Mac |
-| GalaxyPad | Mac only: its 0.2.0 recipe builds an unsigned iPhone/iPad IPA with the New engine and no game file; players import their own USA `RMGE01` revision 0 WBFS in the app. Its Old engine's routine research was retired so the source passes the release gate (GalaxyPad docs/OLD-ENGINE-DEPRECATION.md) | A player check of the published release and a sideloaded device check of a PadMint-built IPA |
+| SpaghettiPad | Published recipe builds on the hosted Mac route from Windows. [Draft #29](https://github.com/chrissotraidis/spaghettipad/pull/29) separately builds local iPhone modules on Windows and Linux x64/ARM64 | Complete released local-module recipe with matching runtime delivery |
+| HarkinianPad | Published recipe builds on the hosted Mac route from Windows. Resources have separate five-host evidence in [#35](https://github.com/chrissotraidis/harkinianpad/pull/35) | Complete and validate a local Windows app/module route |
+| MaskPad, StarshipPad, PaperPad, BrawlerPad, BarrelPad, BellPad, BallPad | Published recipes build on the hosted Mac route from Windows; local app builds remain Mac-hosted | Complete and validate local Windows routes with matching runtimes |
+| CTRPad | Published iPhone/iPad recipe builds on the hosted Mac route from Windows. The local iPhone/iPad and Mac app builds remain Mac-hosted | Complete and validate a local Windows iPhone route |
+| AgePad | Requires compatible installed Mac Steam game files. [Draft #13](https://github.com/chrissotraidis/agepad/pull/13) makes injection portable and preserves ZIP metadata; synthetic Windows x64/ARM64 checks pass. Shared [#178](https://github.com/chrissotraidis/padmint/pull/178) correctly marks these as private build inputs | Actual Windows build with the required compatible installation; no hosted private-input upload and no public host promotion |
+| GalaxyPad | Published recipe builds on the hosted Mac route from Windows, then accepts the player’s supported WBFS in the app. This does not establish a local Windows compiler route | Complete and validate a local Windows route; keep device acceptance separate |
 | Ottsel | Mac only: its v0.1.0 recipe builds an unsigned iPhone/iPad IPA or a Mac app, plus a game-data folder, from the player's USA `SCUS-97124` Black Label Jak and Daxter disc (other versions are refused). On 12 October 2026 `scripts/player-check.sh ottsel ios` passed from the published v0.1.0 release, and a Mac build made an app that plays the intro | A sideloaded device check of a PadMint-built IPA |
 
 **New in PadMint 0.5.5:** F0X, EctoPad, SnapPad, OpenRCT2 Touch and UTP build
