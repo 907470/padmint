@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 """Check every game PadMint offers against the recipe its latest release publishes.
 
-Usage: PADMINT_HOME=$(mktemp -d) python3 scripts/audit-catalog.py
+Usage: PADMINT_HOME=$(mktemp -d) python3 scripts/audit-catalog.py [--json]
 
 Reads each recipe the way a player's PadMint does, then reports what would confuse or stop
 a player: a target the recipe lacks, a target the recipe builds that PadMint silently hides,
 a ready-to-play download the release doesn't publish, a menu showing a raw target name, a copy
 with no finishing steps, an Xcode iPhone build that does not check Xcode's iOS platform, a game
 file asked for at the wrong time, a player tool without install steps, a step run with {python}
-that needs a newer Python than PadMint's own, a help link to a missing README heading, or a
-game-code recipe that allows public binaries. It also prints where each
-target builds. Needs the network; changes nothing. Exit status 1 when it finds a problem.
+that needs a newer Python than PadMint's own, a help link to a missing README heading, a
+missing base app, a Windows/Linux host no longer allowed by the recipe, an unsafe GitHub
+build, or a game-code recipe that allows public binaries. It also prints where each
+target builds; --json records the release, architecture and target matrix without claiming
+build or device acceptance. Needs the network; changes nothing. Exit status 1 on a problem.
 The catalog-check workflow runs it every day, so a game release that changes what it publishes
 fails here instead of confusing players.
 """
+import argparse
+from datetime import datetime, timezone
+import json
 import re
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -23,10 +29,72 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from padmint import cli  # noqa: E402
-from padmint.manifest import catalog, needs_build_input  # noqa: E402
+from padmint.manifest import catalog, needs_build_input, validate_github_build  # noqa: E402
 
 SHORT = {"macos-arm64": "Mac", "macos-x86_64": "Intel Mac", "windows-x86_64": "Windows",
          "windows-arm64": "Windows ARM", "linux-x86_64": "Linux", "linux-arm64": "Linux ARM"}
+OFF_MAC_HOSTS = ("windows-x86_64", "windows-arm64", "linux-x86_64", "linux-arm64")
+
+
+def route_problems(entry, recipe):
+    """Check the catalog's route promises against the selected release, not its fallback."""
+    problems = []
+    if recipe.get("id") != entry["id"]:
+        problems.append(f"the published recipe declares {recipe.get('id')}, not {entry['id']}")
+    ios_hosts = recipe.get("targets", {}).get("ios", {}).get("hosts", {})
+    if entry.get("ios_off_mac"):
+        for host in OFF_MAC_HOSTS:
+            if ios_hosts.get(host) not in cli.RUNNABLE_STATES:
+                problems.append(f"catalog offers iPhone on {host}, but the published recipe does not")
+    if entry.get("github_build"):
+        try:
+            validate_github_build(entry, recipe)
+        except ValueError as error:
+            problems.append(f"GitHub build unavailable: {error}")
+    return problems
+
+
+def release_version(repo_url, tag):
+    """The same version.json choice make() uses, read from the selected source tag."""
+    path = urllib.parse.urlsplit(repo_url).path.strip("/").removesuffix(".git")
+    url = f"https://raw.githubusercontent.com/{path}/{urllib.parse.quote(tag, safe='')}/version.json"
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            data = json.load(response)
+    except urllib.error.HTTPError as error:
+        if error.code != 404:
+            raise
+        data = {}
+    except ValueError:
+        data = {}
+    if not isinstance(data, dict):
+        raise ValueError("version.json must contain an object")
+    version, build = data.get("version"), data.get("build")
+    if isinstance(version, str) and version and isinstance(build, int) and build > 0:
+        return version
+    return tag.lstrip("v")
+
+
+def published_app_problems(entry, recipe, release):
+    """Required base apps must be in this release's checksummed asset list."""
+    apps = {name: target["published_app"] for name, target in recipe.get("targets", {}).items()
+            if target.get("published_app") and any(
+                state in cli.RUNNABLE_STATES for state in target.get("hosts", {}).values())}
+    if not apps:
+        return []
+    tag, assets = release
+    problems = []
+    if "SHA256SUMS" not in assets:
+        problems.append(f"{tag} has required base apps but no SHA256SUMS")
+    try:
+        version = release_version(entry["repo_url"], tag)
+        for target, template in apps.items():
+            name = template.format(version=version)
+            if name not in assets:
+                problems.append(f"{target} needs base app {name}, but {tag} does not list it in SHA256SUMS")
+    except (OSError, ValueError, KeyError) as error:
+        problems.append(f"cannot check {tag}'s required base apps ({error})")
+    return problems
 
 
 def ready_asset(platform, names):
@@ -61,10 +129,16 @@ def anchor(heading):
     return re.sub(r"[^\w\- ]", "", heading.strip().lower()).replace(" ", "-")
 
 
-def audit():
+def audit(json_output=False):
     problems = []
+    rows = []
     for game, entry in sorted(catalog().items()):
         targets = entry.get("player_targets") or []
+        row = {"game": game, "repo_url": entry["repo_url"], "player_targets": targets,
+               "route": "build" if targets else "download" if entry.get("download") else "paused",
+               "github_mac_ios": bool(entry.get("github_build")),
+               "other_route": (entry.get("off_mac") or {}).get("url"), "targets": {}}
+        rows.append(row)
         if not targets:
             continue
         found = lambda message: problems.append(f"{game}: {message}")  # noqa: E731
@@ -73,9 +147,20 @@ def audit():
             recipe, source = cli.published_recipe(game, release=release)
         except Exception as error:  # an unreadable recipe is itself the finding
             found(f"recipe unreadable ({error})")
+            row["error"] = str(error)
             continue
+        row.update(release=release[0], recipe_source=source, kind=recipe.get("kind"),
+                   build_input=needs_build_input(recipe))
+        row["targets"] = {name: {"hosts": target.get("hosts", {}),
+                                 "published_app": target.get("published_app"),
+                                 "offered": name in targets}
+                          for name, target in recipe.get("targets", {}).items()}
         if "built-in" in source:
             found(f"recipe not read from a release ({source})")
+        for problem in route_problems(entry, recipe):
+            found(problem)
+        for problem in published_app_problems(entry, recipe, release):
+            found(problem)
         tag = source.split()[1] if source.endswith(" release") else "HEAD"
         ready = entry.get("ready_to_play")
         if ready:
@@ -154,12 +239,25 @@ def audit():
         if recipe.get("kind") in ("decomp-patches", "disc-translation") \
                 and recipe.get("publication", {}).get("public_binaries") is not False:
             found("a game-code recipe allows public binaries")
-        print(f"{game:13} {tag:9} {recipe.get('kind', '?'):16} {'; '.join(where)}")
-    print(f"\n{len(problems)} problem(s)")
-    for problem in problems:
-        print(f"  {problem}")
+        if entry.get("github_build"):
+            where.append("iOS remote: GitHub Mac (no build-time game file)")
+        if not json_output:
+            print(f"{game:13} {tag:9} {recipe.get('kind', '?'):16} {'; '.join(where)}", flush=True)
+    if json_output:
+        print(json.dumps({"checked_at": datetime.now(timezone.utc).isoformat(),
+                          "evidence": "Release recipe declarations only; builds and device runtime not tested by this audit.",
+                          "games": rows, "problems": problems}, indent=2))
+        print(f"{len(rows)} catalog entries; {len(problems)} problem(s)", file=sys.stderr)
+        for problem in problems:
+            print(f"  {problem}", file=sys.stderr)
+    else:
+        print(f"\n{len(problems)} problem(s)")
+        for problem in problems:
+            print(f"  {problem}")
     return 1 if problems else 0
 
 
 if __name__ == "__main__":
-    sys.exit(audit())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--json", action="store_true", help="emit the release/host/target matrix and findings as JSON")
+    sys.exit(audit(json_output=parser.parse_args().json))

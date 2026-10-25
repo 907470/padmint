@@ -785,10 +785,10 @@ def check_free_space(folder, needed_gb):
                          f"{folder} has {free_gb:.1f} GB free. Free up space and run PadMint again.")
 
 
-def make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results=None):
+def make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results=None, *, release=None):
     """The player's command: from their own game file to their own copy, in one step."""
     with awake.while_building():
-        return _make(game, platform_name, disc, out, ref, app, jobs, results)
+        return _make(game, platform_name, disc, out, ref, app, jobs, results, release=release)
 
 
 def player_target(manifest, platform_name):
@@ -819,16 +819,17 @@ def report(phase, **fields):
         pass
 
 
-def _make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results=None):
+def _make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results=None, *, release=None):
     entry = catalog().get(game)
     if entry is None:
         raise ValueError(f"unknown game {game}; see padmint list")
-    release = None
+    if ref is not None and release is not None:
+        raise ValueError("choose a source ref or a published release, not both")
     report("release", state="running", repo=entry["repo_url"])
     if ref is None:
         # Only small release metadata/recipe downloads precede this check. Pin
         # the source and app assets to that same tag, even if Latest changes.
-        release = latest_release(entry["repo_url"])
+        release = release if release is not None else latest_release(entry["repo_url"])
         manifest, _source = published_recipe(game, release=release)
         player_target(manifest, platform_name)
         require_programs(manifest, platform_name, disc)  # before the source download, not after it
@@ -1672,16 +1673,34 @@ def _remove_tree(path):
 
 
 def fetch_source(game, source, ref):
-    """Download into a side folder and move it into place only once complete."""
+    """Replace an incomplete download only after a new clone succeeds; preserve all old files.
+
+    Missing tracked files can mean a user's edits, not just an interrupted clone.
+    The source and any previous partial download may also contain private game data.
+    """
     if source.exists():
-        print(f"The earlier download in {source} is unfinished; downloading it again.", flush=True)
-        _remove_tree(source)
+        print(f"The earlier download in {source} is unfinished; downloading it again. "
+              "Its existing files will be kept.", flush=True)
     partial = source.with_name(source.name + ".partial")
-    _remove_tree(partial)
+    if partial.exists() or partial.is_symlink():
+        _preserve_download(partial)
     partial.parent.mkdir(parents=True, exist_ok=True)
     get_game(game, partial, ref, announce=False)
+    if not source_complete(partial):
+        raise ValueError(f"The new source download is incomplete. Existing files are kept in "
+                         f"{source}; the new attempt is in {partial}. Run PadMint again to retry.")
+    if source.exists() or source.is_symlink():
+        _preserve_download(source)
     os.replace(partial, source)
     print(f"{game} source in {source}", flush=True)
+
+
+def _preserve_download(folder):
+    """Move aside a previous download without removing untracked or ignored files."""
+    kept = folder.with_name(folder.name + ".recovered-" + uuid.uuid4().hex)
+    folder.rename(kept)
+    print(f"Previous files kept in {kept}", flush=True)
+    return kept
 
 
 def release_source(game, ref=None, release=None, platform_name=None):

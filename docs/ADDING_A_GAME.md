@@ -123,6 +123,42 @@ app or the device's C and C++ libraries, strips it, names it `@rpath/<file>` and
 `into` inside a copy of the published app. `scripts/ios-module-probe.py` runs the whole
 pipeline with a small probe library and no game code.
 
+### Checking Windows support across releases
+
+Keep local Windows builds separate from builds started in a browser that run on
+GitHub's Mac. Set `github_build: true` in the catalog only for an iOS build whose
+game input is selected in the app. The hosted helper checks the selected release's
+recipe before setup and uses that same release for the build. The workflow's test
+matrix comes from the catalog; its player-facing choice menu must also include the
+game. Catalog, runner and tool changes rerun the hosted builds.
+
+`ios_off_mac: true` currently offers local iOS builds on Windows and Linux, on both
+x64 and ARM64. Each of those recipe hosts must be runnable before enabling that
+catalog flag. A runnable recipe is not a device acceptance result.
+
+```sh
+python3 scripts/audit-catalog.py --json > catalog-audit.json
+python3 scripts/player-flow-probe.py "/tmp/PadMint player probe"
+```
+
+The daily catalog audit records every game's selected release and declared host
+states. It rejects missing base-app assets, mismatched game IDs and advertised
+routes the published recipe cannot use. Its report explicitly leaves runtime
+testing unverified.
+
+The player-flow probe uses a tiny synthetic repository with no network downloads.
+It exercises real cloning, stages, package checks, failure/retry, source recovery
+and paths with spaces. On Windows, run it with the ZIP's included
+`app/python/python.exe` and `--app` pointing at that extracted `app` directory;
+Git must be on PATH. CI runs this on Windows x64 and ARM64 hosts and Linux. The
+Windows ZIP currently bundles x64 Python, including when run under ARM64 emulation.
+These checks complement each game's complete private-input build and device
+install/launch test; the synthetic IPA is deliberately not runnable.
+
+When a source download needs recovery, PadMint keeps previous files beside it in
+a `.recovered-<id>` folder. Failed replacements leave the original in place.
+These folders can contain private game files; inspect them before removing them.
+
 ### One recipe for Windows, Linux and Mac
 
 A step with `"on"` runs only on the systems it lists (`macos`, `linux`, `windows`);
