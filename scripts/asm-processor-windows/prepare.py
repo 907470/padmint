@@ -15,8 +15,12 @@ def digest(data):
 def patch_process(data):
     replacements = (
         (b'import tempfile\n', b'import tempfile\nimport shlex\nimport subprocess\n'),
+        (b"tempfile.NamedTemporaryFile(prefix='asm-processor', suffix='.o', delete=False)",
+         b"tempfile.NamedTemporaryFile(prefix='asm-processor', suffix='.o', delete=False, dir='.' if os.name == 'nt' else None)"),
+        (b"tempfile.NamedTemporaryFile(prefix='asm-processor', suffix='.s', delete=False)",
+         b"tempfile.NamedTemporaryFile(prefix='asm-processor', suffix='.s', delete=False, dir='.' if os.name == 'nt' else None)"),
         (b'ret = os.system(assembler + " " + s_name + " -o " + o_name)',
-         b'ret = subprocess.call(shlex.split(assembler) + [s_name, "-o", o_name])'),
+         b'ret = subprocess.call(shlex.split(assembler) + [os.path.basename(s_name) if os.name == "nt" else s_name, "-o", os.path.basename(o_name) if os.name == "nt" else o_name])'),
     )
     for before, after in replacements:
         if data.count(before) != 1:
@@ -44,7 +48,7 @@ def prepare(source, output):
     receipt = {
         'source_commit': lock['commit'],
         'files': {name: digest(data) for name, data in files.items()},
-        'change': 'Invoke the assembler directly with its original argument list.',
+        'change': 'Invoke the assembler directly; use relative temporary filenames on Windows.',
     }
     (output / 'provenance.json').write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     return output / 'build.py'

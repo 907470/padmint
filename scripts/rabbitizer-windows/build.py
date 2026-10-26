@@ -111,13 +111,13 @@ def msvc_environment(work):
     vswhere = Path(env.get('ProgramFiles(x86)', r'C:\Program Files (x86)')) / 'Microsoft Visual Studio/Installer/vswhere.exe'
     installation = subprocess.check_output([
         str(vswhere), '-latest', '-products', '*', '-requires',
-        'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', '-property', 'installationPath',
-    ], text=True).strip()
+        'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', '-property', 'installationPath', '-utf8',
+    ], text=True, encoding='utf-8').strip()
     if not installation:
         raise ValueError('Visual Studio x64 C++ build tools are required')
     vcvars = Path(installation) / 'VC/Auxiliary/Build/vcvars64.bat'
-    command = 'cmd.exe /d /s /c ""' + str(vcvars) + '" >nul && set"'
-    output = subprocess.check_output(command, cwd=work, env=env, text=True)
+    command = 'cmd.exe /d /u /s /c ""' + str(vcvars) + '" >nul && set"'
+    output = subprocess.check_output(command, cwd=work, env=env, text=True, encoding='utf-16-le')
     for line in output.splitlines():
         if '=' not in line or line.startswith('='):
             continue
@@ -227,6 +227,9 @@ def build(args):
 
 
 def main():
+    if os.name == 'nt':
+        for stream in (sys.stdout, sys.stderr):
+            stream.reconfigure(encoding='utf-8')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source-archive', type=Path, required=True)
     parser.add_argument('--sdk-archive', type=Path, required=True)

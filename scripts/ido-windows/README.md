@@ -74,9 +74,12 @@ programs and source files it uses; it does not extract or package those librarie
 
 Use the full path to the selected `usr/bin/cc.exe`, but run under the game's
 build working directory and pass normal relative repository source/output names.
-Set `TMPDIR=/tmp` only in that compiler process's environment. MSYS resolves it
-to the selected runtime's private `tmp/`, even when its physical root contains
-spaces. Do not put `cc.exe` on the general build PATH or change global temp paths.
+Set `TMPDIR=/tmp` and `USR_LIB=/usr/bin` only in that compiler process's
+environment. MSYS resolves both inside the selected runtime. `USR_LIB` uses
+IDO's existing helper-directory override, avoiding its ANSI-only executable-path
+lookup when the runtime's physical root contains non-English characters. Each
+isolated compiler version resolves its own helper stages. Do not put `cc.exe` on
+the general build PATH or change global environment settings.
 
 A relative native `TMPDIR` alone does not solve spaces: MSYS expands it to an
 absolute filename. The isolated `usr/bin` layout solves that without mounts,
@@ -85,8 +88,10 @@ absolute filename. The isolated `usr/bin` layout solves that without mounts,
 Legacy IDO silently truncates an explicit output filename containing spaces
 (e.g. `-o 'result output.o'` creates `result`), even on the exact Mac reference.
 Always check that the expected output exists; a zero exit code is insufficient.
-Workspace paths with spaces are covered by the synthetic probe. Non-ASCII path
-coverage and a fresh physical x64 machine remain separate validation work.
+Workspace paths with spaces and Japanese characters, including the compiler's
+own runtime root, pass all four exact-object probes with these child settings.
+A full game build in those paths and a fresh physical x64 machine remain
+separate validation work.
 
 ## Validation and distribution gate
 

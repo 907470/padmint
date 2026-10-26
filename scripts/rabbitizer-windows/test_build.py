@@ -10,7 +10,8 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from unittest.mock import Mock
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 HERE = Path(__file__).resolve().parent
 SPEC = importlib.util.spec_from_file_location('rabbitizer_producer', HERE / 'build.py')
@@ -28,6 +29,23 @@ class ProducerTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
+
+    def test_windows_cli_prints_unicode_output_without_utf8_environment(self):
+        output, errors = io.BytesIO(), io.BytesIO()
+        stdout = io.TextIOWrapper(output, encoding='cp1252')
+        stderr = io.TextIOWrapper(errors, encoding='cp1252')
+        wheel = self.root / 'wheel \u96ea.whl'
+        arguments = ['build.py', '--source-archive', 'source.tar.gz',
+                     '--sdk-archive', 'sdk.nupkg', '--work', 'new-work']
+        with patch.object(producer, 'os', SimpleNamespace(name='nt')), \
+                patch.object(producer, 'build', return_value=wheel), \
+                patch.object(producer.sys, 'argv', arguments), \
+                patch.object(producer.sys, 'stdout', stdout), \
+                patch.object(producer.sys, 'stderr', stderr):
+            producer.main()
+        stdout.flush(); stderr.flush()
+        self.assertEqual(output.getvalue().replace(b'\r\n', b'\n'), (str(wheel) + '\n').encode('utf-8'))
+        self.assertEqual(errors.getvalue(), b'')
 
     def archive(self, name='rabbitizer-1.14.3/hello.c', kind=tarfile.REGTYPE):
         path = self.root / 'source.tar.gz'
