@@ -1,7 +1,7 @@
 # Build compatibility
 
 Public recipe snapshot: **26 October 2026**, checked against each game's latest
-release recipe with PadMint **v0.5.16**. The daily Catalog check
+release recipe with PadMint **v0.5.17**. The daily Catalog check
 (`scripts/audit-catalog.py`) compares the live catalog with each latest release;
 trust its output over this table when they differ.
 The table describes the recipe shipped with each game's latest public release.

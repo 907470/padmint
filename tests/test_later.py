@@ -69,6 +69,7 @@ class LaterTests(unittest.TestCase):
         self.assertEqual(data["host_name"], "Windows x64")
         self.assertEqual(data["text"]["tab_build"], "Build here")
         self.assertEqual(data["text"]["tab_github"], "GitHub Cloud Build")
+        self.assertEqual(data["text"]["other_routes_head"], "Other routes")
         self.assertEqual(data["text"]["github_build_tag"], "GitHub Cloud Build")
         self.assertEqual(data["text"]["needs_mac_head"], "Apple Silicon Mac")
         self.assertEqual(sum(item.get("github", False) for item in data["later"]), 15)

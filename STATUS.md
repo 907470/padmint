@@ -42,6 +42,12 @@ are in [Building games on Windows](docs/WINDOWS.md).
 
 ## PadMint itself
 
+- **v0.5.17**: completes the route labels from 0.5.16. A tab called **Other
+  routes** now holds games that need an Apple Silicon Mac, have a separate
+  Windows download, use their project's own workflow, or are paused; each card
+  still names its specific state. The README and roadmap use **GitHub Cloud
+  Build** consistently.
+
 - **v0.5.16**: build locations are named plainly. **Build here** means PadMint
   compiles on that computer; **GitHub Cloud Build** means GitHub runs a temporary macOS
   build machine for the player's PadMint fork; **Apple Silicon Mac** means the
