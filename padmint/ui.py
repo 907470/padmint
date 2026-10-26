@@ -699,8 +699,9 @@ a.btn{display:inline-block;text-decoration:none;border-radius:10px;padding:.6rem
 a.main{background:var(--mint);border-color:var(--mint);color:#06281a;font-weight:700}
 .tag.ready{background:var(--mint);color:#06281a;font-weight:600}
 button:disabled{opacity:.45;cursor:default}.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+button.btn.main:disabled{background:var(--panel2);border-color:var(--line);color:var(--muted);opacity:1;box-shadow:none;transform:none}
 .tag.setup{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}.tag.setup.xcode{background:color-mix(in srgb,var(--mint) 16%,transparent);color:var(--mint)}.tag.setup.easy{background:var(--mint);color:#06281a;font-weight:600}
-.why{margin:.5rem 0 0;color:var(--muted);font-size:.9rem}.setup-box{background:var(--panel2);border-radius:10px;padding:.6rem .8rem;margin:.6rem 0}.setup-box .tools li.detail{display:block;border-bottom:0;padding-top:0}
+.why{margin:.5rem 0 0;color:var(--muted);font-size:.9rem}.why.warn{color:var(--warn)}.setup-box{background:var(--panel2);border-radius:10px;padding:.6rem .8rem;margin:.6rem 0}.setup-box .tools li.detail{display:block;border-bottom:0;padding-top:0}
 .file{display:flex;justify-content:space-between;gap:.6rem;width:100%;margin:.3rem 0}.file b{overflow-wrap:anywhere}
 .state{margin:.6rem 0 0;font-weight:600}.ok{color:var(--mint)}.bad{color:var(--bad)}.warn{color:var(--warn)}
 details summary{cursor:pointer;color:var(--muted)}
@@ -761,7 +762,7 @@ html{scrollbar-color:color-mix(in srgb,var(--muted) 45%,transparent) transparent
 /* Launcher: one column, the player's own games first, real art, clear status. */
 .wrap{max-width:880px;padding-top:0}
 header{position:sticky;top:0;z-index:5;margin:0 -1.2rem;padding:.75rem 1.2rem;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
-.vstat{font-size:.8rem;font-weight:650;border-radius:999px;padding:.32rem .8rem;border:1px solid var(--line);color:var(--muted);text-decoration:none;background:var(--panel);white-space:nowrap}
+.vstat{font-size:.8rem;font-weight:650;border-radius:999px;padding:.32rem .8rem;border:1px solid var(--line);color:var(--muted);text-decoration:none;background:var(--panel);white-space:nowrap;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .vstat.ok{color:var(--mint)}.vstat.upd{background:var(--warn);border-color:var(--warn);color:#2a1d00;animation:pulse 2.4s ease-in-out infinite}
 @keyframes pulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--warn) 22%,transparent)}}
 .sechead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:1.7rem 0 .7rem}
@@ -908,7 +909,7 @@ html{min-height:100%;background:var(--bg)}body{min-height:100vh;background-attac
 .sn.away .l{color:var(--muted)}.sn.live{background:color-mix(in srgb,var(--mint) 10%,transparent);margin-bottom:.3rem}.sn.live .c{color:var(--mint)}
 .ic.spin{width:14px;height:14px;margin:0 2px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--mint);animation:spin 1s linear infinite}
 .sidefoot{display:flex;flex-direction:column;align-items:stretch;gap:.5rem;padding:.9rem .25rem 0}
-.sidefoot .vstat{width:100%;justify-content:center}.footrow{display:flex;gap:.45rem}.footrow .langw{flex:1}.footrow .langw select{width:100%}
+.sidefoot .vstat{width:100%;max-width:100%;box-sizing:border-box;justify-content:center}.footrow{display:flex;gap:.45rem}.footrow .langw{flex:1}.footrow .langw select{width:100%}
 .sidefoot .btn.link{justify-content:flex-start;padding:.2rem .35rem;color:var(--muted);font-weight:600}.sidefoot .btn.link:hover{color:var(--mint)}
 .wrap{max-width:960px;width:100%;margin:0;padding:.4rem 2.2rem 3rem}
 #shelf>.sechead{align-items:flex-start;margin:1.6rem 0 .9rem}#shelfTitle{margin:0;font-size:1.6rem;letter-spacing:-.025em}#shelfSub{margin:.2rem 0 0;max-width:62ch}
@@ -1069,7 +1070,8 @@ function ago(t){const f=new Intl.RelativeTimeFormat(D.lang,{numeric:"auto"}),s=D
  for(const [n,k] of [["year",31536000],["month",2592000],["week",604800],["day",86400],["hour",3600],["minute",60]])if(s>=k)return f.format(-Math.floor(s/k),n);return f.format(0,"minute")}
 function vstat(){const a=$("vstat"),newer=!!V.padmint&&cmpv(V.padmint,D.version)>0;
  a.className="vstat"+(newer?" upd":V.padmint?"":" wait")+(V.done&&!V.padmint?" hidden":"");
- a.textContent=newer?fill("pm_update",{version:V.padmint})+" · "+S.up_short+" ›":V.padmint?"✓ v"+D.version:S.checking;a.title=V.padmint&&!newer?S.up_to_date:"";
+ a.textContent=newer?fill("update_to",{version:V.padmint}):V.padmint?"✓ v"+D.version:S.checking;
+ a.title=newer?fill("pm_update",{version:V.padmint}):V.padmint?S.up_to_date:"";
  a.onclick=newer?openUpdate:null}
 const cmpv=(a,b)=>{const x=a.replace(/^v/,"").split(".").map(Number),y=b.replace(/^v/,"").split(".").map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d}return 0};
 // Where each game is: the iPhones and iPads paired with this Mac, its Applications folder, and copies PadMint built.
@@ -1175,13 +1177,14 @@ function openSettings(){const row=(t,d,...ctl)=>{const r=el("div",null,"setrow")
  rows.push(row(S.set_help_t,S.set_help_d,ab,rep));$("setBody").replaceChildren(...rows);$("settingsPanel").classList.remove("hidden");sheet($("settingsPanel"))}
 function openUpdate(){const v=V.padmint;if(!D.self_update){window.open("https://github.com/chrissotraidis/padmint/releases/latest","_blank");return}
  const head=el("div",null,"upd-head");head.append(markIcon(),el("h2",fill("up_title",{version:v})));
- const state=el("div"),go=el("button",S.up_now,"btn main");go.onclick=async()=>{go.disabled=true;const r=await post("/api/update");if(r.error){state.replaceChildren(el("p",r.error,"bad"));go.disabled=false;return}watchUpdate(state,go)};
- const row=el("div",null,"row");row.append(go);sheet(head,el("p",S.up_text),state,row)}
+ const state=el("div"),go=el("button",S.up_now,"btn main");state.setAttribute("aria-live","polite");
+ go.onclick=async()=>{go.disabled=true;go.classList.add("hidden");state.replaceChildren(el("p",S.up_starting,"state"));const r=await post("/api/update");if(r.error){state.replaceChildren(el("p",r.error,"bad"));go.classList.remove("hidden");go.textContent=S.up_try_again;go.disabled=false;return}watchUpdate(state,go)};
+ const row=el("div",null,"row");row.append(go);sheet(head,el("p",S.up_text),state,row);watchUpdate(state,go)}
 function markIcon(){const i=el("div",null,"mark");i.innerHTML=$("home").querySelector(".mark").innerHTML;return i}
 async function watchUpdate(state,go){const r=await (await fetch("/api/update",{headers:H})).json();
- if(r.state=="downloading"||r.state=="installing"){state.replaceChildren(el("p",r.state=="installing"?S.up_installing:fill("up_downloading",{percent:r.percent||0}),"state"),bar(r.state=="installing"?100:r.percent||0));setTimeout(()=>watchUpdate(state,go),400);return}
- if(r.state=="failed"){const a=el("a",S.up_manual,"btn");a.href="https://github.com/chrissotraidis/padmint/releases/latest";a.target="_blank";state.replaceChildren(el("p",fill("up_failed",{error:r.error||""}),"bad"),a);go.disabled=false;return}
- if(r.state=="ready"){state.replaceChildren(el("p","✓ "+fill("up_installed",{version:r.version}),"state ok"));go.textContent=S.up_restart;go.disabled=false;
+ if(r.state=="downloading"||r.state=="installing"){go.classList.add("hidden");state.replaceChildren(el("p",r.state=="installing"?S.up_installing:r.percent?fill("up_downloading",{percent:r.percent}):S.up_starting,"state"),bar(r.state=="installing"?100:r.percent||0));setTimeout(()=>watchUpdate(state,go),400);return}
+ if(r.state=="failed"){const a=el("a",S.up_manual,"btn");a.href="https://github.com/chrissotraidis/padmint/releases/latest";a.target="_blank";state.replaceChildren(el("p",fill("up_failed",{error:r.error||""}),"bad"),a);go.classList.remove("hidden");go.textContent=S.up_try_again;go.disabled=false;return}
+ if(r.state=="ready"){state.replaceChildren(el("p","✓ "+fill("up_installed",{version:r.version}),"state ok"));go.classList.remove("hidden");go.textContent=S.up_restart;go.disabled=false;
   go.onclick=async()=>{go.disabled=true;const x=await post("/api/restart");if(x.error){state.append(el("p",x.error,"bad"));go.disabled=false;return}
    state.replaceChildren(el("p",S.up_restarting,"muted loading"));const wait=async()=>{try{const ok=await fetch("/api/versions",{headers:H});if(ok.ok){location.reload();return}}catch(e){}setTimeout(wait,700)};setTimeout(wait,1200)}}}
 // Storage: what PadMint keeps in its folder, and removing what it no longer needs.
@@ -1315,8 +1318,15 @@ function showPlan(p){const g=game(),box=$("plan");box.replaceChildren();if(p.err
  if(p.install){const d=el("details"),ol=el("ol",null,"next");d.append(el("summary",S.install_preview));for(const s of p.install.steps)ol.append(linked(s));d.append(ol,el("p",p.install.note,"muted small"));box.append(d)}}
 // The button is disabled by the state itself; the line under it only says which state it is.
 let editFile=false,editDev=false,watch=true;
-function ready(){const g=game(),why=!g?"none":!dev?"why_device":reading?"why_reading":(g.needs_file&&!file)?"why_file":planning?"why_loading":blocked?"why_blocked":"";
- $("make").disabled=!!why;{const st=sel&&stateOf(sel);$("make").textContent=st&&st.stale?fill("update_to",{version:st.latest}):S.make}$("makeWhy").textContent=why&&why!="none"?S[why]||"":"";
+function ready(){const g=game(),why=!g?"none":!dev?"why_device":reading?"why_reading":(g.needs_file&&!file)?"why_file":planning?"why_loading":blocked?"why_blocked":"",
+ st=sel&&stateOf(sel),updating=!!(st&&st.stale);let action="run",label=updating?fill("update_to",{version:st.latest}):S.make,stopped=!g;
+ if(why=="why_file"){action="file";label=updating?S.update_choose_file:S.make_choose_file}
+ else if(why=="why_device"){action="device";label=updating?S.update_choose_device:S.make_choose_device}
+ else if(why=="why_reading"){label=S.why_reading;stopped=true}
+ else if(why=="why_loading"){label=S.why_loading;stopped=true}
+ else if(why=="why_blocked"){label=updating?S.update_fix_setup:S.make_fix_setup;stopped=true}
+ $("make").disabled=stopped;$("make").dataset.action=action;$("make").textContent=label;
+ $("makeWhy").className="why"+(/^why_(file|device|blocked)$/.test(why)?" warn":"");$("makeWhy").textContent=why&&why!="none"?S[why]||"":"";
  const pf=g&&dev&&g.platforms.find(x=>x.id==dev);$("fileBox").classList.toggle("done",!!(g&&file&&!editFile));$("fileSumText").textContent=file?"✓ "+base(file):"";
  $("deviceBox").classList.toggle("done",!!(pf&&!editDev));$("devSumText").textContent=pf?"✓ "+pf.label:""}
 $("fileChange").onclick=()=>{editFile=true;ready()};$("devChange").onclick=()=>{editDev=true;ready()};
@@ -1328,7 +1338,9 @@ $("choose").onclick=async()=>{const request=fileRequest,selected=sel;$("fileStat
  const r=await post("/api/pick");if(request!=fileRequest||sel!=selected)return;if($("fileState").textContent==S.picker_open)$("fileState").textContent="";
  if(r.path)useFile(r.path);else if(!r.available){$("typeBox").open=true;$("path").focus()}};
 $("use").onclick=()=>useFile($("path").value.trim().replace(/^["']|["']$/g,""));
-$("make").onclick=async()=>{$("make").disabled=true;watch=true;const r=await post("/api/make",{game:sel,platform:dev,path:file});
+$("make").onclick=async()=>{const action=$("make").dataset.action;if(action=="file"){$("fileBox").scrollIntoView({behavior:"smooth",block:"center"});$("choose").click();return}
+ if(action=="device"){$("deviceBox").scrollIntoView({behavior:"smooth",block:"center"});$("devices").querySelector("button:not(:disabled)")?.focus();return}
+ if($("make").disabled)return;$("make").disabled=true;watch=true;const r=await post("/api/make",{game:sel,platform:dev,path:file});
  if(r.error){$("makeError").textContent=r.error;ready();return}show(r);poll()};
 $("cancel").onclick=async()=>{$("cancel").disabled=true;await post("/api/cancel")};
 $("again").onclick=()=>home();

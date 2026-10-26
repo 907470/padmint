@@ -1,6 +1,6 @@
 # PadMint roadmap: every game, from every computer
 
-Player-route summary updated 26 October 2026 against PadMint 0.5.17; the demand
+Player-route summary updated 26 October 2026 against PadMint 0.5.18; the demand
 snapshot below remains dated 19 October. This is the working checklist for which
 games PadMint can make on which computer, for which device, and what to do next.
 Update it in the same pull request as the work: tick the box, change the cell,

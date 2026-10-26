@@ -1,6 +1,6 @@
 # Building games on Windows
 
-Status: **26 October 2026**, after the PadMint 0.5.17 clarity release.
+Status: **26 October 2026**, after the PadMint 0.5.18 UI update.
 
 This page answers one question: **which game builds can run on a Windows
 computer with PadMint?** It is about the *build computer*. The result is an
@@ -19,6 +19,9 @@ Use these labels consistently in the app and documentation:
 
 ## Recently completed
 
+- **0.5.18:** update controls now reflect their actual state: the sidebar update
+  label fits, the PadMint updater hides its action while downloading, and a
+  missing game file or device gets a direct route back to that step.
 - **0.5.17:** the catch-all tab is now **Other routes**, so BlueWake's Windows
   download and paused games are not incorrectly described as Apple Silicon Macs.
 - **0.5.16:** the app shows **Build here**, **GitHub Cloud Build**, and **Apple

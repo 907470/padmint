@@ -46,7 +46,9 @@ const older=useFile('/old.exe'), newer=useFile('/patch.exe');
 pending[1].resolve({problem:'Wrong input'});await newer;
 pending[0].resolve({});await older;
 assert.equal(file,null);assert.equal($('path').value,'/patch.exe');
-assert.equal($('fileState').textContent,'Wrong input');assert.equal($('make').disabled,true);
+assert.equal($('fileState').textContent,'Wrong input');
+/* Nothing can be built, so the action now leads straight back to the file step. */
+assert.equal($('make').disabled,false);assert.equal($('make').dataset.action,'file');
 ''')
 
     def test_switching_away_and_back_discards_old_validation(self):
@@ -55,7 +57,7 @@ select('a');const old=useFile('/old.exe');
 back();select('b');assert.equal(reading,false);
 select('a');pending[0].resolve({});await old;
 assert.equal(file,null);assert.equal($('fileState').textContent,'');
-assert.equal($('make').disabled,true);
+assert.equal($('make').disabled,false);assert.equal($('make').dataset.action,'file');
 ''')
 
     def test_stale_error_does_not_disable_a_new_valid_selection(self):
