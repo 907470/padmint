@@ -116,7 +116,7 @@ from any computer that runs Sideloadly (Windows or Mac).
 only runs on a Mac. An iPhone app can still be made off a Mac when its release
 ships an app with no game code and PadMint builds the game part on the player's
 computer (D13, D14); KartPad works this way. The hosted routes above instead use
-GitHub's Mac to build apps that take the game file after installation. Further
+GitHub Cloud Build to make apps that take the game file after installation. Further
 local iPhone builds need a portable game pipeline and matching app release.
 Android, Windows and Linux copies need a port to that system: only
 KartPad, BlueWake (Android, Windows, Linux) and CTRPad (Windows, Linux, from its
