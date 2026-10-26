@@ -26,8 +26,8 @@ deployment keep their separate approval and validation gates.
 - **BlueWake on Windows** downloads its ready-to-play build from
   [BlueWake's releases](https://github.com/chrissotraidis/bluewake/releases/latest).
   The iPhone module route from Windows remains
-  [draft #100](https://github.com/chrissotraidis/bluewake/pull/100), which needs a
-  rebase and fresh validation.
+  [draft #100](https://github.com/chrissotraidis/bluewake/pull/100), refreshed on
+  current main but still awaiting a complete current Windows disc build.
 - **Every other Pad game** builds through PadMint, or is a no-build download
   listed in PadMint.
 
@@ -209,22 +209,27 @@ Current Windows work, with [per-game evidence and remaining gates](docs/COMPATIB
   This is the existing route available from Windows; the builds execute on Macs.
 - Shared drafts [#177](https://github.com/chrissotraidis/padmint/pull/177),
   [#178](https://github.com/chrissotraidis/padmint/pull/178),
-  [#179](https://github.com/chrissotraidis/padmint/pull/179) and
-  [#180](https://github.com/chrissotraidis/padmint/pull/180) preserve failed source
+  [#179](https://github.com/chrissotraidis/padmint/pull/179),
+  [#180](https://github.com/chrissotraidis/padmint/pull/180) and
+  [#182](https://github.com/chrissotraidis/padmint/pull/182) preserve failed source
   attempts, validate released recipes, distinguish installed build inputs, package
   revision-specific modules with identity files, and provide Windows MIPS patch
-  compilation. At `ca6fb21`, 429 tests and native Windows x64/ARM64 packaged
-  runner and compiler probes passed. These are unreleased changes.
+  compilation. Host selection keeps existing Mac packagers and options intact.
+  At `05c48ae`, 435 tests and native Windows x64/ARM64 packaged runner and
+  compiler probes passed. These are unreleased changes.
 - SquirrelPad and GoldenPad have complete private Windows ARM64 module builds
   through packaged PadMint. Their private x64-toolchain backends also passed
   under ARM emulation, with native x64 generator CI as separate evidence.
   Matching empty shells exist locally; recipes and shells still need review,
   device testing and authorized releases.
-- MeleePad's offline route now builds both supported revisions on Mac without
-  rebuilding Slippi. A complete private Windows ARM64 backend build passed;
-  packaged PadMint integration is being checked. Native Slippi online builds
-  remain a separate developer route.
-- BearBirdPad is the next N64 implementation. BananaPad, AnnePad, DinoPad,
+- MeleePad's offline route builds both supported revisions on Mac without
+  rebuilding Slippi. The actual packaged Windows ARM64 build also passed with
+  maintained compiler defaults and cached inputs/tools. Native Slippi online
+  builds remain a separate developer route.
+- BearBirdPad's matching shell/module and static Mac builds passed. Private
+  Windows ARM64 and emulated x64 backends passed with identical output. The
+  normal packaged Windows ARM64 recipe also passed with fresh source preparation
+  and cached tools. BananaPad, AnnePad, DinoPad,
   SnapPad and the remaining private-input ports still need individual work.
   Existing BlueWake and SunPad drafts retain their own release and runtime gates.
 

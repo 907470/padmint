@@ -140,6 +140,21 @@ of known C/runtime symbols and standard C++ namespaces, strips it, names it `@rp
 `into` inside a copy of the published app. `scripts/ios-module-probe.py` runs the whole
 pipeline with a small probe library and no game code.
 
+To keep an existing full-app builder on some systems, schema 2 accepts an optional
+`"on": ["windows", "linux"]` inside `ios_module` (with either `file`/`into` or
+`result`). Omit it to keep module packaging on every host. The list must be
+non-empty, unique, and contain only `macos`, `windows`, or `linux`. On other
+systems, PadMint runs the normal recipe command and its modes/options, without
+preparing the portable SDK or inserting a module. Use a small game-owned command
+dispatcher to select the backend and preserve existing Mac build options such as
+training; `steps` targets still do not support modes/options. The tool download
+plan and both tool-install commands use this same selection.
+
+Ship this selection together with PadMint's initial schema 2 support, before any
+game recipe uses it. Older schema 1 PadMint refuses the recipe safely; an earlier
+schema 2 implementation could ignore `on` in the `file`/`into` form. If schema 2
+ships without this feature, use a newer schema before publishing such recipes.
+
 Unknown C imports fail the build; a missing game callback must be exported by the
 app, never added to the runtime list. The list's pinned public source references
 are beside `_RUNTIME_IMPORTS` in `padmint/ios_module.py`. Verify new runtime names
