@@ -172,7 +172,7 @@ tabs to narrow the list:
 | **Build here** | PadMint compiles on this computer. Today on Windows and Linux this is KartPad only, experimental; its output is an Android pack or iPhone/iPad `.ipa`. The page says when it needs your game file. |
 | **Ready-made apps** | Download and install the app with your own Apple ID; its page explains any game files you need to add. |
 | **GitHub Cloud Build** | GitHub runs a temporary macOS build machine for your PadMint fork and compiles an iPhone/iPad `.ipa`. PadMint on Windows or Linux only starts the workflow. This is not a local Windows build. |
-| **Apple Silicon Mac** | The remaining buildable games need an Apple Silicon Mac with Xcode, or their project's own separate route, such as HaloPad's Xbox workflow. |
+| **Other routes** | Games that need an Apple Silicon Mac with Xcode, use their project's own separate route, have a separate Windows download such as BlueWake, or are paused. Each card states which one applies. |
 | **Not on your devices** | Once you have games: the ones that aren't on any of your devices yet. |
 
 Each game says where it is: **On iPad · iPhone**, an update such as
@@ -410,7 +410,7 @@ yet** means there is nothing to build or download through PadMint yet.
 <details>
 <summary><strong>Can I play KartPad on my Mac?</strong></summary>
 
-Yes, with the latest PadMint (**0.5.16**), on a Mac with Apple Silicon (M1 or newer)
+Yes, with the latest PadMint (**0.5.17**), on a Mac with Apple Silicon (M1 or newer)
 and Xcode: choose **Mario Kart Wii**, then **This Mac** under **Where will you
 play?** PadMint builds KartPad from your disc and saves the app in your Downloads
 folder. The first build needs about 12 GB free. On an Intel Mac, PadMint builds KartPad for iPhone and iPad

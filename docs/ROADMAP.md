@@ -1,6 +1,6 @@
 # PadMint roadmap: every game, from every computer
 
-Player-route summary updated 26 October 2026 against PadMint 0.5.16; the demand
+Player-route summary updated 26 October 2026 against PadMint 0.5.17; the demand
 snapshot below remains dated 19 October. This is the working checklist for which
 games PadMint can make on which computer, for which device, and what to do next.
 Update it in the same pull request as the work: tick the box, change the cell,
@@ -125,8 +125,10 @@ upstream code) have one.
 ## What PadMint shows players
 
 PadMint's library tells each computer what it can make above the search box and
-uses three explicit labels: **Build here**, **GitHub Cloud Build**, and **Apple
-Silicon Mac**. HaloPad's project-owned workflow is explained on its game page.
+uses **Build here** and **GitHub Cloud Build**, plus an **Other routes** list for
+games that need an Apple Silicon Mac, use a project-owned workflow, have a
+separate Windows download, or are paused. Each card states which applies.
+HaloPad's project-owned workflow is explained on its game page.
 Every unavailable game explains which route applies. When a recipe or release
 changes, the catalog, those labels, [WINDOWS.md](WINDOWS.md) and this roadmap
 change in the same pull request.
