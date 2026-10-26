@@ -12,6 +12,7 @@ import shutil
 import subprocess
 
 from . import tools
+from .manifest import selected_inputs
 
 DISC_TYPES = {"wii-disc", "gamecube-disc"}
 # The fourth character of a Wii or GameCube disc ID is its region.
@@ -73,7 +74,7 @@ def header_id(path):
 
 def expected_input(manifest):
     """The disc input that names the IDs its builder supports, if any."""
-    return next((item for item in manifest["inputs"]
+    return next((item for item in selected_inputs(manifest)
                  if item.get("type") in DISC_TYPES and item.get("game_ids")), None)
 
 
@@ -134,7 +135,7 @@ def check_file_hash(manifest, disc):
     """
     if disc is None or not disc.is_file():
         return None
-    declared = [item for item in manifest.get("inputs", []) if item.get("when", "build") == "build"]
+    declared = selected_inputs(manifest)
     if not any(item.get("accepted_sha256") for item in declared):
         return None
     inputs = [item for item in declared
