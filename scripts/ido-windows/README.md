@@ -17,7 +17,12 @@ archive digests, MSYS runtime/development packages, Windows API headers/import
 libraries and LLVM compiler-rt stack probe. The original source is
 https://github.com/decompals/ido-static-recomp/tree/d6dd7fdea26cfe89dd01d7545618d4a9ae4f690a.
 Generated IDO7.1 C is checked against all thirteen recorded hashes before it is
-compiled. IDO5.3 remains the unchanged official v1.1 Windows release artifact.
+compiled. IDO5.3 compiler executables remain the unchanged official v1.1 Windows
+release artifacts.
+Its diagnostic catalog is copied from the exact pinned source in LF form: the
+official Windows archive contains CRLF bytes, which break IDO's byte-offset
+message lookup. The producer checks both source SHA-256 and line-ending-only
+equivalence before replacing the catalog; compiler output is unchanged.
 
 `windows-runtime.patch` has only host portability changes:
 
@@ -68,7 +73,8 @@ the applied patch are retained in `output/notices`.
 
 The source archive includes unused IRIX `libC.so.1`/`libc.so.1` names that collide
 on case-insensitive filesystems. The producer selects only the exact IDO7.1
-programs and source files it uses; it does not extract or package those libraries.
+programs, source files and the IDO5.3 message catalog it uses; it does not extract
+or package those libraries.
 
 ## Calling the compiler
 
@@ -98,10 +104,21 @@ separate validation work.
 Run `python scripts/ido-windows/test_build.py` for archive/cache/failure checks.
 The producer automatically compiles hand-authored `probe.c` at O2 and O3 with
 both IDO versions. All four MIPS ELF objects must exactly match the recorded Mac
-v1.1 reference objects. The reference cc hashes were:
+v1.1 reference objects. The probe also requires an ordinary warning to compile
+with the correct message, and a syntax error to fail without an object file.
+These checks reject the Windows release's damaged byte-indexed catalog.
+The reference cc hashes were:
 
 - IDO5.3: `d88651af7d589c645fe21f7926f16c2979f8af0c80ab6e67f249e4652966111e`
 - IDO7.1: `fdc7cbaa936e11b731c9b50118d106efae71a299d59f1e8e2cd126306acbf78f`
+
+A fresh offline run of this maintained producer on Windows ARM64 passed all four
+object checks and both versions' diagnostic checks. Its compiler executables
+and DLLs matched the previous candidate byte for byte; only the IDO5.3 catalog
+and the copied input lock changed. A separate control rejected the old catalog
+and verified that the warning's object bytes were unchanged. Existing candidates
+and their inventories were preserved. Hosted CI currently runs the offline
+producer unit tests; the complete producer build is local validation.
 
 Synthetic parity is not a full ROM-matching build or gameplay acceptance. Before
 any recipe consumes a released tool archive, require a complete matching build

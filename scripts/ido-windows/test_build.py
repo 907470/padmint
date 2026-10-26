@@ -111,6 +111,33 @@ class InputTests(unittest.TestCase):
             self.assertEqual(file.read_bytes(), b'different runtime')
 
 
+class CatalogTests(unittest.TestCase):
+    def test_source_catalog_replaces_only_release_line_endings(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); source = root / 'source'; destination = root / 'catalog'
+            source.write_bytes(b'first\nsecond\n'); destination.write_bytes(b'first\r\nsecond\r\n')
+            compiler = root / 'cc.exe'; compiler.write_bytes(b'unchanged compiler')
+            builder.install_catalog53(source, destination, builder.sha256(source))
+            self.assertEqual(destination.read_bytes(), source.read_bytes())
+            self.assertEqual(compiler.read_bytes(), b'unchanged compiler')
+
+    def test_changed_source_hash_preserves_release_catalog(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); source = root / 'source'; destination = root / 'catalog'
+            source.write_bytes(b'first\n'); destination.write_bytes(b'first\r\n')
+            with self.assertRaisesRegex(ValueError, 'Checksum mismatch'):
+                builder.install_catalog53(source, destination, '0' * 64)
+            self.assertEqual(destination.read_bytes(), b'first\r\n')
+
+    def test_different_release_message_preserves_catalog(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); source = root / 'source'; destination = root / 'catalog'
+            source.write_bytes(b'first\n'); destination.write_bytes(b'different\r\n')
+            with self.assertRaisesRegex(ValueError, 'differs from the pinned source'):
+                builder.install_catalog53(source, destination, builder.sha256(source))
+            self.assertEqual(destination.read_bytes(), b'different\r\n')
+
+
 class OutputTests(unittest.TestCase):
     def test_zero_exit_without_expected_output_is_not_success(self):
         with tempfile.TemporaryDirectory() as folder:

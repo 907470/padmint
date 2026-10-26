@@ -133,8 +133,9 @@
     }
   },
   "notes": [
-    "IDO5.3 remains the official unchanged v1.1 Windows compiler. IDO7.1 is rebuilt from pinned IRIX inputs and generated C with only host portability corrections.",
+    "IDO5.3 executables remain the official unchanged v1.1 Windows compiler; its diagnostic catalog uses the exact pinned source catalog in LF form. IDO7.1 is rebuilt from pinned IRIX inputs and generated C with only host portability corrections.",
     "MSYS package checksums were verified against packages.msys2.org. The runtime source URL is https://mirror.msys2.org/msys/sources/msys2-runtime-3.6.11-4.src.tar.zst.",
     "No package distribution or player-recipe adoption is authorized by this source producer."
-  ]
+  ],
+  "catalog53_sha256": "6f2d777730f0a70328bb932c116c1c195da765cb9bbdee8c6d3eaf7d6ad77e78"
 }

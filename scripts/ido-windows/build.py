@@ -93,6 +93,14 @@ def extract_gzip(archive, target, prefix='', selected=None):
                 shutil.copyfileobj(data, output)
 
 
+def install_catalog53(source, destination, expected):
+    """IDO uses byte offsets into this catalog; CRLF release bytes break diagnostics."""
+    data = checked(source, expected).read_bytes()
+    if destination.read_bytes().replace(b'\r\n', b'\n') != data:
+        raise ValueError('IDO5.3 release catalog differs from the pinned source')
+    destination.write_bytes(data)
+
+
 def apply_patch(source, lock, git, run):
     patch = checked(HERE / 'windows-runtime.patch', lock['patch_sha256'])
     for name, pin in lock['patched_files'].items():
@@ -133,7 +141,8 @@ def build(args):
     try:
         source = work / 'source'
         wanted = {'ido/7.1/' + value['input'] for value in lock['tools71'].values()}
-        wanted.update(('ido/7.1/usr/lib/err.english.cc', 'ido/5.3/LICENSE.md'))
+        wanted.update(('ido/7.1/usr/lib/err.english.cc', 'ido/5.3/usr/lib/err.english.cc',
+                       'ido/5.3/LICENSE.md'))
         extract_gzip(downloads['source'], source, lock['source_prefix'],
                      lambda name: not name.startswith('ido/') or name in wanted)
         apply_patch(source, lock, args.git, run)
@@ -198,6 +207,8 @@ def build(args):
         shutil.copyfile(bin71 / 'cc.exe', bin71 / 'NCC.exe')
         shutil.copyfile(source / 'ido/7.1/usr/lib/err.english.cc', bin71 / 'err.english.cc')
         extract_gzip(downloads['ido53'], output / 'ido53/usr/bin')
+        install_catalog53(source / 'ido/5.3/usr/lib/err.english.cc',
+                          output / 'ido53/usr/bin/err.english.cc', lock['catalog53_sha256'])
         for version in ('53', '71'):
             root = output / ('ido' + version)
             (root / 'tmp').mkdir()
