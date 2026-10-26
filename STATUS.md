@@ -42,6 +42,12 @@ are in [Building games on Windows](docs/WINDOWS.md).
 
 ## PadMint itself
 
+- **v0.5.18**: polish for the update flow. The sidebar pill now fits its column,
+  the PadMint update dialog hides its action while downloading, and game
+  updates with a missing file or device offer a direct button that returns to
+  that step. Disabled build actions no longer look green, and requirement text
+  no longer refers to misleading step numbers.
+
 - **v0.5.17**: completes the route labels from 0.5.16. A tab called **Other
   routes** now holds games that need an Apple Silicon Mac, have a separate
   Windows download, use their project's own workflow, or are paused; each card
