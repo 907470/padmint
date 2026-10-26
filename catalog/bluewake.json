@@ -17,13 +17,13 @@
   "player_help": "https://github.com/chrissotraidis/bluewake#install",
   "off_mac": {
     "url": "https://github.com/chrissotraidis/bluewake#get-bluewake",
-    "text": "PadMint builds BlueWake for iPhone and iPad on a Mac with Apple Silicon (M1 or newer) and Xcode. GitHub Cloud Build can't make it: the build turns code from your own disc into the app, so it has to run on your own Mac. To play on a Windows PC, download the ready-made BlueWake for Windows from BlueWake's latest release and choose your disc when it starts. On Linux, build it from BlueWake's Linux guide.",
+    "text": "BlueWake for Windows is ready to play: download it from BlueWake's latest release, unpack it, run BlueWake.exe and choose your own disc. PadMint isn't needed for that. For iPhone and iPad, PadMint builds BlueWake on a Mac with Apple Silicon (M1 or newer) and Xcode. GitHub Cloud Build can't make it, because the build turns code from your own disc into the app. On Linux, build it from BlueWake's Linux guide.",
     "translations": {
       "es": {
-        "text": "PadMint crea BlueWake para iPhone y iPad en un Mac con Apple Silicon (M1 o posterior) y Xcode. GitHub Cloud Build no puede crearlo: la compilaci\u00f3n convierte c\u00f3digo de tu propio disco en la app, as\u00ed que tiene que hacerse en tu propio Mac. Para jugar en una PC con Windows, descarga BlueWake para Windows, ya listo, desde la \u00faltima versi\u00f3n de BlueWake y elige tu disco al abrirlo. En Linux, cr\u00e9alo con la gu\u00eda de Linux de BlueWake."
+        "text": "BlueWake para Windows est\u00e1 listo para jugar: desc\u00e1rgalo de la \u00faltima versi\u00f3n de BlueWake, descompr\u00edmelo, abre BlueWake.exe y elige tu propio disco. Para eso no necesitas PadMint. Para iPhone y iPad, PadMint crea BlueWake en un Mac con Apple Silicon (M1 o posterior) y Xcode. GitHub Cloud Build no puede crearlo, porque la compilaci\u00f3n convierte c\u00f3digo de tu propio disco en la app. En Linux, cr\u00e9alo con la gu\u00eda de Linux de BlueWake."
       },
       "pt": {
-        "text": "O PadMint cria o BlueWake para iPhone e iPad num Mac com Apple Silicon (M1 ou mais novo) e Xcode. O GitHub Cloud Build n\u00e3o consegue cri\u00e1-lo: a compila\u00e7\u00e3o transforma c\u00f3digo do seu pr\u00f3prio disco no app, ent\u00e3o ela precisa ser feita no seu pr\u00f3prio Mac. Para jogar num PC com Windows, baixe o BlueWake para Windows, j\u00e1 pronto, na vers\u00e3o mais recente do BlueWake e escolha o seu disco ao abri-lo. No Linux, crie-o com o guia de Linux do BlueWake."
+        "text": "O BlueWake para Windows est\u00e1 pronto para jogar: baixe-o na vers\u00e3o mais recente do BlueWake, descompacte, abra o BlueWake.exe e escolha o seu pr\u00f3prio disco. Para isso voc\u00ea n\u00e3o precisa do PadMint. Para iPhone e iPad, o PadMint cria o BlueWake num Mac com Apple Silicon (M1 ou mais novo) e Xcode. O GitHub Cloud Build n\u00e3o consegue cri\u00e1-lo, porque a compila\u00e7\u00e3o transforma c\u00f3digo do seu pr\u00f3prio disco no app. No Linux, crie-o com o guia de Linux do BlueWake."
       }
     }
   },
