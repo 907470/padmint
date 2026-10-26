@@ -73,7 +73,12 @@ class IosHostTests(unittest.TestCase):
         self.entry.update(ios_hosts=["linux-arm64"], player_targets=["android", "ios"])
         self.save()
         self.assertEqual(self.games("linux-arm64", phone=True), [("testpad", "TestPad", ["android"])])
-        self.assertEqual(self.data("linux-arm64", phone=True)["games"][0]["held"], [])
+        data = self.data("linux-arm64", phone=True)
+        self.assertEqual(data["games"][0]["held"], [])
+        self.assertEqual(data["host_name"], "Linux ARM64")
+
+    def test_an_unrecognised_host_still_opens_the_page(self):
+        self.assertEqual(self.data("android", phone=True)["host_name"], "android")
 
     def test_catalog_requires_unique_known_hosts_for_an_ios_target(self):
         for hosts in ([], "windows-arm64", ["windows-arm64", "windows-arm64"],

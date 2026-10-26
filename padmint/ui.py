@@ -101,8 +101,9 @@ def player_data(lang):
                                  "here_other": "here_other_hosts", "here_other_none": "here_other_hosts_none"}.items():
             text[key] = text[replacement]
     host = cli.host_id()
+    host_key = "host_" + host.replace("-", "_")
     return {"lang": lang, "version": __version__, "host": host,
-            "host_name": phrase("host_" + host.replace("-", "_"), lang), "folder": str(folder),
+            "host_name": phrase(host_key, lang) if host_key in MESSAGES else host, "folder": str(folder),
             "saved_in": phrase("saved_in", lang, folder=folder), "games": games, "downloads": apps, "later": waiting,
             "text": text, "picker": not cli.on_android(), "reveal": not cli.on_android(),
             "art": sorted(path.stem for path in ART.glob("*.png")), "library": library(),
