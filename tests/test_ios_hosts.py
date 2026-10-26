@@ -94,11 +94,11 @@ class IosHostTests(unittest.TestCase):
                 data = self.data(host)
                 self.assertEqual(data["games"], [])
                 card = data["later"][0]
-                self.assertEqual(card["tag"], "Build on another computer")
+                self.assertEqual(card["tag"], "Other build computer")
                 self.assertIn("Mac with Apple Silicon, Windows ARM64", card["text"])
                 self.assertNotIn("Windows x64", card["text"])
-                self.assertEqual(data["text"]["needs_mac_head"], "Build on another computer")
-                self.assertEqual(data["text"]["later_head"], "Build on another computer")
+                self.assertEqual(data["text"]["needs_mac_head"], "Other build computer")
+                self.assertEqual(data["text"]["later_head"], "Other build computer")
                 self.assertNotIn("built on a Mac", data["text"]["here_other"])
         self.assertEqual(self.data("windows-arm64")["games"][0]["platforms"][0]["id"], "ios")
 
@@ -109,7 +109,7 @@ class IosHostTests(unittest.TestCase):
         self.assertEqual([p["id"] for p in game["platforms"]], ["android"])
         self.assertEqual([p["id"] for p in game["held"]], ["ios"])
         self.assertIn("Windows ARM64", game["held"][0]["text"])
-        self.assertEqual(game["held"][0]["tag"], "Build on another computer")
+        self.assertEqual(game["held"][0]["tag"], "Other build computer")
 
     def test_exact_host_help_is_translated_and_legacy_cards_are_unchanged(self):
         for lang, word in (("es", "Crea"), ("pt", "Crie")):
@@ -120,8 +120,8 @@ class IosHostTests(unittest.TestCase):
         self.entry.pop("ios_hosts")
         self.save()
         data = self.data("windows-x86_64")
-        self.assertEqual(data["later"][0]["tag"], "Needs an M1+ Mac")
-        self.assertEqual(data["text"]["needs_mac_head"], "Needs a Mac")
+        self.assertEqual(data["later"][0]["tag"], "Needs Apple Silicon Mac")
+        self.assertEqual(data["text"]["needs_mac_head"], "Apple Silicon Mac")
 
     def test_http_plan_and_build_refuse_other_hosts_but_accept_the_allowed_host(self):
         server = ThreadingHTTPServer(("127.0.0.1", 0), ui.make_handler("test-token", ui.Builds()))

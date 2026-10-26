@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare GitHub's Mac for one game, the way a player prepares their own Mac.
+"""Prepare GitHub Cloud Build for one game, the way a player prepares their own Mac.
 
 Checks the release recipe before running setup, then optionally builds that same
 release. The hosted route must never require a player's private game input.
@@ -25,14 +25,14 @@ SHELL_SETUP = 'set -e; if [ -f "$HOME/.cargo/env" ]; then . "$HOME/.cargo/env"; 
 def matrix(game=None):
     games = sorted(name for name, entry in catalog().items() if entry.get("github_build"))
     if game and game not in games:
-        raise ValueError(f"{game} is not offered on GitHub's Mac")
+        raise ValueError(f"{game} is not offered with GitHub Cloud Build")
     return {"game": [game] if game else games}
 
 
 def prepare(game):
     entry = catalog().get(game)
     if not entry or not entry.get("github_build"):
-        raise ValueError(f"{game} is not offered on GitHub's Mac")
+        raise ValueError(f"{game} is not offered with GitHub Cloud Build")
     release = cli.latest_release(entry["repo_url"])
     recipe, source = cli.published_recipe(game, release=release)
     if source != f"{game} {release[0]} release":

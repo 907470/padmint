@@ -237,7 +237,7 @@ def audit(json_output=False):
                 and recipe.get("publication", {}).get("public_binaries") is not False:
             found("a game-code recipe allows public binaries")
         if entry.get("github_build"):
-            where.append("iOS remote: GitHub Mac (no build-time game file)")
+            where.append("iOS remote: GitHub Cloud Build (no build-time game file)")
         if not json_output:
             print(f"{game:13} {tag:9} {recipe.get('kind', '?'):16} {'; '.join(where)}", flush=True)
     if json_output:

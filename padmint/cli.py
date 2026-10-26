@@ -33,7 +33,7 @@ from .package import validate_ipa
 
 def git(repo, *args):
     return subprocess.check_output([tools.executable("git", host_id()), "-C", str(repo), *args],
-                                   text=True).strip()
+                                   text=True, encoding="utf-8").strip()
 
 
 def digest(path):

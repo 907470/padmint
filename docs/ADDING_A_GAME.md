@@ -213,7 +213,7 @@ Schema 1 and the existing fixed `file`/`into` form continue to work unchanged.
 ### Checking Windows support across releases
 
 Keep local Windows builds separate from builds started in a browser that run on
-GitHub's Mac. Set `github_build: true` in the catalog only for an iOS build whose
+GitHub Cloud Build. Set `github_build: true` in the catalog only for an iOS build whose
 game input is selected in the app. The hosted helper checks the selected release's
 recipe before setup and uses that same release for the build. The workflow's test
 matrix comes from the catalog; its player-facing choice menu must also include the
@@ -257,6 +257,14 @@ These folders can contain private game files; inspect them before removing them.
 
 ### One recipe for Windows, Linux and Mac
 
+`windows-*` in a target's `hosts` means **this Windows computer can run the
+build**. It does not create a Windows desktop game. The target still names its
+player device (`ios`, `macos`, `android` or `windows`); an iPhone target built
+with Windows tools produces an iPhone/iPad `.ipa`. Label that copy **Build
+here** in the app or release notes, never “Windows version”. A separate **GitHub
+Mac** route means GitHub's macOS runner performs the build after PadMint starts
+the workflow.
+
 A step with `"on"` runs only on the systems it lists (`macos`, `linux`, `windows`);
 a step without it runs everywhere. Keep the game's shell script for Macs and Linux, add
 a Python step for Windows (Windows has no bash), and share everything else. Two steps
@@ -295,6 +303,14 @@ a recipe instead of running every system's steps.
 Until a host has a recorded end-to-end build and a device check, mark it
 `experimental`. Games without step 1 stay Mac only, and PadMint lists them on other
 computers with the reason.
+
+Before publishing a recipe, run the pinned PadMint manifest check from that game's
+CI, then build from a clean release checkout on every host the recipe advertises.
+An invalid host key such as `windows-x64` must fail before a release goes out;
+the valid host names are `windows-x86_64` and `windows-arm64`. Update
+[WINDOWS.md](WINDOWS.md) and [COMPATIBILITY.md](COMPATIBILITY.md) with the new
+route only after the matching app or shell, recipe and physical-device check are
+all recorded.
 
 ## 2. Add a catalog entry to PadMint
 
@@ -397,7 +413,7 @@ same change:
   has no game in it and does not count.
 - `off_mac`: a message and link for Windows, Linux and Intel Mac players when
   the game has its own route without an Apple Silicon Mac (HaloPad's Xbox edition
-  builds on GitHub's Mac runner).
+  builds with GitHub Cloud Build).
 - `before_build`: the Homebrew line from the game's README. On a Mac the card then
   says **Needs Xcode + Homebrew**, and the page offers one line with only the missing
   packages. Without it the card says **Needs Xcode**, and the catalog check fails if the

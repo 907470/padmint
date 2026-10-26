@@ -87,7 +87,7 @@ def player_data(lang):
         for app, name in cli.downloads()]
     waiting = [{"id": game, "name": name, "about": catalog()[game]["game"], "status": catalog()[game]["later"].get("status"),
                 "text": localized(catalog()[game]["later"], "text", lang), "plays_on": catalog()[game].get("plays_on", []),
-               "link": catalog()[game].get("player_help") or catalog()[game]["repo_url"]}
+               "link": catalog()[game].get("player_help") or catalog()[game]["repo_url"], "route": "paused"}
                for game, name in cli.later()]
     # Games PadMint builds, but not here: listed with the reason, never silently left out.
     waiting += [elsewhere_card(game, name, targets, lang) for game, name, targets in cli.elsewhere()]
@@ -100,19 +100,21 @@ def player_data(lang):
                                  "all_note_off_mac": "all_note_other_hosts", "all_note": "all_note_other_hosts",
                                  "here_other": "here_other_hosts", "here_other_none": "here_other_hosts_none"}.items():
             text[key] = text[replacement]
-    return {"lang": lang, "version": __version__, "host": cli.host_id(), "folder": str(folder),
+    host = cli.host_id()
+    return {"lang": lang, "version": __version__, "host": host,
+            "host_name": phrase("host_" + host.replace("-", "_"), lang), "folder": str(folder),
             "saved_in": phrase("saved_in", lang, folder=folder), "games": games, "downloads": apps, "later": waiting,
             "text": text, "picker": not cli.on_android(), "reveal": not cli.on_android(),
             "art": sorted(path.stem for path in ART.glob("*.png")), "library": library(),
             "self_update": bool(update.platform()), "installed": installed.snapshot()}
 
 
-GITHUB_BUILD_HELP = "https://github.com/chrissotraidis/padmint#no-mac-build-on-githubs-mac"
+GITHUB_BUILD_HELP = "https://github.com/chrissotraidis/padmint#github-cloud-build-no-mac-needed"
 
 
 def elsewhere_card(game, name, targets, lang):
     """A game PadMint builds, but not on this computer, with what the player can do instead:
-    the game's own route (off_mac), GitHub's free Mac for games that take the game file in
+    the game's own route (off_mac), GitHub Cloud Build for games that take the game file in
     the app (github_build), or the Mac it needs."""
     entry = catalog()[game]
     ios = "ios" in targets
@@ -120,23 +122,27 @@ def elsewhere_card(game, name, targets, lang):
     explicit_hosts = False
     if entry.get("off_mac"):
         text, tag, link = localized(entry["off_mac"], "text", lang), None, entry["off_mac"]["url"]
+        route = "external"
     elif ios and entry.get("github_build"):
         text, tag, link = (phrase("w_github_build", lang, name=name, game=game),
                            phrase("w_github_build_tag", lang), GITHUB_BUILD_HELP)
         steps = [step.format(name=name, game=game) for step in strings(lang)["github_steps"].split("\n")]
         if "macos" in targets:
             text += " " + phrase("w_github_build_mac", lang, name=name)
+        route = "github"
     elif ios and "ios_hosts" in entry:
         text, tag = cli.ios_host_help(entry, lang), phrase("w_build_elsewhere_tag", lang)
         link = entry.get("player_help") or entry["repo_url"]
         explicit_hosts = True
+        route = "mac" if all(host.startswith("macos") for host in entry["ios_hosts"]) else "other"
     else:
         text = phrase("w_needs_mac" if ios else "w_needs_windows", lang, name=name)
         tag = phrase("w_needs_mac_tag", lang) if ios else None
         link = entry.get("player_help") or entry["repo_url"]
+        route = "mac" if ios else "other"
     return {"id": game, "name": name, "about": entry.get("game") or (entry.get("manifest") or {}).get("game", ""),
             "text": text, "tag": tag, "plays_on": ["iphone", "ipad"] if ios else [], "link": link,
-            "github": steps is not None, "steps": steps or [], "explicit_hosts": explicit_hosts}
+            "github": steps is not None, "route": route, "steps": steps or [], "explicit_hosts": explicit_hosts}
 
 
 def library():
@@ -1212,7 +1218,9 @@ function here(){const h=$("here"),show=!sel&&view=="library";h.classList.toggle(
  if(onMac()){parts.push(fill("here_mac",{build:D.games.length,apps:D.downloads.length}));const ds=(I.devices||[]);
   if(ds.length)parts.push(fill("here_devices",{devices:ds.map(d=>d.name).join(", ")}));else if(I.state=="ready")parts.push(I.xcode?S.here_no_devices:S.here_no_xcode)}
  else if(!D.picker)parts.push(S.here_phone);
- else{const names=D.games.map(g=>g.about?title(g):g.name).join(", ");const gh=D.later.filter(x=>x.github).length;parts.push(fill(names?"here_other":"here_other_none",{names,apps:D.downloads.length,mac:D.later.length-gh,github:gh?fill("here_github",{n:gh}):""}))}
+ else{const names=D.games.map(g=>g.name).join(", "),gh=D.later.filter(x=>x.github).length,
+  other=D.later.filter(x=>!x.github&&!x.status).length;parts.push(fill(names?"here_other_hosts":"here_other_hosts_none",
+   {host:D.host_name,names,apps:D.downloads.length,mac:other,github:gh}))}
  h.textContent=parts.join(" ")}
 function fold_text(v){return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()}
 function fold(key,label,body){const open=localStorage.getItem("pm.fold."+key)!="1",h=el("button",null,"group fold"+(open?" open":""));h.append(el("span","›","tw"),el("span",label));h.setAttribute("aria-expanded",open);body.classList.toggle("hidden",!open);
@@ -1220,7 +1228,7 @@ function fold(key,label,body){const open=localStorage.getItem("pm.fold."+key)!="
 function row(x,i){const kind=groupOf(x.id),b=el("button",null,"item "+kind);b.style.setProperty("--c",colorOf(x));b.style.setProperty("--i",Math.min(i||0,24));
  b.title=systemOf(x)?fill("original",{system:systemOf(x)}):"";const body=el("span",null,"body"),meta=[devicesOf(x,kind).join(", ")];
  if(kind=="build"&&x.ready){const on=x.platforms.filter(p=>x.ready.platforms.includes(p.id)).map(p=>p.short||p.label);if(on.length)meta.push(fill("ready_tag",{devices:on.join(", ")}))}
- if(kind=="build"&&x.setup&&x.setup!="easy")meta.push(S["setup_"+x.setup]);if((kind=="later"||kind=="github")&&x.text)b.title=x.text;
+ if(kind=="build")meta.push(fill("built_where",{host:D.host_name}));if(kind=="build"&&x.setup&&x.setup!="easy")meta.push(S["setup_"+x.setup]);if((kind=="later"||kind=="github")&&x.text)b.title=x.text;
  const line=[x.name+(systemOf(x)?" · "+systemOf(x):""),...meta].filter(Boolean).join(" · ");body.append(el("span",x.about?title(x):x.name,"t"),el("span",line,"s"));body.title=line;
  const side=el("span",null,"side"),st=stateOf(x.id),v=st.latest,where=[...new Set(st.copies.map(kindName))].join(" · ");
  if(kind=="later"||kind=="github"){}else if(st.stale){const o=st.old.map(c=>c.version).sort(cmpv)[0];side.append(el("span",(o?"v"+o+" → ":"")+v,"own upd"))}

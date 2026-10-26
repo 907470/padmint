@@ -12,6 +12,13 @@ from padmint.manifest import catalog
 
 
 class CliEncodingTests(unittest.TestCase):
+    def test_git_preserves_a_unicode_checkout_root(self):
+        value = "C:/Users/player/PadMint checkout 雪"
+        with mock.patch.object(cli.subprocess, "check_output", return_value=value) as command, \
+                mock.patch.object(cli.tools, "executable", return_value="git"):
+            self.assertEqual(cli.git(Path("checkout"), "rev-parse", "--show-toplevel"), value)
+        self.assertEqual(command.call_args.kwargs["encoding"], "utf-8")
+
     def test_windows_success_and_error_paths_use_utf8(self):
         with tempfile.TemporaryDirectory(prefix="PadMint CLI \u96ea ") as temporary:
             recipe = Path(temporary) / "padmint.json"
