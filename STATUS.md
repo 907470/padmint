@@ -28,7 +28,7 @@ are in [Building games on Windows](docs/WINDOWS.md).
   and Mac is built with PadMint; the release's `ios-for-padmint.ipa` has no game in it
   and is only for PadMint. The 0.7.9–0.7.13 ready-to-play iPhone/iPad and Mac
   downloads won't get updates.
-- **HaloPad's Xbox edition** can also be built without a Mac, using GitHub Cloud
+- **HaloPad's Xbox edition** can also be built without a Mac, using GitHub Cloud Build
   Build ([steps](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer)).
   On Windows and Linux PadMint points there instead of saying it needs a Mac.
 - **BlueWake on Windows** downloads its ready-to-play build from
@@ -43,7 +43,7 @@ are in [Building games on Windows](docs/WINDOWS.md).
 ## PadMint itself
 
 - **v0.5.16**: build locations are named plainly. **Build here** means PadMint
-  compiles on that computer; **GitHub Cloud** means GitHub runs a temporary macOS
+  compiles on that computer; **GitHub Cloud Build** means GitHub runs a temporary macOS
   build machine for the player's PadMint fork; **Apple Silicon Mac** means the
   game needs the player's own Mac. The page says that all three routes produce
   iPhone/iPad or Android results, never Windows desktop games, and each card
@@ -66,7 +66,7 @@ are in [Building games on Windows](docs/WINDOWS.md).
   CTRPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad,
   SpaghettiPad, StarshipPad, TribesPad, UTP) can be built for iPhone and iPad on
   GitHub Cloud Build from Windows, Linux or any browser (\`build-for-iphone.yml\`;
-  README "GitHub Cloud Build"). Off a Mac they get their own **GitHub Cloud**
+  README "GitHub Cloud Build"). Off a Mac they get their own **GitHub Cloud Build**
   tab, and each game page gives numbered steps with Fork PadMint,
   Step-by-step guide and Get Sideloadly buttons. Game pages on a Mac say how the
   copy gets onto the device (an .ipa installed with Sideloadly), fold the game-file

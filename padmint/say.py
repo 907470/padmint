@@ -699,7 +699,7 @@ MESSAGES = {
     "w_github_fork": {"en": "Fork PadMint", "es": "Fork de PadMint", "pt": "Fork do PadMint"},
     "w_github_guide": {"en": "Step-by-step guide", "es": "Guía paso a paso", "pt": "Guia passo a passo"},
     "w_github_sideloadly": {"en": "Get Sideloadly", "es": "Descargar Sideloadly", "pt": "Baixar o Sideloadly"},
-    "w_tab_github": {"en": "GitHub Cloud", "es": "GitHub Cloud", "pt": "GitHub Cloud"},
+    "w_tab_github": {"en": "GitHub Cloud Build", "es": "GitHub Cloud Build", "pt": "GitHub Cloud Build"},
     "w_github_build_tag": {"en": "GitHub Cloud Build", "es": "GitHub Cloud Build", "pt": "GitHub Cloud Build"},
     "w_github_build_mac": {
         "en": "The Mac version of {name} is made on a Mac with Apple Silicon (M1 or newer).",

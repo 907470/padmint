@@ -19,8 +19,8 @@ Use these labels consistently in the app and documentation:
 
 ## Recently completed
 
-- **0.5.16:** the app shows **Build here**, **GitHub Cloud**, and **Apple
-  Silicon Mac**; GitHub Cloud is defined as GitHub's temporary hosted macOS
+- **0.5.16:** the app shows **Build here**, **GitHub Cloud Build**, and **Apple
+  Silicon Mac**; GitHub Cloud Build means GitHub's temporary hosted macOS
   build machine. The stale compatibility table was refreshed from live releases.
 - **0.5.15:** shared Windows toolchains, cache and retry safety, Unicode paths,
   a private UTF-8 build console and complete cancellation cleanup were released.

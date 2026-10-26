@@ -118,7 +118,7 @@ upstream code) have one.
 ## What PadMint shows players
 
 PadMint's library tells each computer what it can make above the search box and
-uses three explicit labels: **Build here**, **GitHub Cloud**, and **Apple Silicon
+uses three explicit labels: **Build here**, **GitHub Cloud Build**, and **Apple Silicon
 Mac**. Every unavailable game explains which route applies. When a recipe or
 release changes, the catalog, those labels, [WINDOWS.md](WINDOWS.md) and this
 roadmap change in the same pull request.
@@ -198,7 +198,7 @@ building. OpenRCT2Touch is a GitHub fork.
 
 - [x] Release the shared PadMint 0.5.15 Windows infrastructure: managed tools,
   Unicode paths, safe caches/retries, Windows console handling and cancellation.
-- [x] Show exact **Build here / GitHub Cloud / Apple Silicon Mac** routes in the
+- [x] Show exact **Build here / GitHub Cloud Build / Apple Silicon Mac** routes in the
   PadMint UI and document the live Windows roster.
 - [ ] Fix and release SnapPad's Windows hosts, then MeleePad's invalid
   `windows-x64` recipe key; add pinned manifest validation to both game CIs.

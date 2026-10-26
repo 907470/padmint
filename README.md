@@ -376,8 +376,8 @@ Click a question to see the answer.
 <summary><strong>My game isn't in the list, or it's dimmed.</strong></summary>
 
 Choose it anyway: the page names the actual route. **Build here** means PadMint
-compiles on your PC. **GitHub Cloud** means a temporary macOS machine hosted by
-GitHub compiles it. **Apple Silicon Mac** means it needs your own Apple Silicon
+compiles on your PC. **GitHub Cloud Build** means a temporary macOS machine
+hosted by GitHub compiles it. **Apple Silicon Mac** means it needs your own Apple Silicon
 Mac with Xcode, unless the project documents another route. **Not available
 yet** means there is nothing to build or download through PadMint yet.
 
