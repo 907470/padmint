@@ -357,11 +357,12 @@ def catalog():
             raise ValueError(f"catalog/{path.name}: later needs a name, a game, text, "
                              "and no player_targets or download")
         # Games PadMint builds only on an Apple Silicon Mac that the game itself can also make
-        # another way (HaloPad's Xbox edition on GitHub's Mac runner): shown off the Mac instead
-        # of "Needs an M1+ Mac", with a link to those steps.
+        # another way (HaloPad's Xbox edition on GitHub Cloud Build): shown off the Mac instead
+        # of "Needs Apple Silicon Mac", with a link to those steps.
         off_mac = entry.get("off_mac")
         if off_mac is not None and (not isinstance(off_mac, dict) or not targets
                                     or not str(off_mac.get("url", "")).startswith("https://")
+                                    or ("tag" in off_mac and not isinstance(off_mac["tag"], str))
                                     or not all(isinstance(text.get("text", off_mac.get("text")), str)
                                                for text in [off_mac] + list((off_mac.get("translations") or {}).values()))):
             raise ValueError(f"catalog/{path.name}: off_mac needs player_targets, an https url and text")

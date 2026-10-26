@@ -12,6 +12,14 @@ source of truth: draft build evidence does not enable a catalog button or
 establish device launch, audio or save compatibility. Game releases and device
 deployment keep their separate approval and validation gates.
 
+**Building on Windows today:** the only game PadMint compiles locally on a
+Windows PC through a published recipe is **KartPad**, for Android or iPhone/iPad
+(experimental). Fifteen iPhone/iPad games can be compiled by **GitHub's free
+Mac** after Windows starts the workflow. The other games currently need an Apple
+Silicon Mac or their project's own route. None of these options is a Windows
+desktop build. The dated roster, seven private Windows proofs, and active queue
+are in [Building games on Windows](docs/WINDOWS.md).
+
 ## Which games use PadMint
 
 - **KartPad for Android is a ready-to-play download** (the APK has the game code
@@ -20,8 +28,8 @@ deployment keep their separate approval and validation gates.
   and Mac is built with PadMint; the release's `ios-for-padmint.ipa` has no game in it
   and is only for PadMint. The 0.7.9–0.7.13 ready-to-play iPhone/iPad and Mac
   downloads won't get updates.
-- **HaloPad's Xbox edition** can also be built without a Mac, on GitHub's free Mac
-  runner ([steps](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer)).
+- **HaloPad's Xbox edition** can also be built without a Mac, using GitHub Cloud Build
+  Build ([steps](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer)).
   On Windows and Linux PadMint points there instead of saying it needs a Mac.
 - **BlueWake on Windows** downloads its ready-to-play build from
   [BlueWake's releases](https://github.com/chrissotraidis/bluewake/releases/latest).
@@ -33,6 +41,16 @@ deployment keep their separate approval and validation gates.
   listed in PadMint.
 
 ## PadMint itself
+
+- **v0.5.16**: build locations are named plainly. **Build here** means PadMint
+  compiles on that computer; **GitHub Cloud Build** means GitHub runs a temporary macOS
+  build machine for the player's PadMint fork; **Apple Silicon Mac** means the
+  game needs the player's own Mac. The page says that all three routes produce
+  iPhone/iPad or Android results, never Windows desktop games, and each card
+  shows its exact route. [Building games on Windows](docs/WINDOWS.md) is the
+  dated support roster and active release queue. The compatibility table now
+  matches the current public recipes. Fixed an explicit CLI checkout check that
+  misread non-English Git roots on Windows.
 
 - **v0.5.15**: the shared foundation for private iPhone modules built on
   Windows. Managed Windows tool builds, source and release selection, cache
@@ -47,9 +65,9 @@ deployment keep their separate approval and validation gates.
 - **v0.5.14**: no Mac? Fifteen games (BallPad, BarrelPad, BellPad, BrawlerPad,
   CTRPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad,
   SpaghettiPad, StarshipPad, TribesPad, UTP) can be built for iPhone and iPad on
-  GitHub's free Mac from Windows, Linux or any browser (\`build-for-iphone.yml\`;
-  README "No Mac? Build on GitHub's Mac"). Off a Mac they get their own **Build on
-  GitHub** tab, and each game page gives numbered steps with Fork PadMint,
+  GitHub Cloud Build from Windows, Linux or any browser (\`build-for-iphone.yml\`;
+  README "GitHub Cloud Build"). Off a Mac they get their own **GitHub Cloud Build**
+  tab, and each game page gives numbered steps with Fork PadMint,
   Step-by-step guide and Get Sideloadly buttons. Game pages on a Mac say how the
   copy gets onto the device (an .ipa installed with Sideloadly), fold the game-file
   note into one line, and label setup as **Setup: Xcode + Homebrew**. EctoPad is

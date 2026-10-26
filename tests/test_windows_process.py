@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -89,6 +90,13 @@ result=run_process([sys.executable,'-c',sys.argv[3],str(root/'ready.json')],root
                 if child.poll() is None:
                     subprocess.run(['taskkill', '/T', '/F', '/PID', str(child.pid)], capture_output=True)
                     child.wait(timeout=5)
+
+    @unittest.skipUnless(shutil.which('git'), 'Git is not installed for this packaged test')
+    def test_git_checkout_root_preserves_a_non_english_path(self):
+        root = self.root / 'PadMint checkout 雪'
+        root.mkdir()
+        subprocess.run(['git', 'init', str(root)], check=True, capture_output=True)
+        self.assertEqual(Path(cli.git(root, 'rev-parse', '--show-toplevel')).resolve(), root.resolve())
 
     @staticmethod
     def process_alive(pid):

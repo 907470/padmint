@@ -53,11 +53,11 @@ class LaterTests(unittest.TestCase):
         self.assertIn("kartpad", built)
         self.assertNotIn("sunpad", built)
         self.assertIn("Apple Silicon", waiting["sunpad"]["text"])
-        self.assertEqual(waiting["sunpad"]["tag"], "Needs an M1+ Mac")
+        self.assertEqual(waiting["sunpad"]["tag"], "Needs Apple Silicon Mac")
         self.assertEqual(waiting["sunpad"]["about"], "Super Mario Sunshine (GameCube)")
-        # A game that takes its game file in the app points to GitHub's Mac instead.
+        # A game that takes its game file in the app points to GitHub Cloud Build instead.
         self.assertNotIn("bellpad", built)
-        self.assertEqual(waiting["bellpad"]["tag"], "Build on GitHub")
+        self.assertEqual(waiting["bellpad"]["tag"], "GitHub Cloud Build")
         self.assertIn("pick bellpad", waiting["bellpad"]["text"])
         self.assertEqual(waiting["bellpad"]["link"], ui.GITHUB_BUILD_HELP)
         self.assertTrue(waiting["bellpad"]["github"])
@@ -66,6 +66,18 @@ class LaterTests(unittest.TestCase):
         self.assertFalse(waiting["sunpad"]["github"])
         everything = built | set(waiting) | {app["id"] for app in data["downloads"]}
         self.assertEqual(everything, set(manifest.catalog()))
+        self.assertEqual(data["host_name"], "Windows x64")
+        self.assertEqual(data["text"]["tab_build"], "Build here")
+        self.assertEqual(data["text"]["tab_github"], "GitHub Cloud Build")
+        self.assertEqual(data["text"]["github_build_tag"], "GitHub Cloud Build")
+        self.assertEqual(data["text"]["needs_mac_head"], "Apple Silicon Mac")
+        self.assertEqual(sum(item.get("github", False) for item in data["later"]), 15)
+        self.assertIn("not a local Windows build", waiting["bellpad"]["text"])
+        self.assertIn("not Windows desktop games", data["text"]["here_other_hosts"])
+        self.assertIn("this computer only starts the workflow", data["text"]["github_note"])
+        self.assertIn("None of these is a Windows desktop build", data["text"]["needs_mac_note"])
+        self.assertEqual(waiting["bluewake"]["tag"], "Windows app available")
+        self.assertIn("BlueWake.exe", waiting["bluewake"]["text"])
 
     def test_github_builds_match_the_workflow_and_need_no_game_file_while_building(self):
         # The workflow's game menu is the catalog's github_build list; a game that reads
