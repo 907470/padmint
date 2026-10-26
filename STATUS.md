@@ -1,16 +1,16 @@
 # PadMint status
 
-Updated **25 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **26 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 
-**Scope today ([D15](docs/DECISIONS.md#d15-any-device-from-any-computer-is-the-goal-off-mac-work-is-paused-owner-decision-5-oct-2026)):**
-PadMint makes the builds that exist work well: iPhone/iPad copies on an Apple
-Silicon Mac for every buildable game, Mac copies for CTRPad, HaloPad and KartPad, and
-KartPad's existing Android and off-Mac routes. Windows players use ready-to-play
-downloads where a game publishes them (BlueWake). Building any game for any device
-from any computer is the long-term goal and is paused; D15 records the remaining
-work and when to revisit it.
+**Scope today:** Windows build hardening resumed on 26 October at the owner's
+request ([D17](docs/DECISIONS.md#d17-windows-build-hardening-resumes-26-oct-2026)).
+The work covers reliable recipes, managed tools, safe retries, and private game
+modules built on the player's computer. Current published routes remain the
+source of truth: draft build evidence does not enable a catalog button or
+establish device launch, audio or save compatibility. Game releases and device
+deployment keep their separate approval and validation gates.
 
 ## Which games use PadMint
 
@@ -25,9 +25,9 @@ work and when to revisit it.
   On Windows and Linux PadMint points there instead of saying it needs a Mac.
 - **BlueWake on Windows** downloads its ready-to-play build from
   [BlueWake's releases](https://github.com/chrissotraidis/bluewake/releases/latest).
-  PadMint's Windows route for BlueWake
-  ([draft #46](https://github.com/chrissotraidis/bluewake/pull/46)) is parked.
-  This exception may change.
+  The iPhone module route from Windows remains
+  [draft #100](https://github.com/chrissotraidis/bluewake/pull/100), which needs a
+  rebase and fresh validation.
 - **Every other Pad game** builds through PadMint, or is a no-build download
   listed in PadMint.
 
@@ -202,30 +202,36 @@ reached only PaperPad Original; F0X 0.1.0 and SnapPad 0.2.0, released later, als
 lacked it. PaperPad 0.2.3, F0X 0.1.1 and SnapPad 0.2.1 (21 October) fix them
 ([details](docs/COMPATIBILITY.md#ios-27-on-a-physical-ipad-18-to-21-october)).
 
-Families, in order; one game proves each family. Details and next steps per game
-are in [Status by game](docs/COMPATIBILITY.md#status-by-game).
+Current Windows work, with [per-game evidence and remaining gates](docs/COMPATIBILITY.md#status-by-game):
 
-1. **GameCube and Wii** (reference BlueWake): the iPhone module builds without
-   Xcode through PadMint for BlueWake on Linux and on a Mac
-   ([draft #42](https://github.com/chrissotraidis/bluewake/pull/42)) and for SunPad on
-   Linux ([draft #57](https://github.com/chrissotraidis/sunpad/pull/57)). Both still need
-   a device check and a release. MeleePad is blocked on its Slippi parts (a
-   Rust toolchain for iOS, Slippi's C++ libraries and multi-file insertion); see
-   its row. Recipes that compile these
-   generated chunks with clang 22 need `-fno-slp-vectorize -mllvm
-   -large-interval-freq-threshold=10`: without them one chunk can take hours.
-2. **N64** (reference GoldenPad): Mac only. Needs a published app without game
-   code that loads a module.
-3. **Engine ports** (reference SpaghettiPad): iPhone modules build on Windows and
-   Linux in [draft #29](https://github.com/chrissotraidis/spaghettipad/pull/29);
-   needs a released recipe.
+- All 15 games offered through the hosted Mac route passed fresh builds at
+  PadMint `4a78bb0` ([run](https://github.com/chrissotraidis/padmint/actions/runs/40209016384)).
+  This is the existing route available from Windows; the builds execute on Macs.
+- Shared drafts [#177](https://github.com/chrissotraidis/padmint/pull/177),
+  [#178](https://github.com/chrissotraidis/padmint/pull/178),
+  [#179](https://github.com/chrissotraidis/padmint/pull/179) and
+  [#180](https://github.com/chrissotraidis/padmint/pull/180) preserve failed source
+  attempts, validate released recipes, distinguish installed build inputs, package
+  revision-specific modules with identity files, and provide Windows MIPS patch
+  compilation. At `ca6fb21`, 429 tests and native Windows x64/ARM64 packaged
+  runner and compiler probes passed. These are unreleased changes.
+- SquirrelPad and GoldenPad have complete private Windows ARM64 module builds
+  through packaged PadMint. Their private x64-toolchain backends also passed
+  under ARM emulation, with native x64 generator CI as separate evidence.
+  Matching empty shells exist locally; recipes and shells still need review,
+  device testing and authorized releases.
+- MeleePad's offline route now builds both supported revisions on Mac without
+  rebuilding Slippi. A complete private Windows ARM64 backend build passed;
+  packaged PadMint integration is being checked. Native Slippi online builds
+  remain a separate developer route.
+- BearBirdPad is the next N64 implementation. BananaPad, AnnePad, DinoPad,
+  SnapPad and the remaining private-input ports still need individual work.
+  Existing BlueWake and SunPad drafts retain their own release and runtime gates.
 
-Open, not started: a data-only Android target in KartPad's recipe (skips the
-1 GB NDK), physical Android and x64 Windows acceptance, and StarshipPad's and
-SunPad's updated public recipes ([#22](https://github.com/chrissotraidis/starshippad/pull/22),
-[#55](https://github.com/chrissotraidis/sunpad/pull/55)).
-[Issue #75](https://github.com/chrissotraidis/padmint/issues/75) tracks the
-catalog-wide work.
+No published catalog host flags or releases are changed by this evidence.
+The generic pipeline must ship before recipes that require it, followed by each matching game release
+and its catalog change. [Issue #75](https://github.com/chrissotraidis/padmint/issues/75)
+tracks the broader work.
 
 Personal game outputs stay private. Content scans are technical checks;
 publication and rights decisions are reviewed separately.
