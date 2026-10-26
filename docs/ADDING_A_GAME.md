@@ -140,6 +140,16 @@ of known C/runtime symbols and standard C++ namespaces, strips it, names it `@rp
 `into` inside a copy of the published app. `scripts/ios-module-probe.py` runs the whole
 pipeline with a small probe library and no game code.
 
+The module must be a thin arm64 dynamic library for a physical iOS device. PadMint
+checks its complete load-command table and minimum iOS version before and after
+stripping, before replacing any previous personal IPA. Its minimum must not be
+newer than the app's `MinimumOSVersion` (or the linked executable's minimum when
+the plist omits it). A plist claiming support below the executable's minimum is
+rejected too. The shared toolchain keeps its iOS 16 default for newer apps and
+uses the app's lower minimum for older apps; the real compiler probe covers iOS
+15 and 16. These metadata checks do not establish runtime symbol availability or
+device acceptance.
+
 To keep an existing full-app builder on some systems, schema 2 accepts an optional
 `"on": ["windows", "linux"]` inside `ios_module` (with either `file`/`into` or
 `result`). Omit it to keep module packaging on every host. The list must be

@@ -42,10 +42,22 @@ def main():
         app.write_bytes(data)
     tools.install(["libcxx", "cmake", "ninja"], host, any_host=True)
     env = tools.environment(["libcxx", "cmake", "ninja"], host, any_host=True)
+    # Exercise a fresh default build, then a deployment change in the same cache.
+    probe(work, app, env)
+    if ios_module._os_version(ios_module.app_minimum(app)) >= (15, 0, 0):
+        probe(work, app, env, target="15.0", fresh=False)
+
+
+def probe(work, app, env, target=None, fresh=True):
+    host = host_id()
     prepared = ios_module.prepare(work / "sdk", app, env)
+    llvm = ios_module.llvm_root(env)
+    if target is not None:
+        prepared["toolchain"] = ios_module.toolchain(prepared["sdk"], llvm, target)
     build = work / "build"
     cmake = tools.executable("cmake", host)
-    subprocess.run([cmake, "-S", str(ROOT / "tests/ios-module-probe"), "-B", str(build), "-G", "Ninja",
+    subprocess.run([cmake, *(["--fresh"] if fresh else []),
+                    "-S", str(ROOT / "tests/ios-module-probe"), "-B", str(build), "-G", "Ninja",
                     f"-DCMAKE_TOOLCHAIN_FILE={prepared['toolchain']}", "-DCMAKE_BUILD_TYPE=Release"],
                    check=True, env=env)
     subprocess.run([cmake, "--build", str(build)], check=True, env=env)
@@ -57,14 +69,21 @@ def main():
     if not required <= imports:
         raise SystemExit(f"the module did not exercise its assertion/memory-mapping headers: {sorted(required - imports)}")
     ios_module.check_imports(llvm, module, prepared["executable"])
-    output = ios_module.insert(app, module, "Frameworks/libpadmint_probe.dylib", work / "probe.ipa", llvm,
+    output = ios_module.insert(app, module, "Frameworks/libpadmint_probe.dylib",
+                               work / ("probe.ipa" if target is None else "probe-ios15.ipa"), llvm,
                                work / "insert")
     report = validate_ipa(output, None, None, None)
     slices = report["apple_compatibility"]["linked_slices"]
     module_report = ios_module.linked(module)
     print(json.dumps({"host": host, "module": module_report, "app": slices}, indent=1))
-    if module_report["platform"] != "ios" or module_report["minimum_os"] != "16.0.0":
-        raise SystemExit("the module is not an iOS 16 arm64 library")
+    expected = ios_module._os_version(target) if target is not None else min(
+        ios_module._os_version(ios_module.app_minimum(app)), ios_module._os_version(ios_module.DEPLOYMENT_TARGET))
+    cached = next(line.split("=", 1)[1] for line in (build / "CMakeCache.txt").read_text().splitlines()
+                  if line.startswith("CMAKE_OSX_DEPLOYMENT_TARGET:STRING="))
+    if ios_module._os_version(cached) != expected:
+        raise SystemExit("the CMake cache retained a different iOS deployment target")
+    if module_report["platform"] != "ios" or ios_module._os_version(module_report["minimum_os"]) != expected:
+        raise SystemExit("the module does not have the requested iOS deployment target")
     print(f"Universal iPhone module pipeline passed on {host}: {output}")
 
 
