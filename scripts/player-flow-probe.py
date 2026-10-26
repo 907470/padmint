@@ -71,6 +71,7 @@ def run(work, app):
     import padmint
     from padmint import cli
     from padmint.manifest import host_id
+    cli.configure_output()  # Match the normal CLI entry before calling its runner directly.
     require(Path(padmint.__file__).resolve().parent == app / "padmint", "Imported the wrong PadMint copy")
     work.mkdir(parents=True, exist_ok=True)
     origin = work / "source with spaces & apostrophe's"
