@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import os
+import tarfile
 import tempfile
 import unittest
 import zipfile
@@ -52,6 +53,37 @@ class ToolsTests(unittest.TestCase):
         tools.install(["tool"], "test-host", io.StringIO())
         env = tools.environment(["tool"], "test-host", {"PATH": "/usr/bin"})
         self.assertEqual(env["DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"], "1")
+
+    def test_selective_tar_compiler_keeps_host_toolchain_and_discards_archive(self):
+        archive = self.root / "compiler.tar.xz"
+        selected = ["compiler/bin/clang.exe", "compiler/bin/runtime.dll", "compiler/include/"]
+        with tarfile.open(archive, "w:xz") as bundle:
+            for name in (selected[0], selected[1], "compiler/include/stddef.h", "compiler/unneeded"):
+                data = name.encode()
+                info = tarfile.TarInfo(name)
+                info.size = len(data)
+                bundle.addfile(info, io.BytesIO(data))
+        self.lock["tool"].update({"only_where_listed": True,
+                                 "env": {"PADMINT_MIPS_CC": "compiler/bin/clang.exe"}})
+        self.lock["tool"]["hosts"]["test-host"] = {
+            "url": archive.as_uri(), "sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+            "archive": "tar.xz", "members": selected}
+        original = {"PATH": "existing-toolchain", "PADMINT_LLVM_ROOT": "native-llvm"}
+        tools.install(["tool"], "test-host", io.StringIO())
+        folder = tools.tools_root() / "tool-1"
+        env = tools.environment(["tool"], "test-host", original)
+        self.assertEqual(env["PADMINT_MIPS_CC"], str(folder / selected[0]))
+        self.assertTrue(Path(env["PADMINT_MIPS_CC"]).is_file())
+        self.assertEqual(env["PATH"], original["PATH"])
+        self.assertEqual(env["PADMINT_LLVM_ROOT"], original["PADMINT_LLVM_ROOT"])
+        self.assertTrue((folder / "compiler/include/stddef.h").is_file())
+        self.assertFalse((folder / "compiler/unneeded").exists())
+        self.assertFalse((folder / "download").exists())
+        self.assertFalse(folder.with_name(folder.name + ".partial").exists())
+        with mock.patch.object(tools, "_download", side_effect=AssertionError("unneeded download")):
+            tools.install(["tool"], "test-host", io.StringIO())
+            tools.install(["tool"], "unlisted-host", io.StringIO())
+        self.assertEqual(tools.environment(["tool"], "unlisted-host", original), original)
 
     def test_digest_mismatch_installs_nothing(self):
         self.lock["tool"]["hosts"]["test-host"]["sha256"] = "0" * 64

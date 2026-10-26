@@ -436,3 +436,31 @@ Rejected shortcuts: building on a cloud Mac uploads players' game files and brea
 port gets finished for other reasons. Start with the family that unlocks the most
 games (the Harbour Masters engine, via SpaghettiPad #29). Tracking issue: #75. The
 drafts stay open as they are.
+
+## D16. A separate MIPS patch compiler on Windows (26 Oct 2026)
+
+The official LLVM 21.1.8 Windows compilers omit the MIPS backend. N64 ports
+that compile patches can name `mips-clang` in their recipe's tools. It sets
+`PADMINT_MIPS_CC` to an absolute compiler path on Windows x64 and ARM64 and
+is skipped on other hosts. It changes neither PATH nor `PADMINT_LLVM_ROOT`:
+the existing native LLVM still compiles iPhone modules and links MIPS objects.
+Games must explicitly use this compiler for their patches and check the
+required target before starting a lengthy source build.
+
+The pin is LLVM 18.1.8's official Windows x64 archive, also usable through
+Windows 11 ARM64 emulation. PadMint selects clang, its resource headers and
+three app-local VC runtime DLLs. The first download is 981,666,720 bytes;
+about 134 MB remains after installation. Interrupted extraction retains
+its partial staging folder until the next attempt, as other managed tools do.
+
+This older release has no GitHub asset digest. Its downloaded archive was
+hashed and matched [Skia's recorded checksum for the same official URL](https://skia.googlesource.com/skia.git/+/f2f986116f5177930e3bae7cdf7be79866cffb79%5E%21/).
+The updater preserves that explicit historical pin. Do not replace it with a
+newer Windows LLVM based on version alone: `scripts/mips-compiler-probe.py`
+compiles and links a synthetic MIPS2/o32 patch with resource headers, validates
+the ELF target and ABI, and checks that the iPhone compiler stays unchanged.
+CI runs this on Windows x64 and ARM64 alongside the iPhone module probe.
+Each game still needs its own full build and runtime evidence.
+
+Release order: ship PadMint with this tool before publishing any game recipe
+that names it. Older PadMint releases reject the unknown tool before building.

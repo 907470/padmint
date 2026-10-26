@@ -155,8 +155,18 @@ jobs:
         with:
           path: ~/.padmint/tools
           key: padmint-tools-${{ matrix.os }}-${{ hashFiles('padmint/tools.lock.json') }}
+          restore-keys: padmint-tools-${{ matrix.os }}-
       - name: Unit tests for the module pipeline
         run: python -B -m unittest discover -s tests -p test_ios_module.py -v
         if: runner.os != 'Windows'
       - name: Build, check and insert a probe module
         run: python -B scripts/ios-module-probe.py "${{ runner.temp }}/ios-module-probe"
+      - name: Compile MIPS patches with the managed compiler
+        if: runner.os == 'Windows'
+        run: python -B scripts/mips-compiler-probe.py "${{ runner.temp }}/MIPS probe with spaces"
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: mips-compiler-probe-${{ matrix.os }}
+          path: ${{ runner.temp }}/MIPS probe with spaces/result.json
+          retention-days: 7

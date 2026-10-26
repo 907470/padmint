@@ -5,8 +5,9 @@ Every download PadMint installs is pinned here: URL, size where published and
 the publisher's digest (GitHub release digests, CMake's SHA-256 list, Google's
 SDK repository index, Microsoft's .NET release metadata). Nothing is hashed by
 hand. Apple publishes no digest for its open-source archives, so those are
-fetched at their release tag's commit and hashed here. Run it, review the
-diff, commit.
+fetched at their release tag's commit and hashed here. The older Windows MIPS
+compiler keeps its independently verified pin (see mips_clang below). Run it,
+review the diff, commit.
 """
 import functools
 import hashlib
@@ -94,6 +95,33 @@ def llvm_download(release, top, extra=(), windows=False, **fields):
                            *(f"{top}/bin/{name}" for name in names), f"{top}/lib/clang/{major}/include/"])
 
 
+def mips_clang():
+    """Windows LLVM 21 omits MIPS; keep a separate compiler without changing PATH.
+
+    LLVM 18's release predates GitHub asset digests. Its official archive was
+    downloaded and hashed; Skia's recorded hash of the same URL agrees:
+    https://skia.googlesource.com/skia.git/+/f2f986116f5177930e3bae7cdf7be79866cffb79%5E%21/
+    The x64 executable also runs under Windows 11 ARM64 emulation. Include its
+    three app-local VC runtime DLLs so it does not depend on a system install.
+    """
+    top = "clang+llvm-18.1.8-x86_64-pc-windows-msvc"
+    entry = {
+        "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/"
+               "clang%2Bllvm-18.1.8-x86_64-pc-windows-msvc.tar.xz",
+        "sha256": "22c5907db053026cc2a8ff96d21c0f642a90d24d66c23c6d28ee7b1d572b82e8",
+        "size": 981666720,
+        "archive": "tar.xz",
+        "members": [*(f"{top}/bin/{name}" for name in
+                      ("clang.exe", "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll")),
+                    f"{top}/lib/clang/18/include/"],
+    }
+    return {"version": "18.1.8", "only_where_listed": True,
+            "note": "Windows MIPS patch compiler only. x64 binary also runs on Windows 11 ARM64; "
+                    "does not replace the current LLVM iPhone compiler or linker.",
+            "env": {"PADMINT_MIPS_CC": f"{top}/bin/clang.exe"},
+            "hosts": {host: entry for host in ("windows-arm64", "windows-x86_64")}}
+
+
 def main():
     tools = {}
 
@@ -178,6 +206,8 @@ def main():
         tools["llvm"]["hosts"][host] = llvm_download(LLVM, name, extra=IOS_LLVM_TOOLS,
                                                      windows=host.startswith("windows"),
                                                      env={"PADMINT_LLVM_ROOT": name})
+
+    tools["mips-clang"] = mips_clang()
 
     top = f"libcxx-{LLVM}.src"
     libcxx = github_file(github_assets("llvm/llvm-project", f"llvmorg-{LLVM}"), f"{top}.tar.xz",
