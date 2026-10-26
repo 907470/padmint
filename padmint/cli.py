@@ -23,7 +23,7 @@ import time
 import urllib.parse
 import uuid
 
-from . import __version__, awake, game_file, gate, ios_module, tools
+from . import __version__, awake, game_file, gate, ios_module, tools, windows_process
 from .say import MESSAGES, localized, phrase, t
 from .manifest import (RUNNABLE_STATES, NeedsNewerPadMint, catalog, expand, host_id, ios_build_hosts, load_manifest,
                        manifest_for, manifest_sha256, module_here, needs_build_input, selected_inputs, on_android,
@@ -188,19 +188,24 @@ def run_process(argv, cwd, log_path, event_path, emit, before_spawn=None, append
     def interrupt(_signum, _frame):
         raise KeyboardInterrupt
 
-    previous = signal.signal(signal.SIGTERM, interrupt)
+    signals = [signal.SIGTERM]
+    if os.name == "nt":
+        signals.append(signal.SIGBREAK)  # The window's Cancel button sends CTRL_BREAK_EVENT.
+    previous = {number: signal.signal(number, interrupt) for number in signals}
     process = None
     try:
         with log_path.open("ab" if append else "wb") as log:
             if before_spawn is not None:
                 before_spawn()
-            group = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt"
-                     else {"start_new_session": True})
             if env and argv and not os.path.dirname(argv[0]):
                 # Windows looks a bare program name up on PadMint's own PATH, not the
                 # step's, so a step's "cmake" would miss PadMint's CMake. Resolve it here.
                 found = shutil.which(argv[0], path=env.get("PATH"))
                 argv = [found, *argv[1:]] if found else argv
+            if os.name == "nt":
+                argv, group = windows_process.command(argv)
+            else:
+                group = {"start_new_session": True}
             process = subprocess.Popen(argv, cwd=cwd, stdout=log, env=env,
                                        stderr=subprocess.STDOUT, **group)
             last_progress = time.monotonic()
@@ -242,7 +247,8 @@ def run_process(argv, cwd, log_path, event_path, emit, before_spawn=None, append
             drain()
         return 130, True
     finally:
-        signal.signal(signal.SIGTERM, previous)
+        for number, handler in previous.items():
+            signal.signal(number, handler)
 
 
 def run_steps(steps, argvs, cwd, log_path, event_path, emit, before_each, values=None, tool_names=(),
