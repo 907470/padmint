@@ -77,8 +77,8 @@ window shows. The page comes from your own computer, not a website.
 
 **3. Choose your game and follow the page.** It tells you exactly what to
 install for a local build, with a **Check again** button, or links to the steps
-for a GitHub build. You fork the repository and run its workflow in your browser;
-GitHub's Mac compiles the app. The page also shows how to put the result on your
+for a GitHub Cloud Build. You fork the repository and run its workflow in your browser;
+GitHub's hosted macOS build machine compiles the app. The page also shows how to put the result on your
 phone or tablet. It speaks English, Spanish and Portuguese
 (**Settings**, at the bottom of the sidebar). Close the small window when you are done.
 
@@ -230,7 +230,7 @@ browser; it does not compile these games locally and does not make a Windows
 desktop copy.
 
 **Use this route from Windows, Linux or an Intel Mac.** You run the workflow in
-your browser; compilation happens on GitHub's Mac. The result is an iPhone/iPad
+your browser; compilation happens on GitHub's hosted macOS build machine. The result is an iPhone/iPad
 app, not a Windows desktop game. Your own game files are not uploaded.
 
 These games take your own game file inside the app, after installing, so the build
