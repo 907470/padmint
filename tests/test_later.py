@@ -57,7 +57,7 @@ class LaterTests(unittest.TestCase):
         self.assertEqual(waiting["sunpad"]["about"], "Super Mario Sunshine (GameCube)")
         # A game that takes its game file in the app points to GitHub Cloud Build instead.
         self.assertNotIn("bellpad", built)
-        self.assertEqual(waiting["bellpad"]["tag"], "GitHub Cloud")
+        self.assertEqual(waiting["bellpad"]["tag"], "GitHub Cloud Build")
         self.assertIn("pick bellpad", waiting["bellpad"]["text"])
         self.assertEqual(waiting["bellpad"]["link"], ui.GITHUB_BUILD_HELP)
         self.assertTrue(waiting["bellpad"]["github"])
@@ -68,7 +68,8 @@ class LaterTests(unittest.TestCase):
         self.assertEqual(everything, set(manifest.catalog()))
         self.assertEqual(data["host_name"], "Windows x64")
         self.assertEqual(data["text"]["tab_build"], "Build here")
-        self.assertEqual(data["text"]["github_build_tag"], "GitHub Cloud")
+        self.assertEqual(data["text"]["tab_github"], "GitHub Cloud")
+        self.assertEqual(data["text"]["github_build_tag"], "GitHub Cloud Build")
         self.assertEqual(data["text"]["needs_mac_head"], "Apple Silicon Mac")
         self.assertEqual(sum(item.get("github", False) for item in data["later"]), 15)
         self.assertIn("not a local Windows build", waiting["bellpad"]["text"])
