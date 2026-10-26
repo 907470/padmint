@@ -101,9 +101,15 @@ def probe(work, app, env, target=None, fresh=True):
                                           text=True).splitlines())
     required = {"___assert_rtn", "_mmap", "_munmap", "_atexit", "_strtol", "_pthread_create",
                 "_pthread_join", "_pthread_once", "_pthread_mutex_lock", "_pthread_mutex_unlock",
-                "_pthread_cond_broadcast", "_pthread_cond_signal", "_pthread_cond_wait"}
+                "_pthread_cond_broadcast", "_pthread_cond_signal", "_pthread_cond_wait", "__tlv_bootstrap"}
     if not required <= imports:
-        raise SystemExit(f"the module did not exercise every required runtime header: {sorted(required - imports)}")
+        raise SystemExit(f"the module did not exercise every required runtime import: {sorted(required - imports)}")
+    definitions = subprocess.check_output([str(ios_module.llvm_tool(llvm, "llvm-nm")),
+                                           "-m", "--defined-only", str(module)], text=True)
+    # The open SDK uses flat lookup; Apple's own SDK binds this entry to libSystem.
+    # Check a real TLS descriptor, not just a manually declared undefined name.
+    if "(__DATA,__thread_vars)" not in definitions:
+        raise SystemExit("the module did not compile a native thread-local descriptor")
     ios_module.check_imports(llvm, module, prepared["executable"])
     output = ios_module.insert(app, module, "Frameworks/libpadmint_probe.dylib",
                                work / ("probe.ipa" if target is None else "probe-ios15.ipa"), llvm,

@@ -590,6 +590,9 @@ _STANDARD = re.compile(r"((typeinfo name|typeinfo|construction vtable|vtable|VTT
 # - llvm/llvm-project, llvmorg-21.1.8: libcxxabi/lib/{itanium-base,
 #   itanium-exceptions,personality-v0}.exp; libunwind/include/unwind_itanium.h.
 # - apple-oss-distributions/dyld, dyld-852.2: src/dyld_stub_binder.s.
+# - apple-oss-distributions/dyld, fd8d0c4d52320ebf64db34f3cb280310d905c5ae:
+#   include/mach-o/dyld.h declares _tlv_bootstrap from iOS 8.0 (Mach-O adds
+#   the second leading underscore). TLS descriptors bind this runtime entry.
 # A source declaration identifies a runtime symbol; it is not a device launch
 # test or an exhaustive export/availability list for each supported iOS version.
 _RUNTIME_IMPORTS = frozenset({
@@ -608,7 +611,7 @@ _RUNTIME_IMPORTS = frozenset({
     "___stack_chk_fail", "___stack_chk_guard", "___cxa_atexit",
     "___cxa_allocate_exception", "___cxa_begin_catch", "___cxa_end_catch", "___cxa_free_exception",
     "___cxa_guard_abort", "___cxa_guard_acquire", "___cxa_guard_release", "___cxa_throw",
-    "___gxx_personality_v0", "__Unwind_Resume", "dyld_stub_binder",
+    "___gxx_personality_v0", "__Unwind_Resume", "dyld_stub_binder", "__tlv_bootstrap",
 })
 
 
