@@ -146,15 +146,23 @@ def validate_manifest(data):
         if "ios_module" in target:
             module = target["ios_module"]
             _require(name == "ios", f"{where}.ios_module is only for the ios target")
-            _require(isinstance(module, dict) and isinstance(module.get("file"), str)
-                     and isinstance(module.get("into"), str), f"{where}.ios_module needs file and into")
-            _argv([module["file"]], f"{where}.ios_module.file")
+            _require(isinstance(module, dict), f"{where}.ios_module must be an object")
+            if "result" in module:
+                _require(version >= 2, f"{where}.ios_module.result requires schema_version 2")
+                _require(set(module) == {"result"} and isinstance(module["result"], str) and module["result"],
+                         f"{where}.ios_module uses result or file and into, not both")
+                _argv([module["result"]], f"{where}.ios_module.result")
+            else:
+                _require(isinstance(module.get("file"), str) and isinstance(module.get("into"), str),
+                         f"{where}.ios_module needs file and into")
+                _argv([module["file"]], f"{where}.ios_module.file")
             _require("published_app" in target, f"{where}.ios_module needs published_app: the app it goes into")
             _require("libcxx" in target.get("tools", []),
                      f"{where}.ios_module needs the libcxx tool (it brings LLVM and the open-source headers)")
             from .ios_module import ModuleError, _member
             try:
-                _member(module["into"])
+                if "into" in module:
+                    _member(module["into"])
             except ModuleError as error:
                 _require(False, f"{where}.{error}")
         if target.get("output") == "folder":
