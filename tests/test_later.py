@@ -76,6 +76,8 @@ class LaterTests(unittest.TestCase):
         self.assertIn("not Windows desktop games", data["text"]["here_other_hosts"])
         self.assertIn("this computer only starts the workflow", data["text"]["github_note"])
         self.assertIn("None of these is a Windows desktop build", data["text"]["needs_mac_note"])
+        self.assertEqual(waiting["bluewake"]["tag"], "Windows app available")
+        self.assertIn("BlueWake.exe", waiting["bluewake"]["text"])
 
     def test_github_builds_match_the_workflow_and_need_no_game_file_while_building(self):
         # The workflow's game menu is the catalog's github_build list; a game that reads

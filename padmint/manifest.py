@@ -362,6 +362,7 @@ def catalog():
         off_mac = entry.get("off_mac")
         if off_mac is not None and (not isinstance(off_mac, dict) or not targets
                                     or not str(off_mac.get("url", "")).startswith("https://")
+                                    or ("tag" in off_mac and not isinstance(off_mac["tag"], str))
                                     or not all(isinstance(text.get("text", off_mac.get("text")), str)
                                                for text in [off_mac] + list((off_mac.get("translations") or {}).values()))):
             raise ValueError(f"catalog/{path.name}: off_mac needs player_targets, an https url and text")
