@@ -53,13 +53,13 @@ are complete.
 
 | Game | Proven on the build side | Missing before Windows can be selected |
 |---|---|---|
-| SquirrelPad | Packaged Windows ARM64 build; generated files matched Mac; native x64 generator CI | Publish the code-free `SquirrelPad-v…-ios-shell.ipa`, publish the Windows recipe, device launch/audio/save |
-| GoldenPad | Private Windows ARM64 and emulated x64 toolchain; matching shell | Publish the shell and recipe, device check; native private x64 hardware remains separate |
-| BearBirdPad | Private Windows ARM64 and emulated x64; generated files match Mac | Publish the shell and recipe, device check; native private x64 hardware remains separate |
-| BananaPad | Private Windows ARM64; matching iOS shell/module readback; public generator CI | Publish the shell and recipe, device check; recipe is still marked `draft-untested` |
-| SnapPad | Full Windows ARM64 ROM-to-IPA pipeline; byte-identical generated output; warm rebuild performs no compilation | Add Windows hosts to the recipe, publish it, device check; current recipe has no Windows host |
-| MeleePad | Windows ARM64 and emulated x64 backend; existing app has module-loading support | Fix the recipe's invalid `windows-x64` key to `windows-x86_64`, publish it, device check; native private x64 hardware remains separate |
-| SunPad | Windows ARM64 and emulated x64 backend; PRs #57 and #78 pass | Merge prerequisite #57 and then #78, publish the recipe, device check |
+| [SquirrelPad #7](https://github.com/chrissotraidis/squirrelpad/pull/7) | Packaged Windows ARM64 build; generated files matched Mac; native x64 generator CI | Publish the code-free `SquirrelPad-v…-ios-shell.ipa`, publish the Windows recipe, device launch/audio/save |
+| [GoldenPad #52](https://github.com/chrissotraidis/goldenpad/pull/52) | Private Windows ARM64 and emulated x64 toolchain; matching shell | Publish the shell and recipe, device check; native private x64 hardware remains separate |
+| [BearBirdPad #27](https://github.com/chrissotraidis/bearbirdpad/pull/27) | Private Windows ARM64 and emulated x64; generated files match Mac | Publish the shell and recipe, device check; native private x64 hardware remains separate |
+| [BananaPad #22](https://github.com/chrissotraidis/bananapad/pull/22) | Private Windows ARM64; matching iOS shell/module readback; public generator CI | Publish the shell and recipe, device check; recipe is still marked `draft-untested` |
+| [SnapPad #12](https://github.com/chrissotraidis/snappad/pull/12) | Full Windows ARM64 ROM-to-IPA pipeline; byte-identical generated output; warm rebuild performs no compilation | Add Windows hosts to the recipe, publish it, device check; current recipe has no Windows host |
+| [MeleePad #52](https://github.com/chrissotraidis/meleepad/pull/52) | Windows ARM64 and emulated x64 backend; existing app has module-loading support | Fix the recipe's invalid `windows-x64` key to `windows-x86_64`, publish it, device check; native private x64 hardware remains separate |
+| [SunPad #78](https://github.com/chrissotraidis/sunpad/pull/78) | Windows ARM64 and emulated x64 backend; PRs #57 and #78 pass | Merge prerequisite [#57](https://github.com/chrissotraidis/sunpad/pull/57) and then #78, publish the recipe, device check |
 
 ## Remaining local-Windows work
 
@@ -67,7 +67,7 @@ are complete.
 
 | Game | Current position |
 |---|---|
-| BlueWake | Windows desktop release works outside PadMint. Its iPhone-build route from Windows has a native backend proof but its complete original-disc build is unfinished. |
+| [BlueWake](https://github.com/chrissotraidis/bluewake/pull/100) | Windows desktop release works outside PadMint. Its iPhone-build route from Windows has a native backend proof but its complete original-disc build is unfinished. |
 | AnnePad | Fresh Mac and Windows decompilation match the supported ROM; the portable module/app pipeline is unfinished. |
 | AgePad | Portable checks pass, but the available installed Steam files were incompatible with the expected app. A successful real-input build is still required. |
 | DinoPad | The supported ROM needed for a full private build is unavailable. |
