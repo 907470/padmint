@@ -34,6 +34,16 @@ deployment keep their separate approval and validation gates.
 
 ## PadMint itself
 
+- **v0.5.15**: the shared foundation for private iPhone modules built on
+  Windows. Managed Windows tool builds, source and release selection, cache
+  reuse, non-English paths, Unicode compiler dependencies and cancellation now
+  share one tested path. Cancelling a build also stops its backend and child
+  processes while preserving earlier output. The strict iPhone module check
+  accepts Apple's verified thread-local runtime entry and its public probe
+  covers a real TLS descriptor. Local Windows game buttons remain off in this
+  release; each proven game needs its own merged recipe, matching app release
+  and device check before PadMint enables it.
+
 - **v0.5.14**: no Mac? Fifteen games (BallPad, BarrelPad, BellPad, BrawlerPad,
   CTRPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad,
   SpaghettiPad, StarshipPad, TribesPad, UTP) can be built for iPhone and iPad on
