@@ -8,15 +8,27 @@
     "ios"
   ],
   "unoffered_targets": {
-    "linux": "BlueWake 0.7.0's Linux recipe has not been built through PadMint yet; Linux players build from BlueWake's docs/LINUX.md."
+    "linux": "BlueWake's Linux recipe has not been built through PadMint yet; Linux players build it from BlueWake's docs/LINUX.md."
   },
   "game_ids": [
     "GZLE01"
   ],
   "free_space_gb": 25,
   "player_help": "https://github.com/chrissotraidis/bluewake#install",
+  "off_mac": {
+    "url": "https://github.com/chrissotraidis/bluewake#get-bluewake",
+    "text": "PadMint builds BlueWake for iPhone and iPad on a Mac with Apple Silicon (M1 or newer) and Xcode. GitHub Cloud Build can't make it: the build turns code from your own disc into the app, so it has to run on your own Mac. To play on a Windows PC, download the ready-made BlueWake for Windows from BlueWake's latest release and choose your disc when it starts. On Linux, build it from BlueWake's Linux guide.",
+    "translations": {
+      "es": {
+        "text": "PadMint crea BlueWake para iPhone y iPad en un Mac con Apple Silicon (M1 o posterior) y Xcode. GitHub Cloud Build no puede crearlo: la compilaci\u00f3n convierte c\u00f3digo de tu propio disco en la app, as\u00ed que tiene que hacerse en tu propio Mac. Para jugar en una PC con Windows, descarga BlueWake para Windows, ya listo, desde la \u00faltima versi\u00f3n de BlueWake y elige tu disco al abrirlo. En Linux, cr\u00e9alo con la gu\u00eda de Linux de BlueWake."
+      },
+      "pt": {
+        "text": "O PadMint cria o BlueWake para iPhone e iPad num Mac com Apple Silicon (M1 ou mais novo) e Xcode. O GitHub Cloud Build n\u00e3o consegue cri\u00e1-lo: a compila\u00e7\u00e3o transforma c\u00f3digo do seu pr\u00f3prio disco no app, ent\u00e3o ela precisa ser feita no seu pr\u00f3prio Mac. Para jogar num PC com Windows, baixe o BlueWake para Windows, j\u00e1 pronto, na vers\u00e3o mais recente do BlueWake e escolha o seu disco ao abri-lo. No Linux, crie-o com o guia de Linux do BlueWake."
+      }
+    }
+  },
   "reviewed_revision": null,
-  "notes": "Interim manifest until BlueWake carries padmint.json. No revision is marked reviewed for players yet; pass --revision explicitly.",
+  "notes": "BlueWake publishes padmint.json with each release, and PadMint builds from the latest release's recipe; the manifest here is the fallback. No revision is marked reviewed, so the checkout preflight only checks for a clean checkout. GitHub Cloud Build is unavailable because the build reads the disc.",
   "manifest": {
     "schema_version": 1,
     "id": "bluewake",
