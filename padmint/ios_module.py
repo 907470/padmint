@@ -518,8 +518,12 @@ _STANDARD = re.compile(r"((typeinfo name|typeinfo|construction vtable|vtable|VTT
 # linkage. Keep this baseline small; verify new runtime names before adding them.
 # Public source references (symbol declarations/exports, not copied SDK files):
 # - apple-oss-distributions/Libc, Libc-1752.120.2: include/_assert.h,
-#   _abort.h, _stdio.h, _stdlib.h, _string.h, _strings.h, secure/_string.h; stdlib/FreeBSD/atexit.c;
+#   _abort.h, _stdio.h, _stdlib.h, _string.h, _strings.h, secure/_string.h;
+#   stdlib/FreeBSD/{atexit,strtol}.c;
 #   sys/OpenBSD/stack_protector.c.
+# - apple-oss-distributions/libpthread, libpthread-539.100.4: include/pthread/pthread.h
+#   (these eight functions are available from iOS 2.0); src/pthread{,_cancelable,
+#   _cond,_mutex}.c.
 # - apple-oss-distributions/libmalloc, libmalloc-812.100.31: include/malloc/_malloc.h.
 # - apple-oss-distributions/xnu, xnu-12377.121.6: bsd/sys/mman.h.
 # - apple-oss-distributions/libplatform, libplatform-375.120.2: include/setjmp.h.
@@ -531,7 +535,7 @@ _STANDARD = re.compile(r"((typeinfo name|typeinfo|construction vtable|vtable|VTT
 # test or an exhaustive export/availability list for each supported iOS version.
 _RUNTIME_IMPORTS = frozenset({
     "___assert_rtn", "_abort", "_bzero", "_memcpy", "_memmove", "_memset", "_strlen",
-    "_malloc", "_calloc", "_realloc", "_free", "_memchr", "_memcmp", "_getenv",
+    "_malloc", "_calloc", "_realloc", "_free", "_memchr", "_memcmp", "_getenv", "_atexit", "_strtol",
     "_strcmp", "_strncmp", "_strcpy", "_strncpy", "_strcat", "_strncat", "_strchr", "_strrchr",
     "_strstr", "_strcspn", "_strspn", "_strpbrk", "_strtok", "_strerror",
     "___memcpy_chk", "___memmove_chk", "___memset_chk",
@@ -539,6 +543,8 @@ _RUNTIME_IMPORTS = frozenset({
     "_fopen", "_fclose", "_fread", "_fwrite", "_fgetc", "_fgets", "_fputc", "_fputs", "_puts",
     "_fseek", "_ftell", "_rewind", "_feof", "_ferror", "_clearerr", "_vfprintf", "_vprintf", "_vsnprintf",
     "_mmap", "_mprotect", "_munmap", "_setjmp", "_longjmp",
+    "_pthread_create", "_pthread_join", "_pthread_once", "_pthread_mutex_lock", "_pthread_mutex_unlock",
+    "_pthread_cond_broadcast", "_pthread_cond_signal", "_pthread_cond_wait",
     "_ldexp", "_ldexpf", "_feclearexcept", "_fetestexcept", "_fegetround", "_fesetround",
     "___stack_chk_fail", "___stack_chk_guard", "___cxa_atexit",
     "___cxa_allocate_exception", "___cxa_begin_catch", "___cxa_end_catch", "___cxa_free_exception",
