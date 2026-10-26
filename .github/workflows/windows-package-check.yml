@@ -32,7 +32,11 @@ jobs:
       - run: python -B -m unittest discover -s tests -p test_next_steps.py -v
       - run: python -B -m unittest discover -s tests -p test_game_data_folder.py -v
   packaged-player-flow:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
       - name: Keep release files identical across build hosts
@@ -68,11 +72,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $zip = (Get-ChildItem release-check/*-windows.zip).FullName
-          Expand-Archive $zip "$env:RUNNER_TEMP/package-check"
-          $package = (Get-ChildItem "$env:RUNNER_TEMP/package-check" -Directory).FullName
+          $probe = Join-Path $PWD 'scripts/player-flow-probe.py'
+          Expand-Archive $zip "$env:RUNNER_TEMP/package check with spaces"
+          $package = (Get-ChildItem "$env:RUNNER_TEMP/package check with spaces" -Directory).FullName
           $tests = "$env:RUNNER_TEMP/player-checks"
           New-Item -ItemType Directory $tests | Out-Null
-          Copy-Item tests/test_start.py, tests/test_finish_submodules.py, tests/test_host_preflight.py, tests/test_progress_output.py, tests/test_package.py, tests/test_tools.py, tests/fixtures.py, tests/test_next_steps.py, tests/test_game_data_folder.py, tests/test_ui.py $tests
+          Copy-Item tests/test_start.py, tests/test_finish_submodules.py, tests/test_source_download.py, tests/test_host_preflight.py, tests/test_progress_output.py, tests/test_package.py, tests/test_tools.py, tests/test_python_path.py, tests/test_ios_hosts.py, tests/test_ios_imports.py, tests/fixtures.py, tests/test_next_steps.py, tests/test_game_data_folder.py, tests/test_ui.py $tests
           foreach ($top in 'PadMint.cmd', 'Start here.txt', 'app/python/python.exe') { if (-not (Test-Path (Join-Path $package $top))) { throw "Missing $top" } }
           Push-Location (Join-Path $package app)
           try {
@@ -82,13 +87,21 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'Guided setup, safe recovery or IPA validation failed' }
             & ./python/python.exe -m padmint audit $zip
             if ($LASTEXITCODE -ne 0) { throw 'Packaged content audit failed' }
+            & ./python/python.exe $probe "$env:RUNNER_TEMP/PadMint player probe" --app (Join-Path $package app)
+            if ($LASTEXITCODE -ne 0) { throw 'Packaged player build, retry or preservation probe failed' }
           } finally {
             Pop-Location
           }
       - uses: actions/upload-artifact@v4
         with:
-          name: checked-public-packages
+          name: checked-public-packages-${{ matrix.os }}
           path: release-check/
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: player-probe-${{ matrix.os }}
+          path: ${{ runner.temp }}/PadMint player probe/probe-result.json
           retention-days: 7
 
   packaged-linux-player-flow:
@@ -106,10 +119,11 @@ jobs:
         run: |
           set -euo pipefail
           linux_zip="$(realpath release-check/*-linux.zip)"
+          probe="$PWD/scripts/player-flow-probe.py"
           player_tests="$RUNNER_TEMP/linux-player-checks"
           mkdir -p "$RUNNER_TEMP/linux-package-check" "$player_tests"
           unzip -q "$linux_zip" -d "$RUNNER_TEMP/linux-package-check"
-          cp tests/test_start.py tests/test_finish_submodules.py tests/test_host_preflight.py tests/test_progress_output.py tests/test_package.py tests/test_tools.py tests/fixtures.py tests/test_next_steps.py tests/test_game_data_folder.py tests/test_ui.py "$player_tests/"
+          cp tests/test_start.py tests/test_finish_submodules.py tests/test_source_download.py tests/test_host_preflight.py tests/test_progress_output.py tests/test_package.py tests/test_tools.py tests/test_python_path.py tests/test_ios_hosts.py tests/test_ios_imports.py tests/fixtures.py tests/test_next_steps.py tests/test_game_data_folder.py tests/test_ui.py "$player_tests/"
           linux_package=("$RUNNER_TEMP/linux-package-check"/PadMint-v*)
           test "${#linux_package[@]}" -eq 1
           test -f "${linux_package[0]}/padmint.sh" && test -f "${linux_package[0]}/Start here.txt"
@@ -119,6 +133,7 @@ jobs:
           python -m padmint --version
           python -m unittest discover -s "$player_tests" -v
           python -m padmint audit "$linux_zip"
+          python "$probe" "$RUNNER_TEMP/PadMint player probe" --app "$PWD"
 
   # The universal iPhone module pipeline on native hosts: open-source SDK, LLVM compile,
   # import check and insertion into KartPad's public app (no game code anywhere).

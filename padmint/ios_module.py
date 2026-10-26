@@ -74,9 +74,9 @@ SOURCES = {
 # (source, folder there, folder under usr/include, file names or "*").
 HEADERS = (
     ("libc", "include", "",
-     "___wctype.h __wctype.h __xlocale.h _abort.h _bounds.h _ctermid.h _ctype.h _locale.h "
-     "_locale_posix2008.h _mb_cur_max.h _printf.h _stdio.h _stdlib.h _string.h _strings.h _time.h "
-     "_types.h _wchar.h _wctype.h _xlocale.h alloca.h ctype.h errno.h limits.h locale.h runetype.h "
+     "___wctype.h __wctype.h __xlocale.h _abort.h _assert.h _bounds.h _ctermid.h _ctype.h _locale.h "
+     "_locale_posix2008.h _mb_cur_max.h _printf.h _static_assert.h _stdio.h _stdlib.h _string.h _strings.h _time.h "
+     "_types.h _wchar.h _wctype.h _xlocale.h alloca.h assert.h ctype.h errno.h limits.h locale.h runetype.h "
      "stddef.h stdint.h stdio.h stdlib.h string.h time.h unistd.h wchar.h wctype.h xlocale.h"),
     ("libc", "include/_types", "_types", "*"),
     # Optimized builds turn on Apple's fortified string and stdio functions (__memcpy_chk
@@ -85,7 +85,7 @@ HEADERS = (
     ("libc", "include/xlocale", "xlocale", "*"),
     ("libc", "include/FreeBSD", "", "nl_types.h"),
     ("xnu", "bsd/sys", "sys",
-     "__endian.h _endian.h _types.h appleapiopts.h cdefs.h errno.h resource.h signal.h stdio.h "
+     "__endian.h _endian.h _types.h appleapiopts.h cdefs.h errno.h mman.h resource.h signal.h stdio.h "
      "syslimits.h types.h wait.h"),
     ("xnu", "bsd/sys/_types", "sys/_types", "*"),
     ("xnu", "bsd/arm", "arm", "_endian.h _limits.h _mcontext.h _types.h endian.h limits.h signal.h types.h"),
@@ -463,23 +463,63 @@ def _names(command: list) -> set:
 _STANDARD = re.compile(r"((typeinfo name|typeinfo|construction vtable|vtable|VTT|guard variable) for "
                        r"|(non-)?virtual thunk to )?(std::|__cxxabiv1::|operator (new|delete))")
 
+# Exact Mach-O names, never prefixes: an unexported game callback can also have C
+# linkage. Keep this baseline small; verify new runtime names before adding them.
+# Public source references (symbol declarations/exports, not copied SDK files):
+# - apple-oss-distributions/Libc, Libc-1752.120.2: include/_assert.h,
+#   _abort.h, _stdio.h, _string.h, _strings.h, secure/_string.h; stdlib/FreeBSD/atexit.c;
+#   sys/OpenBSD/stack_protector.c.
+# - apple-oss-distributions/libmalloc, libmalloc-812.100.31: include/malloc/_malloc.h.
+# - apple-oss-distributions/xnu, xnu-12377.121.6: bsd/sys/mman.h.
+# - apple-oss-distributions/libplatform, libplatform-375.120.2: include/setjmp.h.
+# - apple-oss-distributions/Libm, Libm-2026: Exports/libm_arm_vfp.a.exp.
+# - llvm/llvm-project, llvmorg-21.1.8: libcxxabi/lib/{itanium-base,
+#   itanium-exceptions,personality-v0}.exp; libunwind/include/unwind_itanium.h.
+# - apple-oss-distributions/dyld, dyld-852.2: src/dyld_stub_binder.s.
+# A source declaration identifies a runtime symbol; it is not a device launch
+# test or an exhaustive export/availability list for each supported iOS version.
+_RUNTIME_IMPORTS = frozenset({
+    "___assert_rtn", "_abort", "_bzero", "_memcpy", "_memmove", "_memset", "_strlen",
+    "_malloc", "_calloc", "_realloc", "_free", "_memchr", "_memcmp",
+    "_strcmp", "_strncmp", "_strcpy", "_strncpy", "_strcat", "_strncat", "_strchr", "_strrchr",
+    "_strstr", "_strcspn", "_strspn", "_strpbrk", "_strtok", "_strerror",
+    "___memcpy_chk", "___memmove_chk", "___memset_chk",
+    "___stdinp", "___stdoutp", "___stderrp", "_fflush", "_fprintf", "_printf", "_snprintf",
+    "_fopen", "_fclose", "_fread", "_fwrite", "_fgetc", "_fgets", "_fputc", "_fputs", "_puts",
+    "_fseek", "_ftell", "_rewind", "_feof", "_ferror", "_clearerr", "_vfprintf", "_vprintf", "_vsnprintf",
+    "_mmap", "_mprotect", "_munmap", "_setjmp", "_longjmp",
+    "_ldexp", "_ldexpf", "_feclearexcept", "_fetestexcept", "_fegetround", "_fesetround",
+    "___stack_chk_fail", "___stack_chk_guard", "___cxa_atexit",
+    "___cxa_allocate_exception", "___cxa_begin_catch", "___cxa_end_catch", "___cxa_free_exception",
+    "___cxa_guard_abort", "___cxa_guard_acquire", "___cxa_guard_release", "___cxa_throw",
+    "___gxx_personality_v0", "__Unwind_Resume", "dyld_stub_binder",
+})
+
 
 def check_imports(llvm: Path, module: Path, executable: Path, stream=None) -> None:
-    """Every name a module imports is looked up by name when it loads. Names the app does
-    not export must be the C library's (libSystem) or the C++ standard library's: a missing
-    app name would otherwise only show on the device."""
+    """Reject missing app imports, admitting exact known runtime names and C++ namespaces.
+
+    The C++ namespace check is heuristic, not an iOS-version export/availability test.
+    """
     nm = str(llvm_tool(llvm, "llvm-nm"))
     imports = _names([nm, "-u", "-j", str(module)])
     system = sorted(imports - _names([nm, "-g", "--defined-only", "-j", str(executable)]))
     cxx = [name for name in system if name.startswith("__Z")]
     readable = subprocess.run([str(llvm_tool(llvm, "llvm-cxxfilt"))], input="".join(name + "\n" for name in cxx),
                               capture_output=True, text=True, check=True).stdout.splitlines()
-    unknown = [text for text in readable if not _STANDARD.match(text)]
+    unknown = [name for name in system if name not in _RUNTIME_IMPORTS and name not in cxx]
+    unknown += [text for text in readable if not _STANDARD.match(text)]
+    if len(readable) != len(cxx):
+        raise ModuleError("could not classify every C++ game module import")
     if unknown:
-        raise ModuleError("the game module needs names the published app does not export: "
-                          + ", ".join(unknown[:10]))
-    print(f"Game module imports: {len(imports) - len(system)} from the app, {len(system)} from the "
-          "device's C and C++ libraries.", file=stream or sys.stdout, flush=True)
+        raise ModuleError("the game module needs names the published app does not export "
+                          "and PadMint's runtime checks do not recognize: " + ", ".join(unknown[:10])
+                          + ". Check the app's exported callbacks; legitimate system-library names "
+                          "need review before PadMint can accept them. Their availability on iOS is unverified.")
+    print(f"Game module imports: {len(imports) - len(system)} from the app, "
+          f"{len(system) - len(cxx)} known runtime names, {len(cxx)} standard C++ names "
+          "(classified by namespace; device availability not verified). Device launch is not tested.",
+          file=stream or sys.stdout, flush=True)
 
 
 def _member(into: str) -> str:

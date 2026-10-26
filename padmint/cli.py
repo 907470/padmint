@@ -25,7 +25,7 @@ import uuid
 
 from . import __version__, awake, game_file, gate, ios_module, tools
 from .say import MESSAGES, localized, phrase, t
-from .manifest import (RUNNABLE_STATES, NeedsNewerPadMint, catalog, expand, host_id, load_manifest,
+from .manifest import (RUNNABLE_STATES, NeedsNewerPadMint, catalog, expand, host_id, ios_build_hosts, load_manifest,
                        manifest_for, manifest_sha256, needs_build_input, on_android,
                        repository_manifest, steps_here)
 from .package import validate_ipa
@@ -785,10 +785,10 @@ def check_free_space(folder, needed_gb):
                          f"{folder} has {free_gb:.1f} GB free. Free up space and run PadMint again.")
 
 
-def make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results=None):
+def make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results=None, *, release=None):
     """The player's command: from their own game file to their own copy, in one step."""
     with awake.while_building():
-        return _make(game, platform_name, disc, out, ref, app, jobs, results)
+        return _make(game, platform_name, disc, out, ref, app, jobs, results, release=release)
 
 
 def player_target(manifest, platform_name):
@@ -819,16 +819,17 @@ def report(phase, **fields):
         pass
 
 
-def _make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results=None):
+def _make(game, platform_name, disc, out, ref=None, app=None, jobs=None, results=None, *, release=None):
     entry = catalog().get(game)
     if entry is None:
         raise ValueError(f"unknown game {game}; see padmint list")
-    release = None
+    if ref is not None and release is not None:
+        raise ValueError("choose a source ref or a published release, not both")
     report("release", state="running", repo=entry["repo_url"])
     if ref is None:
         # Only small release metadata/recipe downloads precede this check. Pin
         # the source and app assets to that same tag, even if Latest changes.
-        release = latest_release(entry["repo_url"])
+        release = release if release is not None else latest_release(entry["repo_url"])
         manifest, _source = published_recipe(game, release=release)
         player_target(manifest, platform_name)
         require_programs(manifest, platform_name, disc)  # before the source download, not after it
@@ -1388,20 +1389,16 @@ def game_from_file(disc, games, stream):
 
 
 def player_games():
-    """[(game, name, platforms)] a player can make on this computer. iPhone builds need Xcode
-    on Apple Silicon, except games marked ios_off_mac, which also build on Windows and Linux
-    computers. Games marked ios_intel_mac also build iPhone copies on Intel Macs with Xcode.
+    """[(game, name, platforms)] a player can make on this computer. Exact ios_hosts take
+    precedence over the legacy Apple Silicon/ios_off_mac/ios_intel_mac policy.
     An Android phone makes Android copies. A Windows copy is made on the
     Windows PC it runs on, and a Mac copy on the Apple Silicon Mac it runs on."""
     host = host_id()
     apple_silicon = host == "macos-arm64"
-    computer_off_mac = host.startswith(("windows-", "linux-")) and not on_android()
     here = {"ios": None, "windows": host.startswith("windows-"), "macos": apple_silicon and not on_android()}
     games = []
     for game, entry in sorted(catalog().items()):
-        ios_here = (apple_silicon or (computer_off_mac and entry.get("ios_off_mac", False))
-                    or (host == "macos-x86_64" and entry.get("ios_intel_mac", False)))
-        here["ios"] = ios_here
+        here["ios"] = not on_android() and host in ios_build_hosts(entry)
         platforms = [name for name in entry.get("player_targets", []) if here.get(name, True)]
         if platforms:
             name = (entry.get("manifest") or {}).get("name") or entry.get("name", game)
@@ -1440,7 +1437,18 @@ def unavailable_devices(entry, platforms, lang=None):
         devices.append({"id": "macos", "label": platform_label("macos", lang),
                         "tag": say("w_needs_apple_silicon"),
                         "text": say("mac_requires_apple_silicon", name=name)})
+    if "ios_hosts" in entry and "ios" in advertised and "ios" not in platforms and not on_android():
+        devices.append({"id": "ios", "label": platform_label("ios", lang),
+                        "tag": say("w_build_elsewhere_tag"), "text": ios_host_help(entry, lang)})
     return devices
+
+
+def ios_host_help(entry, lang=None):
+    """Explain an exact catalog host list in player-facing terms, including architecture."""
+    say = (lambda key, **fields: phrase(key, lang, **fields)) if lang else t
+    hosts = ", ".join(say("host_" + host.replace("-", "_")) for host in ios_build_hosts(entry))
+    name = (entry.get("manifest") or {}).get("name") or entry.get("name", entry.get("id", "game"))
+    return say("ios_requires_hosts", name=name, hosts=hosts)
 
 
 def platform_label(platform_name, lang=None):
@@ -1497,11 +1505,15 @@ def start(ask=input, stream=None):
     stream = stream or sys.stdout
     print(t("intro", version=__version__), file=stream)
     games = player_games()
-    if not games:
-        raise ValueError("no game can be made on this computer yet")
-    missing = [name for _game, name, targets in elsewhere() if "ios" in targets]
+    waiting = [(game, name) for game, name, targets in elsewhere() if "ios" in targets]
+    missing = [name for game, name in waiting if "ios_hosts" not in catalog()[game]]
     if missing:
         print(t("elsewhere", names=", ".join(missing)), file=stream)
+    for game, _name in waiting:
+        if "ios_hosts" in catalog()[game]:
+            print(ios_host_help(catalog()[game]), file=stream)
+    if not games:
+        raise ValueError("no game can be made on this computer yet")
     disc = game = None
     offered = games
     if len(games) > 1 and any(catalog()[id_].get("game_ids") for id_, _, _ in games):
@@ -1672,16 +1684,34 @@ def _remove_tree(path):
 
 
 def fetch_source(game, source, ref):
-    """Download into a side folder and move it into place only once complete."""
+    """Replace an incomplete download only after a new clone succeeds; preserve all old files.
+
+    Missing tracked files can mean a user's edits, not just an interrupted clone.
+    The source and any previous partial download may also contain private game data.
+    """
     if source.exists():
-        print(f"The earlier download in {source} is unfinished; downloading it again.", flush=True)
-        _remove_tree(source)
+        print(f"The earlier download in {source} is unfinished; downloading it again. "
+              "Its existing files will be kept.", flush=True)
     partial = source.with_name(source.name + ".partial")
-    _remove_tree(partial)
+    if partial.exists() or partial.is_symlink():
+        _preserve_download(partial)
     partial.parent.mkdir(parents=True, exist_ok=True)
     get_game(game, partial, ref, announce=False)
+    if not source_complete(partial):
+        raise ValueError(f"The new source download is incomplete. Existing files are kept in "
+                         f"{source}; the new attempt is in {partial}. Run PadMint again to retry.")
+    if source.exists() or source.is_symlink():
+        _preserve_download(source)
     os.replace(partial, source)
     print(f"{game} source in {source}", flush=True)
+
+
+def _preserve_download(folder):
+    """Move aside a previous download without removing untracked or ignored files."""
+    kept = folder.with_name(folder.name + ".recovered-" + uuid.uuid4().hex)
+    folder.rename(kept)
+    print(f"Previous files kept in {kept}", flush=True)
+    return kept
 
 
 def release_source(game, ref=None, release=None, platform_name=None):

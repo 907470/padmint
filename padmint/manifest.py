@@ -212,6 +212,33 @@ def needs_build_input(data):
     return any(item.get("when", "build") == "build" for item in data["inputs"])
 
 
+def ios_build_hosts(entry):
+    """Exact local iOS hosts, or the unchanged legacy catalog policy when omitted."""
+    if "ios_hosts" in entry:
+        return list(entry["ios_hosts"])
+    hosts = ["macos-arm64"]
+    if entry.get("ios_intel_mac"):
+        hosts.append("macos-x86_64")
+    if entry.get("ios_off_mac"):
+        hosts.extend(("windows-x86_64", "windows-arm64", "linux-x86_64", "linux-arm64"))
+    return hosts
+
+
+def validate_github_build(entry, recipe):
+    """Refuse a hosted build unless the selected recipe needs no private game input."""
+    if not entry.get("github_build") or entry.get("player_game_file") != "in-app" \
+            or "ios" not in entry.get("player_targets", []):
+        raise ValueError(f"{entry['id']} is not offered for a GitHub iPhone build")
+    if recipe.get("id") != entry["id"]:
+        raise ValueError(f"the published recipe declares {recipe.get('id')}, not {entry['id']}")
+    if needs_build_input(recipe):
+        raise ValueError("the published recipe reads a game file while building; keep this build local")
+    target = recipe.get("targets", {}).get("ios", {})
+    if target.get("hosts", {}).get("macos-arm64") not in RUNNABLE_STATES:
+        raise ValueError("the published recipe cannot build iOS on GitHub's Apple Silicon Mac")
+    return recipe
+
+
 def load_manifest(path):
     with Path(path).open() as stream:
         return validate_manifest(json.load(stream))
@@ -238,6 +265,18 @@ def catalog():
         for flag in ("ios_off_mac", "ios_intel_mac"):
             if not isinstance(entry.get(flag, False), bool) or (entry.get(flag) and "ios" not in targets):
                 raise ValueError(f"catalog/{path.name}: {flag} is true or false, for an ios player target")
+        if "ios_hosts" in entry:
+            hosts = entry["ios_hosts"]
+            if not isinstance(hosts, list) or not hosts or "ios" not in targets \
+                    or not all(isinstance(host, str) and host in HOSTS for host in hosts) \
+                    or len(set(hosts)) != len(hosts):
+                raise ValueError(f"catalog/{path.name}: ios_hosts is a nonempty list of unique known hosts, "
+                                 "for an ios player target")
+        github = entry.get("github_build", False)
+        if not isinstance(github, bool) or (github and (
+                "ios" not in targets or entry.get("player_game_file") != "in-app")):
+            raise ValueError(f"catalog/{path.name}: github_build is true or false, "
+                             "for an ios target that takes the game file in-app")
         for platform, steps in (entry.get("player_next") or {}).items():
             if platform not in targets or not isinstance(steps, dict) or not steps.get("steps") \
                     or not all(isinstance(step, str) for step in steps["steps"]):

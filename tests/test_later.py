@@ -76,10 +76,10 @@ class LaterTests(unittest.TestCase):
         menu = [item for item in menu if item != "-"]
         marked = sorted(game for game, entry in manifest.catalog().items() if entry.get("github_build"))
         self.assertEqual(menu, marked)
-        self.assertIn(json.dumps(marked, separators=(",", ":")), workflow)  # the pull request matrix
         for game in marked:
             entry = manifest.catalog()[game]
             self.assertIn("ios", entry["player_targets"], game)
+            self.assertEqual(entry["player_game_file"], "in-app", game)
             self.assertFalse(entry.get("off_mac"), game)
 
     def test_a_device_held_back_is_shown_on_the_computer_that_would_make_it(self):

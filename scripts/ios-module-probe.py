@@ -51,6 +51,11 @@ def main():
     subprocess.run([cmake, "--build", str(build)], check=True, env=env)
     llvm = ios_module.llvm_root(env)
     module = build / "libgame.dylib"
+    imports = set(subprocess.check_output([str(ios_module.llvm_tool(llvm, "llvm-nm")), "-u", "-j", str(module)],
+                                          text=True).splitlines())
+    required = {"___assert_rtn", "_mmap", "_munmap"}
+    if not required <= imports:
+        raise SystemExit(f"the module did not exercise its assertion/memory-mapping headers: {sorted(required - imports)}")
     ios_module.check_imports(llvm, module, prepared["executable"])
     output = ios_module.insert(app, module, "Frameworks/libpadmint_probe.dylib", work / "probe.ipa", llvm,
                                work / "insert")

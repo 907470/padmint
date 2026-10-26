@@ -28,6 +28,38 @@ class PublishedAppTests(unittest.TestCase):
 
 
 class MakeTests(unittest.TestCase):
+    def test_preselected_release_is_used_for_recipe_source_and_base_app(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source"
+            source.mkdir()
+            (source / "version.json").write_text(json.dumps({"version": "1.2.3"}))
+            recipe = {"name": "Game", "inputs": [{"when": "in-app"}], "targets": {"ios": {
+                "hosts": {cli.host_id(): "experimental"}, "steps": [],
+                "published_app": "Game-v{version}.ipa"}}}
+            release = ("v1.2.3", {"Game-v1.2.3.ipa": "https://example.invalid/app"})
+            with mock.patch.object(cli, "catalog", return_value={"game": {"repo_url": "https://x/game"}}), \
+                    mock.patch.object(cli, "latest_release") as latest, \
+                    mock.patch.object(cli, "published_recipe", return_value=(recipe, "release")) as published, \
+                    mock.patch.object(cli, "release_source", return_value=(source, release[0], release[1])) as fetch, \
+                    mock.patch.object(cli, "manifest_for", return_value=(recipe, "repository")), \
+                    mock.patch.object(cli.tools, "tools_root", return_value=root / "home/tools"), \
+                    mock.patch.object(cli.tools, "install"), \
+                    mock.patch.object(cli, "published_app", return_value=root / "app.ipa") as app, \
+                    mock.patch.object(cli, "finish_submodules"), \
+                    mock.patch.object(cli, "git", return_value="0" * 40), \
+                    mock.patch.object(cli, "execute", return_value=23):
+                self.assertEqual(cli.make("game", "ios", None, root / "out", release=release), 23)
+            latest.assert_not_called()
+            published.assert_called_once_with("game", release=release)
+            fetch.assert_called_once_with("game", None, release=release, platform_name="ios")
+            app.assert_called_once_with("Game-v1.2.3.ipa", release[1], root / "home/apps/game")
+
+    def test_source_ref_and_release_cannot_conflict(self):
+        with mock.patch.object(cli, "catalog", return_value={"game": {}}):
+            with self.assertRaisesRegex(ValueError, "not both"):
+                cli.make("game", "ios", None, Path("out"), ref="main", release=("v1", {}))
+
     def test_player_path_names_the_published_app_and_result_by_version(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

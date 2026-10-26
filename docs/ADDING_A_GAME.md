@@ -118,10 +118,62 @@ Linux and Macs alike, with no Xcode:
 Before the steps, PadMint assembles an iPhone SDK from Apple's open-source headers and
 LLVM's libc++ (`{ios_sdk}`) and a CMake toolchain file for its LLVM (`{ios_toolchain}`),
 with stubs for the published app's thread-local exports. Your steps compile only the game
-library. Afterwards PadMint checks that every name the library imports comes from the
-app or the device's C and C++ libraries, strips it, names it `@rpath/<file>` and puts it at
+library. Afterwards PadMint checks imports against the app's exports, an explicit list
+of known C/runtime symbols and standard C++ namespaces, strips it, names it `@rpath/<file>` and puts it at
 `into` inside a copy of the published app. `scripts/ios-module-probe.py` runs the whole
 pipeline with a small probe library and no game code.
+
+Unknown C imports fail the build; a missing game callback must be exported by the
+app, never added to the runtime list. The list's pinned public source references
+are beside `_RUNTIME_IMPORTS` in `padmint/ios_module.py`. Verify new runtime names
+before extending it. The C++ namespace classification is a heuristic: it does not
+verify every symbol's availability on the target iOS version. Passing the import
+check still requires device install, launch and gameplay acceptance.
+
+### Checking Windows support across releases
+
+Keep local Windows builds separate from builds started in a browser that run on
+GitHub's Mac. Set `github_build: true` in the catalog only for an iOS build whose
+game input is selected in the app. The hosted helper checks the selected release's
+recipe before setup and uses that same release for the build. The workflow's test
+matrix comes from the catalog; its player-facing choice menu must also include the
+game. Catalog, runner and tool changes rerun the hosted builds.
+
+For local iOS builds, prefer an exact catalog `ios_hosts` list, for example
+`["macos-arm64", "windows-arm64"]` when only those computers have the required
+evidence. It is a nonempty list of unique host IDs and requires an `ios` player
+target. The list overrides both `ios_off_mac` and `ios_intel_mac`; include every
+host you intend to offer, including Apple Silicon. A Windows ARM64 entry does not
+enable Windows x64 or Linux. Android phones remain excluded from iOS builds.
+The UI names the permitted computers when a route is unavailable here.
+
+Without `ios_hosts`, existing entries keep their behavior: Apple Silicon by
+default, Intel Mac with `ios_intel_mac: true`, and Windows/Linux on both x64 and
+ARM64 with `ios_off_mac: true`. Every offered host must be runnable in the selected
+release recipe. A runnable recipe is not a device acceptance result.
+
+```sh
+python3 scripts/audit-catalog.py --json > catalog-audit.json
+python3 scripts/player-flow-probe.py "/tmp/PadMint player probe"
+```
+
+The daily catalog audit records every game's selected release and declared host
+states. It rejects missing base-app assets, mismatched game IDs and advertised
+routes the published recipe cannot use. Its report explicitly leaves runtime
+testing unverified.
+
+The player-flow probe uses a tiny synthetic repository with no network downloads.
+It exercises real cloning, stages, package checks, failure/retry, source recovery
+and paths with spaces. On Windows, run it with the ZIP's included
+`app/python/python.exe` and `--app` pointing at that extracted `app` directory;
+Git must be on PATH. CI runs this on Windows x64 and ARM64 hosts and Linux. The
+Windows ZIP currently bundles x64 Python, including when run under ARM64 emulation.
+These checks complement each game's complete private-input build and device
+install/launch test; the synthetic IPA is deliberately not runnable.
+
+When a source download needs recovery, PadMint keeps previous files beside it in
+a `.recovered-<id>` folder. Failed replacements leave the original in place.
+These folders can contain private game files; inspect them before removing them.
 
 ### One recipe for Windows, Linux and Mac
 

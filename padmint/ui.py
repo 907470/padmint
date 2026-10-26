@@ -88,9 +88,18 @@ def player_data(lang):
                for game, name in cli.later()]
     # Games PadMint builds, but not here: listed with the reason, never silently left out.
     waiting += [elsewhere_card(game, name, targets, lang) for game, name, targets in cli.elsewhere()]
+    text = strings(lang)
+    if any(item.get("explicit_hosts") for item in waiting):
+        # Exact host lists can name Windows or Linux too; keep the existing layout while
+        # avoiding its legacy claim that every unavailable game requires a Mac.
+        for key, replacement in {"needs_mac_head": "build_elsewhere_tag", "later_head": "build_elsewhere_tag",
+                                 "needs_mac_note": "other_computers_note", "later_note": "other_computers_note",
+                                 "all_note_off_mac": "all_note_other_hosts", "all_note": "all_note_other_hosts",
+                                 "here_other": "here_other_hosts", "here_other_none": "here_other_hosts_none"}.items():
+            text[key] = text[replacement]
     return {"lang": lang, "version": __version__, "host": cli.host_id(), "folder": str(folder),
             "saved_in": phrase("saved_in", lang, folder=folder), "games": games, "downloads": apps, "later": waiting,
-            "text": strings(lang), "picker": not cli.on_android(), "reveal": not cli.on_android(),
+            "text": text, "picker": not cli.on_android(), "reveal": not cli.on_android(),
             "art": sorted(path.stem for path in ART.glob("*.png")), "library": library(),
             "self_update": bool(update.platform()), "installed": installed.snapshot()}
 
@@ -105,6 +114,7 @@ def elsewhere_card(game, name, targets, lang):
     entry = catalog()[game]
     ios = "ios" in targets
     steps = None
+    explicit_hosts = False
     if entry.get("off_mac"):
         text, tag, link = localized(entry["off_mac"], "text", lang), None, entry["off_mac"]["url"]
     elif ios and entry.get("github_build"):
@@ -113,13 +123,17 @@ def elsewhere_card(game, name, targets, lang):
         steps = [step.format(name=name, game=game) for step in strings(lang)["github_steps"].split("\n")]
         if "macos" in targets:
             text += " " + phrase("w_github_build_mac", lang, name=name)
+    elif ios and "ios_hosts" in entry:
+        text, tag = cli.ios_host_help(entry, lang), phrase("w_build_elsewhere_tag", lang)
+        link = entry.get("player_help") or entry["repo_url"]
+        explicit_hosts = True
     else:
         text = phrase("w_needs_mac" if ios else "w_needs_windows", lang, name=name)
         tag = phrase("w_needs_mac_tag", lang) if ios else None
         link = entry.get("player_help") or entry["repo_url"]
     return {"id": game, "name": name, "about": entry.get("game") or (entry.get("manifest") or {}).get("game", ""),
             "text": text, "tag": tag, "plays_on": ["iphone", "ipad"] if ios else [], "link": link,
-            "github": steps is not None, "steps": steps or []}
+            "github": steps is not None, "steps": steps or [], "explicit_hosts": explicit_hosts}
 
 
 def library():
