@@ -9,6 +9,13 @@
 
 extern "C" std::uint64_t SDL_GetTicks(void);  // exported by the published KartPad app
 
+// Returning the address retains a real TLS descriptor and its runtime import.
+// This primitive has no destructor, so it does not require other TLS APIs.
+static thread_local unsigned contexts[3];
+extern "C" __attribute__((visibility("default"))) unsigned* padmint_tls_probe(unsigned index) {
+    return &contexts[index % 3];
+}
+
 extern "C" __attribute__((visibility("default"))) double padmint_module_probe(int count) {
     assert(count >= 0);
     std::vector<double> values(static_cast<std::size_t>(count));

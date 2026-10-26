@@ -23,7 +23,8 @@ class ImportCheckTests(unittest.TestCase):
         for name in ("_conker_interpreter_exit", "_conker_kseg1_read32", "_osPiRawReadIo_recomp",
                      "_conker_widen_sprite_cull_left", "_recomp_syscall_handler", "_app_function",
                      "_bogus_runtime_symbol", "_memcpy_typo", "_getenv_typo", "_atexit_game", "_strtol_typo",
-                     "_pthread_missing", "_pthread_create_recomp", "___cxa_not_a_runtime_function"):
+                     "_pthread_missing", "_pthread_create_recomp", "___cxa_not_a_runtime_function",
+                     "__tlv_bootstrap_typo", "__tlv_bootstrap_recomp", "_tlv_bootstrap"):
             with self.subTest(name=name), self.assertRaisesRegex(ios_module.ModuleError, name) as failure:
                 self.check([name])
             self.assertIn("legitimate system-library names need review", str(failure.exception))
@@ -63,6 +64,9 @@ class ImportCheckTests(unittest.TestCase):
                  "_pthread_mutex_lock", "_pthread_mutex_unlock", "_pthread_cond_broadcast",
                  "_pthread_cond_signal", "_pthread_cond_wait"]
         self.assertIn("0 from the app, 10 known runtime names", self.check(names))
+
+    def test_native_thread_local_bootstrap_is_an_exact_runtime_name(self):
+        self.assertIn("0 from the app, 1 known runtime names", self.check(["__tlv_bootstrap"]))
 
 
 if __name__ == "__main__":
