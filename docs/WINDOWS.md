@@ -17,6 +17,15 @@ Use these labels consistently in the app and documentation:
 - **Apple Silicon Mac**: the iPhone/iPad or Mac app needs an Apple Silicon Mac
   with Xcode, unless the game's project documents another route.
 
+## Recently completed
+
+- **0.5.16:** the app shows **Build here**, **GitHub Cloud**, and **Apple
+  Silicon Mac**; GitHub Cloud is defined as GitHub's temporary hosted macOS
+  build machine. The stale compatibility table was refreshed from live releases.
+- **0.5.15:** shared Windows toolchains, cache and retry safety, Unicode paths,
+  a private UTF-8 build console and complete cancellation cleanup were released.
+- No game release or catalog host flag was enabled by those infrastructure releases.
+
 ## What Windows can build today
 
 | Route | Games | Result | Current status |
