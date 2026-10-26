@@ -102,6 +102,10 @@ def player_data(lang):
             text[key] = text[replacement]
     host = cli.host_id()
     host_key = "host_" + host.replace("-", "_")
+    if not host.startswith("macos"):
+        # "My games" on a Windows or Linux computer holds the copies PadMint built there;
+        # there is no Mac and no phone to list.
+        text["mine_note"] = text["mine_note_other"]
     return {"lang": lang, "version": __version__, "host": host,
             "host_name": phrase(host_key, lang) if host_key in MESSAGES else host, "folder": str(folder),
             "saved_in": phrase("saved_in", lang, folder=folder), "games": games, "downloads": apps, "later": waiting,
