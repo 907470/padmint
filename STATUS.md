@@ -1,5 +1,7 @@
 # PadMint status
 
+**v0.5.20:** Melee PC can build on GitHub’s hosted Mac without a local Mac. Its downloadable personal IPA requires a private repository. [Hosted compilation and package check passed](https://github.com/chrissotraidis/padmint/actions/runs/40473291597/job/122085358107) on 27 October; CI uploaded no IPA. LiveContainer saving still needs reporter confirmation.
+
 Updated **27 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
