@@ -1,5 +1,7 @@
 # PadMint status
 
+**v0.5.24:** Removed Melee PC. It built 999sian/melee-pc, another person's project, and PadMint lists only Chris's own ports (AGENTS.md now says so, and `tests/test_catalog_ownership.py` checks it). MeleePad no longer links to it, and the GitHub workflow no longer offers it.
+
 **v0.5.23:** Adds DarkPad (Perfect Dark) to the Apple Silicon Mac → iPhone/iPad catalog, with its original icon, tool requirements and sideloading/import/update instructions. It builds a personal unsigned IPA; the player supplies a USA Rev 1 / v1.1 ROM in the app. DarkPad releases contain only source, a recipe and checksums; PadMint builds the app on the player’s Mac.
 
 **v0.5.22:** Removed issue-specific Melee banners and temporary build branding. MeleePad and Melee PC link to each other as separate ports in normal build options. The patched Melee PC recipe remains the default local/GitHub recipe. GitHub-capable games also show their GitHub option on Mac; private builds never show a public-fork shortcut. LiveContainer saving remains unconfirmed.

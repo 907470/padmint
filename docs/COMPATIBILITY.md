@@ -80,7 +80,6 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [kartpad v0.8.6](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.6) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [kartpad v0.8.6](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.6) | Android | Experimental | Experimental | Experimental / Experimental | Experimental / Experimental | — |
 | [maskpad v0.2.1](https://github.com/chrissotraidis/maskpad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
-| [melee-pc recipe v0.1.0](https://github.com/chrissotraidis/melee-pc-padmint/releases/tag/v0.1.0) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [meleepad v0.2.4](https://github.com/chrissotraidis/meleepad/releases/tag/v0.2.4) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [meleepad v0.2.4](https://github.com/chrissotraidis/meleepad/releases/tag/v0.2.4) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [OpenRCT2Touch touch-v0.1.0](https://github.com/chrissotraidis/OpenRCT2Touch/releases/tag/touch-v0.1.0) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
@@ -400,5 +399,3 @@ architecture and target. Compare with the source manifest and any pending PR,
 but keep unreleased capabilities separate. Use the explicit preview links
 above for preview-only projects; a missing latest release is not proof of no
 preview. Keep unsupported combinations unavailable until their real route is ready.
-
-Melee PC also offers a private-repository GitHub Cloud Build: GitHub supplies the Apple Silicon Mac, and the player downloads the personal IPA from their private Actions run. See [setup steps](https://github.com/chrissotraidis/melee-pc-padmint#build-on-github-without-a-mac). [Hosted compilation and packaging passed](https://github.com/chrissotraidis/padmint/actions/runs/40473291597/job/122085358107) on 27 October 2026. The app still requires LiveContainer save confirmation.

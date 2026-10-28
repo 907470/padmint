@@ -26,7 +26,7 @@ GitHub's cloud. You do not need to own a Mac for that route.
 | Your computer | What PadMint can make |
 |---|---|
 | **Mac with Apple Silicon** (M1 or newer) | All 30 games it offers to build for iPhone and iPad; 12 also have Mac builds. Check each game's setup and experimental status. |
-| **Windows or Linux** | **Build here:** KartPad (Mario Kart Wii), for Android or iPhone/iPad, experimental. **GitHub Cloud Build:** 16 more games can build separate iPhone/iPad copies on a temporary macOS machine hosted by GitHub. **Apple Silicon Mac:** the other games need Apple Silicon and Xcode. PadMint also lists 8 ready-made iPad apps (PC classics such as Diablo). |
+| **Windows or Linux** | **Build here:** KartPad (Mario Kart Wii), for Android or iPhone/iPad, experimental. **GitHub Cloud Build:** 15 more games can build separate iPhone/iPad copies on a temporary macOS machine hosted by GitHub. **Apple Silicon Mac:** the other games need Apple Silicon and Xcode. PadMint also lists 8 ready-made iPad apps (PC classics such as Diablo). |
 | **Intel Mac** | Builds KartPad for Android or iPhone/iPad, experimental. Mac app copies and the other iPhone/iPad builds require an Apple Silicon Mac. |
 | **An Android phone, no computer** | Experimental: Mario Kart Wii's game data, through Termux. |
 
@@ -160,8 +160,8 @@ see what exists.
 
 | Your computer | What PadMint does there |
 |---|---|
-| **Mac with Apple Silicon** (M1 or newer) and [Xcode](https://apps.apple.com/app/xcode/id497799835) | Builds the catalog's 31 buildable games for iPhone and iPad. Mac targets are Animal Crossing, Crash Team Racing, F-Zero X, Halo, Jak and Daxter, Mario Kart Wii, Pokémon Snap, Pokémon Stadium, Super Mario Sunshine, Super Smash Bros., Melee and Tribes 2. Shows which games are on the iPhones and iPads you've connected to the Mac once, and which need an update. |
-| **Windows or Linux** | **Build here:** KartPad's Android game data or experimental iPhone/iPad app. **GitHub Cloud Build:** [16 more iPhone/iPad games](#github-cloud-build-no-mac-needed). [HaloPad's Xbox edition has its own GitHub workflow](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer). Other games explain their Apple Silicon Mac requirement or paused status. Ready-made apps can be installed from Windows or Mac; Linux installation is not validated. |
+| **Mac with Apple Silicon** (M1 or newer) and [Xcode](https://apps.apple.com/app/xcode/id497799835) | Builds the catalog's 30 buildable games for iPhone and iPad. Mac targets are Animal Crossing, Crash Team Racing, F-Zero X, Halo, Jak and Daxter, Mario Kart Wii, Pokémon Snap, Pokémon Stadium, Super Mario Sunshine, Super Smash Bros., Melee and Tribes 2. Shows which games are on the iPhones and iPads you've connected to the Mac once, and which need an update. |
+| **Windows or Linux** | **Build here:** KartPad's Android game data or experimental iPhone/iPad app. **GitHub Cloud Build:** [15 more iPhone/iPad games](#github-cloud-build-no-mac-needed). [HaloPad's Xbox edition has its own GitHub workflow](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer). Other games explain their Apple Silicon Mac requirement or paused status. Ready-made apps can be installed from Windows or Mac; Linux installation is not validated. |
 | **Intel Mac** | KartPad Android and iPhone/iPad builds, experimental. Mac apps and the other iPhone/iPad builds require Apple Silicon. |
 
 The library sorts games into groups. Use **All games** to see them all, or the
@@ -260,18 +260,9 @@ stay. The copy holds game code made for you: keep it to yourself.
 **HaloPad's Xbox edition uses its own workflow:** fork or sync
 [HaloPad](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer),
 then choose **Actions → Build HaloPad (Xbox edition) → Run workflow** there.
-HaloPad is not one of the 16 choices in PadMint's workflow. It also provides a
+HaloPad is not one of the 15 choices in PadMint's workflow. It also provides a
 Mac app for playing on a supported Mac; PC Custom Edition builds still need
 your own Apple Silicon Mac.
-
-**Melee build options:** MeleePad and Melee PC are separate ports of Super Smash Bros. Melee. Open either game page in PadMint to switch ports under **Build options**. Melee PC uses the maintained patched recipe for both local and GitHub builds. On a Mac, choose **iPhone/iPad** to build locally or **Build on GitHub** to use GitHub’s Mac. On other computers, use **Build on GitHub**.
-
-**Melee PC has a private-repository route:** [follow its GitHub build guide](https://github.com/chrissotraidis/melee-pc-padmint#build-on-github-without-a-mac).
-Import PadMint into a new **private** repository instead of making a public fork,
-then select `melee-pc` in the same workflow. The workflow refuses to upload this
-personal IPA from a public repository. Private Actions usage counts against your
-account's allowance; check your GitHub Actions budget before starting. No disc,
-save, Apple ID or signing certificate is needed during the build.
 
 ## Installing what you made
 
