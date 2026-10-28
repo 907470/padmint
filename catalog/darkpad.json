@@ -14,7 +14,7 @@
   "player_game_file": "in-app",
   "player_help": "https://github.com/chrissotraidis/darkpad#get-darkpad",
   "reviewed_revision": null,
-  "notes": "DarkPad owns its release recipe (darkpad-v...-padmint.json). Apple Silicon Mac builds a personal unsigned iPhone/iPad IPA; the player imports a Perfect Dark USA Rev 1 / v1.1 ROM in the app. Publish this listing only after DarkPad's first public release is readable.",
+  "notes": "DarkPad owns its release recipe (darkpad-v...-padmint.json). Apple Silicon Mac builds a personal unsigned iPhone/iPad IPA; the player imports a Perfect Dark USA Rev 1 / v1.1 ROM in the app.",
   "manifest": null,
   "before_build": {
     "commands": [
