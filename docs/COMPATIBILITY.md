@@ -29,11 +29,12 @@ release gates.
 
 ## Prepared DarkPad route
 
-DarkPad 0.1.0 is prepared locally for its first public release. Its catalog entry
-must not ship until the public recipe is readable. Apple Silicon Mac → iPhone/iPad
+DarkPad’s source repository is public. Its 0.1.0 recipe release and the PadMint
+0.5.23 catalog update are prepared; the listing must not ship until the public
+recipe is readable. Apple Silicon Mac → iPhone/iPad
 passed `scripts/player-check.sh` on October 28 using PadMint main `7e4c44c`
 (v0.5.22), Apple's Python 3.9.6 and an empty PadMint folder. DarkPad source:
-`26ac4bd14d05ef353d0544767ad6b97ee98dbdf6`; build time about 15 minutes.
+`c13d20d3b1a91518583955140868b6dd8f590995`; build time about 14 minutes.
 
 Install full Xcode and its iOS platform plus `brew install cmake ninja xcodegen`;
 allow 30 GB free after installing tools. Import a Perfect Dark USA Rev 1 / v1.1
@@ -43,7 +44,7 @@ hosted builds are not offered. Physical gameplay remains preview-scoped; a
 successful build does not establish device acceptance.
 
 The library uses DarkPad's original app icon, copied unchanged from
-`app/ios/icon/AppIcon1024.png` at that source revision. Its
+`app/ios/icon/AppIcon1024.png` at the original checked revision. Its
 [art provenance](https://github.com/chrissotraidis/darkpad/blob/26ac4bd14d05ef353d0544767ad6b97ee98dbdf6/docs/ART.md)
 records its creation.
 
