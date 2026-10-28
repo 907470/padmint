@@ -1,10 +1,12 @@
 # PadMint status
 
+**v0.5.23:** Adds DarkPad (Perfect Dark) to the Apple Silicon Mac → iPhone/iPad catalog, with its original icon, tool requirements and sideloading/import/update instructions. It builds a personal unsigned IPA; the player supplies a USA Rev 1 / v1.1 ROM in the app. DarkPad releases contain only source, a recipe and checksums; PadMint builds the app on the player’s Mac.
+
 **v0.5.22:** Removed issue-specific Melee banners and temporary build branding. MeleePad and Melee PC link to each other as separate ports in normal build options. The patched Melee PC recipe remains the default local/GitHub recipe. GitHub-capable games also show their GitHub option on Mac; private builds never show a public-fork shortcut. LiveContainer saving remains unconfirmed.
 
 **v0.5.20:** Melee PC can build on GitHub’s hosted Mac without a local Mac. Its downloadable personal IPA requires a private repository. [Hosted compilation and package check passed](https://github.com/chrissotraidis/padmint/actions/runs/40473291597/job/122085358107) on 27 October; CI uploaded no IPA. LiveContainer saving still needs reporter confirmation.
 
-Updated **27 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
+Updated **28 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
 the per-game detail, including **Status by game**, which is where the
 compatibility work resumes.
 

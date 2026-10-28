@@ -27,6 +27,26 @@ release gates.
   Intel Mac is listed separately where declared. iOS means iPhone/iPad output,
   subject to each game's device requirements.
 
+## DarkPad route
+
+DarkPad uses its own recipe from the [0.1.0 release](https://github.com/chrissotraidis/darkpad/releases/tag/v0.1.0).
+Its catalog entry is included in PadMint 0.5.23. Apple Silicon Mac → iPhone/iPad
+passed `scripts/player-check.sh` on October 28 using PadMint main `7e4c44c`
+(v0.5.22), Apple's Python 3.9.6 and an empty PadMint folder. DarkPad source:
+`c13d20d3b1a91518583955140868b6dd8f590995`; build time about 14 minutes.
+
+Install full Xcode and its iOS platform plus `brew install cmake ninja xcodegen`;
+allow 30 GB free after installing tools. Import a Perfect Dark USA Rev 1 / v1.1
+ROM in the app after sideloading. The output is a personal unsigned IPA; the game
+release contains only its recipe and checksum. Intel Mac, Windows, Linux and
+hosted builds are not offered. Physical gameplay remains preview-scoped; a
+successful build does not establish device acceptance.
+
+The library uses DarkPad's original app icon, copied unchanged from
+`app/ios/icon/AppIcon1024.png` at the original checked revision. Its
+[art provenance](https://github.com/chrissotraidis/darkpad/blob/26ac4bd14d05ef353d0544767ad6b97ee98dbdf6/docs/ART.md)
+records its creation.
+
 ## Current player recipes
 
 Every release link is the exact version checked. macOS targets marked planned
@@ -50,6 +70,7 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [ctrpad v0.2.3](https://github.com/chrissotraidis/ctrpad/releases/tag/v0.2.3) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [ctrpad v0.2.3](https://github.com/chrissotraidis/ctrpad/releases/tag/v0.2.3) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [dinopad v0.2.3](https://github.com/chrissotraidis/dinopad/releases/tag/v0.2.3) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
+| [darkpad v0.1.0](https://github.com/chrissotraidis/darkpad/releases/tag/v0.1.0) | iPhone/iPad | Verified build | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [f0x v0.1.1](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [f0x v0.1.1](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.1) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [galaxypad v0.2.2](https://github.com/chrissotraidis/galaxypad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
