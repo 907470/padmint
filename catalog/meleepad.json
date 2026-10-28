@@ -48,8 +48,5 @@
         }
       }
     }
-  },
-  "other_ports": [
-    "melee-pc"
-  ]
+  }
 }
