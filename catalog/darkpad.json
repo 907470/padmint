@@ -14,11 +14,21 @@
   "player_game_file": "in-app",
   "player_help": "https://github.com/chrissotraidis/darkpad#get-darkpad",
   "reviewed_revision": null,
-  "notes": "Manifest owned by the game repository (scripts/build-personal-ipa.sh; ROM chosen in the app). Waiting for the repository to become public and publish its first release.",
+  "notes": "DarkPad owns its release recipe (darkpad-v...-padmint.json). Apple Silicon Mac builds a personal unsigned iPhone/iPad IPA; the player imports a Perfect Dark USA Rev 1 / v1.1 ROM in the app. Publish this listing only after DarkPad's first public release is readable.",
   "manifest": null,
   "before_build": {
     "commands": [
       "brew install cmake ninja xcodegen"
     ]
+  },
+  "player_next": {
+    "ios": {
+      "sideload": true,
+      "steps": [
+        "Open DarkPad and choose your own Perfect Dark (USA) Rev 1 / v1.1 ROM from Files. Accepted formats: .z64, .v64 and .n64. The ROM is imported in the app, not used during the build.",
+        "Create or select an agent file, then choose Solo Missions to start. Use the ••• menu for display, touch controls and controller settings. Optional artwork and GoldenEye content are separate and are not included.",
+        "For updates, install over the existing app with the same signing setup to keep saves and settings. Deleting DarkPad deletes its local data."
+      ]
+    }
   }
 }
