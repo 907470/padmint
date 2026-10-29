@@ -1,9 +1,10 @@
 # Build compatibility
 
-Public recipe snapshot: **27 October 2026**, checked against each game's latest
-release recipe with PadMint **v0.5.20**. The daily Catalog check
-(`scripts/audit-catalog.py`) compares the live catalog with each latest release;
-trust its output over this table when they differ.
+Public recipe snapshot: **29 October 2026**, checked against each game's latest
+release recipe with PadMint **v0.5.24**. The live audit checked **39 entries**
+with zero inconsistencies. The daily Catalog check (`scripts/audit-catalog.py`)
+compares the live catalog with each latest release; trust its output over this
+table when they differ. This audit did not repeat the game builds recorded below.
 The table describes the recipe shipped with each game's latest public release.
 It does not promote a declared host to tested gameplay support. See
 [catalog-wide compatibility work](https://github.com/chrissotraidis/padmint/issues/75)
@@ -12,13 +13,18 @@ for the remaining implementation and acceptance work.
 **Choose by the game and device you want to play on.** A Windows or Linux
 PadMint download does not make a Mac-only game recipe portable.
 
-**Windows local** means PadMint compiles on the Windows computer. **GitHub Cloud
-Build** means GitHub runs a temporary macOS build machine for the player's fork
-after PadMint starts the workflow; Windows does not compile that copy. Both
-produce an iPhone/iPad app or Android pack, never a Windows desktop game. See
-[Building games on Windows](WINDOWS.md) for the current queue and remaining
-release gates.
+On Windows and Linux, the downloaded launcher runs PadMint locally and opens
+its interface in a browser at `127.0.0.1`. **Windows local** and **Linux local**
+mean compilation on that computer. **GitHub Cloud Build** links to a guide and
+workflow that the player starts on GitHub's temporary macOS machine. These
+routes produce iPhone/iPad apps, Mac apps where offered, or Android packs.
+See [Building games on Windows](WINDOWS.md) for published routes and private
+proofs, and [Resume work](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md#resume-work) for the deferred improvements.
+Windows evidence does not qualify Linux; each OS and architecture needs its own
+recorded build. Physical-device acceptance remains a separate check.
 
+- **Verified build:** the recorded build flow passed; this does not establish
+  device launch, audio, saves or gameplay acceptance.
 - **Experimental:** the recipe permits this combination; check the limitations
   below before downloading tools. This label alone is not proof of a completed build.
 - **Planned:** no runnable player route for that combination.
@@ -38,9 +44,15 @@ passed `scripts/player-check.sh` on October 28 using PadMint main `7e4c44c`
 Install full Xcode and its iOS platform plus `brew install cmake ninja xcodegen`;
 allow 30 GB free after installing tools. Import a Perfect Dark USA Rev 1 / v1.1
 ROM in the app after sideloading. The output is a personal unsigned IPA; the game
-release contains only its recipe and checksum. Intel Mac, Windows, Linux and
-hosted builds are not offered. Physical gameplay remains preview-scoped; a
-successful build does not establish device acceptance.
+release contains only its recipe and checksum. PadMint 0.5.24 does not offer
+local Intel Mac, Windows or Linux builds, or a hosted DarkPad build. Physical
+gameplay remains preview-scoped; a successful build does not establish device
+acceptance.
+
+[PR #216](https://github.com/chrissotraidis/padmint/pull/216) adds a
+private-repository cloud route. Its hosted build checks passed, but it remains
+unmerged and unreleased. Private manual dispatch, signing/install and physical
+gameplay still need validation; follow [Resume work](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md#resume-work).
 
 The library uses DarkPad's original app icon, copied unchanged from
 `app/ios/icon/AppIcon1024.png` at the original checked revision. Its
@@ -67,15 +79,15 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [bluewake v0.9.0](https://github.com/chrissotraidis/bluewake/releases/tag/v0.9.0) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [brawlerpad v0.2.2](https://github.com/chrissotraidis/brawlerpad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [brawlerpad v0.2.2](https://github.com/chrissotraidis/brawlerpad/releases/tag/v0.2.2) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
-| [ctrpad v0.2.3](https://github.com/chrissotraidis/ctrpad/releases/tag/v0.2.3) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
-| [ctrpad v0.2.3](https://github.com/chrissotraidis/ctrpad/releases/tag/v0.2.3) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
+| [ctrpad v0.2.4](https://github.com/chrissotraidis/ctrpad/releases/tag/v0.2.4) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
+| [ctrpad v0.2.4](https://github.com/chrissotraidis/ctrpad/releases/tag/v0.2.4) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [dinopad v0.2.3](https://github.com/chrissotraidis/dinopad/releases/tag/v0.2.3) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [darkpad v0.1.0](https://github.com/chrissotraidis/darkpad/releases/tag/v0.1.0) | iPhone/iPad | Verified build | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [f0x v0.1.1](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [f0x v0.1.1](https://github.com/chrissotraidis/f0x/releases/tag/v0.1.1) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [galaxypad v0.2.2](https://github.com/chrissotraidis/galaxypad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [goldenpad v0.2.2](https://github.com/chrissotraidis/goldenpad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Planned / Unavailable | Planned / Unavailable | — |
-| [harkinianpad v0.2.1](https://github.com/chrissotraidis/harkinianpad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
+| [harkinianpad v0.2.2](https://github.com/chrissotraidis/harkinianpad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [kartpad v0.8.6](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.6) | iPhone/iPad | Experimental | Experimental | Experimental / Experimental | Experimental / Experimental | — |
 | [kartpad v0.8.6](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.6) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [kartpad v0.8.6](https://github.com/chrissotraidis/kartpad/releases/tag/v0.8.6) | Android | Experimental | Experimental | Experimental / Experimental | Experimental / Experimental | — |
@@ -86,8 +98,8 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [ottsel v0.1.0](https://github.com/chrissotraidis/ottsel/releases/tag/v0.1.0) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [ottsel v0.1.0](https://github.com/chrissotraidis/ottsel/releases/tag/v0.1.0) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [paperpad v0.2.3](https://github.com/chrissotraidis/paperpad/releases/tag/v0.2.3) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
-| [projectreach v0.3.11](https://github.com/chrissotraidis/projectreach/releases/tag/v0.3.11) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Project route |
-| [projectreach v0.3.11](https://github.com/chrissotraidis/projectreach/releases/tag/v0.3.11) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
+| [projectreach v0.3.13](https://github.com/chrissotraidis/projectreach/releases/tag/v0.3.13) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Project route |
+| [projectreach v0.3.13](https://github.com/chrissotraidis/projectreach/releases/tag/v0.3.13) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Project route |
 | [snappad v0.2.1](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [snappad v0.2.1](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.1) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [spaghettipad v0.2.1](https://github.com/chrissotraidis/spaghettipad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
@@ -95,8 +107,8 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [starshippad v0.2.1](https://github.com/chrissotraidis/starshippad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [sunpad v0.2.2](https://github.com/chrissotraidis/sunpad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [sunpad v0.2.2](https://github.com/chrissotraidis/sunpad/releases/tag/v0.2.2) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
-| [tribespad v0.1.1](https://github.com/chrissotraidis/tribespad/releases/tag/v0.1.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
-| [tribespad v0.1.1](https://github.com/chrissotraidis/tribespad/releases/tag/v0.1.1) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
+| [tribespad v0.2.0](https://github.com/chrissotraidis/tribespad/releases/tag/v0.2.0) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
+| [tribespad v0.2.0](https://github.com/chrissotraidis/tribespad/releases/tag/v0.2.0) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [utp v0.1.0](https://github.com/chrissotraidis/utp/releases/tag/v0.1.0) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 
 **Android as the build host:** only KartPad's phone route is offered, through
@@ -134,10 +146,13 @@ Games are grouped by family so shared build work can be reused; each port still
 requires its own validation.
 Windows build hardening resumed on 26 October 2026
 ([D17](DECISIONS.md#d17-windows-build-hardening-resumes-26-oct-2026)).
-The rows distinguish published routes from source-only drafts; a completed build
+The 29 October handoff defers broader implementation until the next owner
+request; [Resume work](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md#resume-work) records that queue. The rows
+preserve earlier published routes and private proof records. A completed build
 does not establish device launch or gameplay. The 5 October pause remains a
-historical decision, not the current implementation scope.
-**Off-Mac** means a build on a Windows or Linux computer, as recorded below.
+historical decision.
+**Off-Mac** means a build on the specific Windows or Linux host recorded below;
+it does not imply both operating systems were tested.
 
 **GameCube and Wii recompilations** (reference: BlueWake)
 
@@ -164,12 +179,12 @@ historical decision, not the current implementation scope.
 
 | Game | Status | Smallest next step |
 |---|---|---|
-| SpaghettiPad | Published recipe builds on the hosted Mac route from Windows. [Draft #29](https://github.com/chrissotraidis/spaghettipad/pull/29) separately builds local iPhone modules on Windows and Linux x64/ARM64 | Complete released local-module recipe with matching runtime delivery |
-| HarkinianPad | Published recipe builds on the hosted Mac route from Windows. Resources have separate five-host evidence in [#35](https://github.com/chrissotraidis/harkinianpad/pull/35) | Complete and validate a local Windows app/module route |
-| MaskPad, StarshipPad, PaperPad, BrawlerPad, BarrelPad, BellPad, BallPad | Published recipes build on the hosted Mac route from Windows; local app builds remain Mac-hosted | Complete and validate local Windows routes with matching runtimes |
-| CTRPad | Published iPhone/iPad recipe builds on the hosted Mac route from Windows. The local iPhone/iPad and Mac app builds remain Mac-hosted | Complete and validate a local Windows iPhone route |
+| SpaghettiPad | Published recipe builds on the hosted Mac route from a Windows or Linux browser. [Draft #29](https://github.com/chrissotraidis/spaghettipad/pull/29) separately builds local iPhone modules on Windows and Linux x64/ARM64 | Complete released local-module recipe with matching runtime delivery |
+| HarkinianPad | Published recipe builds on the hosted Mac route from a Windows or Linux browser. Resources have separate five-host evidence in [#35](https://github.com/chrissotraidis/harkinianpad/pull/35) | Complete and validate a local Windows app/module route |
+| MaskPad, StarshipPad, PaperPad, BrawlerPad, BarrelPad, BellPad, BallPad | Published recipes build on the hosted Mac route from a Windows or Linux browser; local app builds remain Mac-hosted | Complete and validate local Windows routes with matching runtimes |
+| CTRPad | Published iPhone/iPad recipe builds on the hosted Mac route from a Windows or Linux browser. The local iPhone/iPad and Mac app builds remain Mac-hosted | Complete and validate a local Windows iPhone route |
 | AgePad | Requires compatible installed Mac Steam game files. [Draft #13](https://github.com/chrissotraidis/agepad/pull/13) makes injection portable and preserves ZIP metadata; synthetic Windows x64/ARM64 checks pass, including non-English paths. An actual Windows run correctly rejected six incompatible installed Steam files and preserved the previous output. Shared [#178](https://github.com/chrissotraidis/padmint/pull/178) marks these as private build inputs | A successful Windows build with files matching the base app is still required; no private-input upload or public host promotion |
-| GalaxyPad | Published recipe builds on the hosted Mac route from Windows, then accepts the player’s supported WBFS in the app. This does not establish a local Windows compiler route | Complete and validate a local Windows route; keep device acceptance separate |
+| GalaxyPad | Published recipe builds on the hosted Mac route from a Windows or Linux browser, then accepts the player’s supported WBFS in the app. This does not establish a local Windows compiler route | Complete and validate a local Windows route; keep device acceptance separate |
 | Ottsel | Published recipe remains Mac-only: it builds an unsigned iPhone/iPad IPA or Mac app plus a data folder from the player's USA `SCUS-97124` Black Label disc. The earlier Mac player check passed. Current source inspection identifies native extractor/GOAL compiler, offline module emitter, data-pack and Apple app-build steps; no Windows route has been validated | Prove portable host tools and local private-data preparation, then a matching app/module delivery route. Existing Mac playability evidence does not qualify a Windows build |
 
 **New in PadMint 0.5.5:** F0X, EctoPad, SnapPad, OpenRCT2 Touch and UTP build
@@ -188,7 +203,10 @@ experimental. Choosing an Xbox ISO/XISO builds the Xbox edition alone from the O
 recorded for that HaloPad release; the player adds the same disc in the app. Choosing the
 Custom Edition installer (with product-key.txt) builds both editions and needs Wine.
 Off a Mac, the Xbox edition has no game input to build from: HaloPad's README shows how a
-player's own GitHub fork runs GitHub Cloud Build.
+player's own GitHub fork runs [GitHub Cloud Build](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer).
+This published project route is available from Windows or Linux and appears
+under Other routes in PadMint 0.5.24. PR #216 changes its placement; it does not
+create the HaloPad workflow or add it to PadMint's shared game dropdown.
 
 **No build needed:** CaesarPad, DaggerPad, DevilTouch, Emerald Tablet, KidPad,
 PeonPad and VaultPad appear in the PadMint page with download and data-import

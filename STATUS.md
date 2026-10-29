@@ -1,20 +1,26 @@
 # PadMint status
 
+Updated **29 October 2026**. **Next work:** when the owner asks to continue
+improving PadMint, start with [Resume work](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md#resume-work).
+It records the audit, existing PRs, more Windows/Linux and cloud build options,
+ownership enforcement, preview updates and the validation each route needs.
+The owner requested this documentation handoff and small fixes, then a stop;
+broader implementation resumes on that later request ([D18](https://github.com/chrissotraidis/padmint/blob/main/docs/DECISIONS.md#d18-save-the-improvements-handoff-then-stop-29-oct-2026)).
+
+**Unreleased on main:** host-neutral cloud-build wording for Windows/Linux and
+a **View guide** fallback for existing project routes without a card label,
+including HaloPad. These are label fixes; they add no build route. The published
+app remains **0.5.24**. Cloud-route PR #216 remains separate and unmerged.
+
 **v0.5.24:** Removed Melee PC. It built 999sian/melee-pc, another person's project, and PadMint lists only Chris's own ports (AGENTS.md now says so, and `tests/test_catalog_ownership.py` checks it). MeleePad no longer links to it, and the GitHub workflow no longer offers it.
 
 **v0.5.23:** Adds DarkPad (Perfect Dark) to the Apple Silicon Mac → iPhone/iPad catalog, with its original icon, tool requirements and sideloading/import/update instructions. It builds a personal unsigned IPA; the player supplies a USA Rev 1 / v1.1 ROM in the app. DarkPad releases contain only source, a recipe and checksums; PadMint builds the app on the player’s Mac.
 
-**v0.5.22:** Removed issue-specific Melee banners and temporary build branding. MeleePad and Melee PC link to each other as separate ports in normal build options. The patched Melee PC recipe remains the default local/GitHub recipe. GitHub-capable games also show their GitHub option on Mac; private builds never show a public-fork shortcut. LiveContainer saving remains unconfirmed.
-
-**v0.5.20:** Melee PC can build on GitHub’s hosted Mac without a local Mac. Its downloadable personal IPA requires a private repository. [Hosted compilation and package check passed](https://github.com/chrissotraidis/padmint/actions/runs/40473291597/job/122085358107) on 27 October; CI uploaded no IPA. LiveContainer saving still needs reporter confirmation.
-
-Updated **28 October 2026**. The [compatibility page](docs/COMPATIBILITY.md) has
-the per-game detail, including **Status by game**, which is where the
-compatibility work resumes.
-
-**Scope today:** Windows build hardening resumed on 26 October at the owner's
-request ([D17](docs/DECISIONS.md#d17-windows-build-hardening-resumes-26-oct-2026)).
-The work covers reliable recipes, managed tools, safe retries, and private game
+The [compatibility page](docs/COMPATIBILITY.md) has the per-game detail.
+Windows build hardening resumed on 26 October at the owner's request
+([D17](docs/DECISIONS.md#d17-windows-build-hardening-resumes-26-oct-2026)); today's
+handoff preserves that direction. It covers reliable recipes, managed tools,
+safe retries, and private game
 modules built on the player's computer. Current published routes remain the
 source of truth: draft build evidence does not enable a catalog button or
 establish device launch, audio or save compatibility. Game releases and device
@@ -36,7 +42,7 @@ are in [Building games on Windows](docs/WINDOWS.md).
   and Mac is built with PadMint; the release's `ios-for-padmint.ipa` has no game in it
   and is only for PadMint. The 0.7.9–0.7.13 ready-to-play iPhone/iPad and Mac
   downloads won't get updates.
-- **HaloPad's Xbox edition** can also be built without a Mac, using GitHub Cloud Build
+- **HaloPad's Xbox edition** can also be built without a Mac, using GitHub Cloud
   Build ([steps](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer)).
   On Windows and Linux PadMint points there instead of saying it needs a Mac.
 - **BlueWake on Windows** downloads its ready-to-play build from
@@ -50,7 +56,10 @@ are in [Building games on Windows](docs/WINDOWS.md).
 
 ## PadMint itself
 
-- **v0.5.19**: adds **Melee PC** as a separate Apple Silicon Mac personal-build route for iPhone/iPad. Its source-only recipe patches melee-pc 0.4.2 save creation; the existing MeleePad entry is unchanged. The player imports their own disc after installation. LiveContainer confirmation remains open.
+- **v0.5.19–0.5.22 (superseded by 0.5.24):** incorrectly included Melee PC,
+  later adding hosted builds and cross-links. That app belongs to another
+  project; the entry, workflow choice and links have been removed. This is
+  historical context, not an available route or future work item.
 
 - **v0.5.18**: polish for the update flow. The sidebar pill now fits its column,
   the PadMint update dialog hides its action while downloading, and game

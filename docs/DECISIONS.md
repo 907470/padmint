@@ -479,3 +479,18 @@ separate evidence. Drafts and completed builds do not authorize game releases,
 device deployment or broader published catalog support. A game release still
 requires its current-main PadMint player checks before tagging and after
 publication, along with its repository's review and content gates.
+
+## D18. Save the improvements handoff, then stop (29 Oct 2026)
+
+After the ownership and platform audit, the owner requested updated
+documentation and small obvious fixes, pushed and merged to main, then a stop.
+The next request to continue improving PadMint resumes
+[the roadmap queue](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md#resume-work): more build options for the existing
+own-port catalog, Windows/Linux coverage, cloud routes and player validation.
+This handoff does not schedule work or publish a new release.
+
+The audited public baseline is 0.5.24. Melee PC is removed; only Chris's own
+ports belong in the catalog, recipes and workflows. Preserve that scope when
+resuming, including the supported local-checkout development path. New game
+entries still need the owner's explicit approval. Keep current releases,
+unmerged implementations, private proofs and device acceptance distinct.
