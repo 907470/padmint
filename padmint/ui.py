@@ -142,7 +142,7 @@ def elsewhere_card(game, name, targets, lang):
     if entry.get("off_mac"):
         text, link = localized(entry["off_mac"], "text", lang), entry["off_mac"]["url"]
         tag = (localized(entry["off_mac"], "tag", lang)
-               if entry["off_mac"].get("tag") else None)
+               if entry["off_mac"].get("tag") else phrase("w_act_guide", lang))
         route = "external"
     elif ios and entry.get("github_build"):
         text, tag, link = (phrase("w_github_build", lang, name=name, game=game),

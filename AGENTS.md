@@ -1,5 +1,9 @@
 # Agent instructions
 
+Start with [STATUS.md](STATUS.md), then [Resume work](docs/ROADMAP.md#resume-work).
+That queue is the handoff for an owner request to continue improving PadMint;
+it separates published routes, unfinished work and the evidence still needed.
+
 - This repository holds only the shared Builder: its pipeline, profiles, tests and docs. Never commit or upload game code (translated or decompiled), disc images, ROMs, extracted game files, saves, console keys or personal builds.
 - Before any public release, every asset must pass `python3 -m padmint audit <asset>` (and the private `~/.codex/release-gate/release_gate.py` while it remains the reference). A failure is a stop, not a note.
 - Before announcing a game release PadMint builds on a Mac, `scripts/player-check.sh` must pass for it (with the checkout before tagging, without it after publishing). A build through `python3 -m padmint` with a newer Python and warm caches is not player evidence. A failure is a stop.

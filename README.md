@@ -42,7 +42,7 @@ cancellation fixes; 0.5.16 makes the build locations explicit. Additional local
 game builds stay unavailable until each game's matching app, recipe and device
 checks are ready. Follow [Building games on Windows](docs/WINDOWS.md), the
 [progress by game](docs/COMPATIBILITY.md#status-by-game), and the
-[roadmap](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md).
+[roadmap and next improvements](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md#resume-work).
 An experimental recipe or completed build alone does not establish that a game
 plays correctly on every device.
 
@@ -410,7 +410,7 @@ yet** means there is nothing to build or download through PadMint yet.
 <details>
 <summary><strong>Can I play KartPad on my Mac?</strong></summary>
 
-Yes, with the latest PadMint (**0.5.18**), on a Mac with Apple Silicon (M1 or newer)
+Yes, with the latest PadMint, on a Mac with Apple Silicon (M1 or newer)
 and Xcode: choose **Mario Kart Wii**, then **This Mac** under **Where will you
 play?** PadMint builds KartPad from your disc and saves the app in your Downloads
 folder. The first build needs about 12 GB free. On an Intel Mac, PadMint builds KartPad for iPhone and iPad

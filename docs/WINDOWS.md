@@ -1,24 +1,31 @@
 # Building games on Windows
 
-Status: **26 October 2026**, after the PadMint 0.5.18 UI update.
+Published-route snapshot: **29 October 2026**, PadMint **v0.5.24**.
 
 This page answers one question: **which game builds can run on a Windows
 computer with PadMint?** It is about the *build computer*. The result is an
 iPhone/iPad `.ipa` (or, for KartPad, an Android pack), not a Windows desktop
 game.
 
+On Windows and Linux, the downloaded launcher runs PadMint on the player's
+computer and opens its interface in a browser at `127.0.0.1`. Local tools and
+builds run on that computer. GitHub Cloud Build is a separate hosted route.
+
 Use these labels consistently in the app and documentation:
 
 - **Build here**: the game's published recipe supports local compilation on
   this Windows PC.
-- **GitHub Cloud Build**: GitHub runs a temporary macOS build machine for your
-  free PadMint fork; Windows only starts the workflow. Nothing personal is
-  uploaded.
+- **GitHub Cloud Build**: PadMint links to the guide and workflow for your
+  fork; you start the build on GitHub's temporary macOS machine. The shared
+  workflow needs no personal game files. HaloPad uses its own project workflow.
 - **Apple Silicon Mac**: the iPhone/iPad or Mac app needs an Apple Silicon Mac
   with Xcode, unless the game's project documents another route.
 
 ## Recently completed
 
+- **0.5.24:** removed Melee PC, another person's project. The catalog contains
+  only Chris's own ports.
+- **0.5.23:** added DarkPad's Apple Silicon Mac → iPhone/iPad recipe.
 - **0.5.18:** update controls now reflect their actual state: the sidebar update
   label fits, the PadMint updater hides its action while downloading, and a
   missing game file or device gets a direct route back to that step.
@@ -29,7 +36,7 @@ Use these labels consistently in the app and documentation:
   build machine. The stale compatibility table was refreshed from live releases.
 - **0.5.15:** shared Windows toolchains, cache and retry safety, Unicode paths,
   a private UTF-8 build console and complete cancellation cleanup were released.
-- No game release or catalog host flag was enabled by those infrastructure releases.
+- The 0.5.15–0.5.18 infrastructure releases did not enable new game host flags.
 
 ## What Windows can build today
 
@@ -37,24 +44,34 @@ Use these labels consistently in the app and documentation:
 |---|---|---|---|
 | **Build here with PadMint** | KartPad | iPhone/iPad `.ipa`, or a KartPad game-data pack for the published Android app | Experimental; published recipe |
 | **GitHub Cloud Build** | BallPad, BarrelPad, BellPad, BrawlerPad, CTRPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad, SpaghettiPad, StarshipPad, TribesPad, UTP | iPhone/iPad `.ipa` | Published workflow; not a local Windows build |
-| **Apple Silicon Mac** | The other buildable titles, including the seven Windows proofs below | iPhone/iPad `.ipa`, and for some games a personal Mac app | The app must show **Apple Silicon Mac**; a private Windows proof alone does not enable it |
+| **Project GitHub Cloud Build** | HaloPad, Xbox edition | iPhone/iPad `.ipa` or Mac app | Published [project workflow](https://github.com/chrissotraidis/projectreach#on-windows-linux-or-any-computer); shown under Other routes in 0.5.24 |
+| **Apple Silicon Mac** | The other buildable titles, including DarkPad and the seven Windows proofs below; HaloPad Custom Edition | iPhone/iPad `.ipa`, and for some games a personal Mac app | The app must show **Apple Silicon Mac**; a private Windows proof alone does not enable it |
 | **No build needed** | CaesarPad, DaggerPad, DevilTouch, Emerald Tablet, KidPad, PeonPad, RAtouch, VaultPad | iPhone/iPad app from its release | Download and install; add your own game files in the app where required |
 
 **Windows desktop is a separate product.** BlueWake publishes a ready-to-play
 Windows x64 build from its own releases. PadMint's Windows work does not turn
 the other games into Windows desktop ports.
 
-The live catalog has 38 entries. A recipe check on 26 October 2026 reported
-zero catalog inconsistencies; it still reports all of these builds as Mac-only
-except KartPad because the game releases have not yet shipped their Windows
-recipes.
+The 39-entry catalog passed the live recipe audit on 29 October 2026 with
+zero inconsistencies. This checks published declarations and links, not fresh
+game builds or device acceptance. KartPad remains the only published local
+Windows/Linux recipe.
+
+[PR #216](https://github.com/chrissotraidis/padmint/pull/216) is unmerged and
+unreleased. It adds a private-repository DarkPad cloud route and makes HaloPad's
+existing workflow easier to find. Hosted build checks passed, but private manual
+dispatch, signing/install and physical gameplay still need validation. It does
+not add SquirrelPad, which needs the player's ROM during compilation.
 
 ## Windows build proofs that are not enabled yet
 
 These games have a complete or substantial private Windows build, but the
 latest **public** recipe still does not offer a local Windows build. The app must
 remain labeled **Apple Silicon Mac** until the listed release and device gates
-are complete.
+are complete. These proof records come from earlier work; the 29 October
+recipe audit did not repeat them. A Windows ARM64 run, an emulated x64 run and a
+native x64 run are separate evidence. None of them qualifies Linux: Linux x64
+and ARM64 need their own complete builds and acceptance checks.
 
 | Game | Proven on the build side | Missing before Windows can be selected |
 |---|---|---|
@@ -78,15 +95,19 @@ are complete.
 | DinoPad | The supported ROM needed for a full private build is unavailable. |
 | Ottsel | No usable local Windows route has been implemented. |
 
-**No local Windows work checked yet:** BallPad, BarrelPad, BellPad, BrawlerPad,
-CTRPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch, PaperPad,
-HaloPad, SpaghettiPad, StarshipPad, TribesPad and UTP. Most already use GitHub
+**No local Windows game build recorded here:** BallPad, BarrelPad, BellPad,
+BrawlerPad, CTRPad, DarkPad, F0X, GalaxyPad, HarkinianPad, MaskPad, OpenRCT2 Touch,
+PaperPad, HaloPad, SpaghettiPad, StarshipPad, TribesPad and UTP. Most already use GitHub
 Cloud Build for iPhone/iPad. HaloPad has its own documented GitHub Cloud Build
 route for the Xbox edition.
 
 **Paused:** EctoPad, because Metaforce is not publicly available.
 
 ## Active queue
+
+Broader implementation is deferred after the 29 October documentation handoff.
+On the next request to continue, start with [Resume work](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md#resume-work)
+and recheck each affected PR and release before using this per-game queue.
 
 1. Fix SnapPad's recipe to advertise Windows x64 and ARM64, publish a new
    recipe, and run the physical-device check.
@@ -113,8 +134,8 @@ exists. A row moves only after all of these are true:
 
 ## Checking this page
 
-The catalog audit is the source of truth for what the current public releases
-can build:
+The catalog audit checks the routes declared by current public releases. It
+does not run game builds or qualify a host or device:
 
 ```sh
 PADMINT_HOME=$(mktemp -d) python3 -B scripts/audit-catalog.py --json
