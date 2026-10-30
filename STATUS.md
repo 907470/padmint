@@ -14,7 +14,8 @@ the same supported ROM used to build the app must be selected inside it after
 installation, with import progress in 0.1.3 or newer. The compatibility record distinguishes five
 projects with selection reports from unconfirmed source risks. Game fixes come
 from rebuilding the corresponding game release; PadMint does not replace the
-apps' own importers.
+apps' own importers. Catalog and recipe JSON is decoded as UTF-8 on every host,
+so Windows displays accented text and folder arrows correctly.
 
 This release also includes host-neutral cloud-build wording for Windows/Linux
 and a **View guide** fallback for existing project routes without a card label,
