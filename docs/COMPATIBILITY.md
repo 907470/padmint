@@ -382,7 +382,7 @@ observations from different environments, not a performance comparison.
 |---|---|---|
 | PadMint v0.2.9 | Released Windows/macOS/Linux ZIPs and checksums; packaged player-flow tests on Windows and Linux | These checks use fixtures and do not build every game |
 | KartPad iOS off a Mac | Experimental route previously tried on Windows 11 ARM and Ubuntu with iPhone 14; a Windows 11 Surface Laptop 2 user [reports a v0.7.3 IPA build and updates on iPhone/iPad](https://github.com/chrissotraidis/kartpad/issues/310#issuecomment-5961520278) | The Surface report has no gameplay check and reports an exit opening the import menu; independent Intel/AMD build-and-play and broader device acceptance remain open |
-| KartPad iOS folder import | [Reporter confirmed the app-folder workaround](https://github.com/chrissotraidis/kartpad/issues/380#issuecomment-5945178374) on an M2 iPad Air | The disabled Files-picker Open button remains an app bug |
+| KartPad iOS folder import | [#380](https://github.com/chrissotraidis/kartpad/issues/380): folder opening replaced copy mode in 0.7.4; 0.8.1 separated folder selection from file selection and added feedback | The issue remains open; those changes do not establish physical-device picker acceptance for every provider |
 | SpaghettiPad v0.2.1 | [Reporter confirmed both iPhone and iPad work](https://github.com/chrissotraidis/spaghettipad/issues/26#issuecomment-5955452885) after the SDK 27 startup fix | This validates those reported devices, not every host or device |
 | SpaghettiPad off-Mac work | [Draft #29](https://github.com/chrissotraidis/spaghettipad/pull/29): native Windows/Linux x64 and ARM64 module builds, resource generation and portable package fixtures | Complete released PadMint recipe, matching runtime delivery and target-device acceptance of each host's output |
 | HarkinianPad | [Merged #35](https://github.com/chrissotraidis/harkinianpad/pull/35): resources on five native hosts and full Mac-hosted iOS CI at the reviewed candidate | Portable resources do not establish complete off-Mac apps. Released in v0.2.1 (4 October) |
@@ -395,6 +395,36 @@ For KartPad's confirmed workaround, keep your original data and put a complete
 copy inside **Files → On My iPad → KartPad**, for example `KartPad/DATA` with
 `sys` and `files` directly inside. Return to **Game Data Required** and tap
 **Import from Extracted Folder…**. Do not replace existing app files or saves.
+
+## iPhone and iPad file selection, 30 October 2026
+
+The issue audit found selection reports in **five of Chris's projects**. These
+are reports across different releases and import paths, not evidence that all
+five current releases fail for the same reason. The
+[source audit](https://github.com/chrissotraidis/bellpad/blob/main/docs/FILE_IMPORT_AUDIT.md)
+records the full 39-project roster and separates reports from unconfirmed
+source risks:
+
+| Project | Report and source history | Remaining evidence |
+|---|---|---|
+| BellPad | [#26](https://github.com/chrissotraidis/bellpad/issues/26) reports an unresponsive ISO selection in 0.2.2 on iOS 27.2 and no BellPad folder in Files; [0.2.3](https://github.com/chrissotraidis/bellpad/releases/tag/v0.2.3) adds a dedicated Files import folder and clearer import handling | Clean PadMint builds before and after publication passed, along with iPhone/iPad Simulator import and regression checks; the reporter's device/provider and LiveContainer behavior remain unconfirmed |
+| KartPad | [#1](https://github.com/chrissotraidis/kartpad/issues/1) includes confirmation after a file-copy picker change; [#380](https://github.com/chrissotraidis/kartpad/issues/380) tracks the separate folder-selection fixes described above | No confirmed regression in the current PadMint-built release was established by this audit; device/provider retesting remains |
+| HaloPad | [#29](https://github.com/chrissotraidis/projectreach/issues/29): 0.3.11 widened selectable ISO/XISO types to include disk images and generic data | The issue remains open without reporter confirmation |
+| SunPad | [#6](https://github.com/chrissotraidis/sunpad/issues/6): Preview 2 changed file selection to copy mode and added a Documents fallback | The closed report does not include a user retest |
+| SquirrelPad | [#3](https://github.com/chrissotraidis/squirrelpad/issues/3) includes an October 27 report that 0.1.2 still cannot select a ROM; [merged #8](https://github.com/chrissotraidis/squirrelpad/pull/8) broadens selection and moves reading/import work off the main thread | The fix is on main but unreleased at this audit; a normal PadMint rebuild still selects 0.1.2 |
+
+PadMint builds each app's own importer. File type filtering, file-provider
+access, folder selection and container-hosted installations can fail at
+different points, so an across-the-board picker rewrite is not justified.
+Import behavior and format validation stay in the game repositories; PadMint
+provides release-selected builds and the relevant post-install instructions.
+
+For import changes, exercise the actual first-run screen on the target device:
+select a local file, cancel and retry, try a supported cloud provider, and use
+the documented local-folder fallback. Check that unsupported files show a
+useful error and an in-place update preserves existing data. Record a
+LiveContainer installation separately from a directly installed app. A package
+check, Simulator run or clean PadMint build does not establish these outcomes.
 
 ## Before calling a route verified
 

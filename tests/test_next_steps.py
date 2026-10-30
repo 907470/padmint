@@ -54,6 +54,28 @@ class NextStepsTests(unittest.TestCase):
         self.assertIn("your KartPad game data stays", text)
         self.assertIn("First time only", text)
 
+    def test_bellpad_iphone_steps_keep_installation_and_explain_the_local_import(self):
+        steps, note, guide = cli.next_step_text(catalog()["bellpad"], "ios", Path("/out/BellPad.ipa"), "en")
+        text = "\n".join(steps)
+        self.assertIn("Drag BellPad.ipa into Sideloadly", text)
+        self.assertIn("0.2.3 or newer", text)
+        self.assertIn("exactly one supported .iso or .gcm", text)
+        self.assertIn("BellPad → Import", text)
+        self.assertIn("Import from BellPad folder", text)
+        self.assertIn("retained game data and saves privately", text)
+        self.assertIn("same signing setup", text)
+        self.assertEqual(guide, "https://github.com/chrissotraidis/bellpad#get-bellpad")
+        self.assertIsNotNone(note)
+
+    def test_bellpad_import_guidance_keeps_localized_installation_steps(self):
+        for lang, expected in (("es", "Archivos → En mi iPhone/iPad"), ("pt", "Arquivos → No Meu iPhone/iPad")):
+            with self.subTest(lang=lang):
+                steps, _, _ = cli.next_step_text(catalog()["bellpad"], "ios", Path("/out/BellPad.ipa"), lang)
+                text = "\n".join(steps)
+                self.assertIn("BellPad.ipa", text)
+                self.assertIn(expected, text)
+                self.assertIn("Import from BellPad folder", text)
+
     def test_spanish_player_gets_spanish_steps(self):
         stream = io.StringIO()
         with mock.patch.object(cli, "on_android", return_value=False), \
