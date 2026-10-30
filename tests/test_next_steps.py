@@ -76,6 +76,25 @@ class NextStepsTests(unittest.TestCase):
                 self.assertIn(expected, text)
                 self.assertIn("Import from BellPad folder", text)
 
+    def test_squirrelpad_steps_keep_signing_and_explain_postbuild_rom_import(self):
+        entry = catalog()["squirrelpad"]
+        self.assertEqual(entry["player_game_file"], "build")
+        for lang, expected in (("en", "same supported US big-endian Conker ROM"),
+                               ("es", "misma ROM compatible de Conker"),
+                               ("pt", "mesma ROM compatível de Conker")):
+            with self.subTest(lang=lang):
+                steps, note, guide = cli.next_step_text(entry, "ios", Path("/out/SquirrelPad.ipa"), lang)
+                text = "\n".join(steps)
+                self.assertIn("SquirrelPad.ipa", text)
+                self.assertIn("Sideloadly", text)
+                self.assertIn(expected, text)
+                self.assertIn("Choose ROM", text)
+                self.assertIn("Importing", text)
+                self.assertIn("0.1.3", text)
+                self.assertIn("Play Conker", text)
+                self.assertIsNotNone(note)
+                self.assertEqual(guide, "https://github.com/chrissotraidis/squirrelpad#get-started")
+
     def test_spanish_player_gets_spanish_steps(self):
         stream = io.StringIO()
         with mock.patch.object(cli, "on_android", return_value=False), \

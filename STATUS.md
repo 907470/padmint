@@ -9,7 +9,9 @@ broader implementation resumes on that later request ([D18](https://github.com/c
 
 **v0.5.25:** BellPad's iPhone/iPad finishing steps explain its 0.2.3 ISO/GCM
 import and the Files → BellPad → Import fallback, while preserving the normal
-sideloading/update instructions. The compatibility record distinguishes five
+sideloading/update instructions. SquirrelPad finishing steps also explain that
+the same supported ROM used to build the app must be selected inside it after
+installation, with import progress in 0.1.3 or newer. The compatibility record distinguishes five
 projects with selection reports from unconfirmed source risks. Game fixes come
 from rebuilding the corresponding game release; PadMint does not replace the
 apps' own importers.
