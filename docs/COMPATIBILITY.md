@@ -1,7 +1,7 @@
 # Build compatibility
 
-Public recipe snapshot: **29 October 2026**, checked against each game's latest
-release recipe with PadMint **v0.5.24**. The live audit checked **39 entries**
+Public recipe snapshot: **30 October 2026**, checked against each game's latest
+release recipe with PadMint **v0.5.25**. The live audit checked **39 entries**
 with zero inconsistencies. The daily Catalog check (`scripts/audit-catalog.py`)
 compares the live catalog with each latest release; trust its output over this
 table when they differ. This audit did not repeat the game builds recorded below.
@@ -74,8 +74,8 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [bananapad v0.2.2](https://github.com/chrissotraidis/bananapad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [barrelpad v0.2.1](https://github.com/chrissotraidis/barrelpad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [bearbirdpad v0.2.3](https://github.com/chrissotraidis/bearbirdpad/releases/tag/v0.2.3) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
-| [bellpad v0.2.2](https://github.com/chrissotraidis/bellpad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
-| [bellpad v0.2.2](https://github.com/chrissotraidis/bellpad/releases/tag/v0.2.2) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
+| [bellpad v0.2.3](https://github.com/chrissotraidis/bellpad/releases/tag/v0.2.3) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
+| [bellpad v0.2.3](https://github.com/chrissotraidis/bellpad/releases/tag/v0.2.3) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [bluewake v0.9.0](https://github.com/chrissotraidis/bluewake/releases/tag/v0.9.0) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [brawlerpad v0.2.2](https://github.com/chrissotraidis/brawlerpad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [brawlerpad v0.2.2](https://github.com/chrissotraidis/brawlerpad/releases/tag/v0.2.2) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
@@ -103,7 +103,7 @@ alongside the game's other targets. Intel Macs show why the Mac target is unavai
 | [snappad v0.2.1](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [snappad v0.2.1](https://github.com/chrissotraidis/snappad/releases/tag/v0.2.1) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [spaghettipad v0.2.1](https://github.com/chrissotraidis/spaghettipad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
-| [squirrelpad v0.1.2](https://github.com/chrissotraidis/squirrelpad/releases/tag/v0.1.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
+| [squirrelpad v0.1.3](https://github.com/chrissotraidis/squirrelpad/releases/tag/v0.1.3) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [starshippad v0.2.1](https://github.com/chrissotraidis/starshippad/releases/tag/v0.2.1) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | Yes, iPhone/iPad |
 | [sunpad v0.2.2](https://github.com/chrissotraidis/sunpad/releases/tag/v0.2.2) | iPhone/iPad | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
 | [sunpad v0.2.2](https://github.com/chrissotraidis/sunpad/releases/tag/v0.2.2) | macOS | Experimental | Unavailable | Unavailable / Unavailable | Unavailable / Unavailable | — |
