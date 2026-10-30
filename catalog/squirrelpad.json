@@ -20,5 +20,31 @@
     "commands": [
       "brew install cmake ninja python pkgconf sdl2 freetype ripgrep"
     ]
+  },
+  "player_next": {
+    "ios": {
+      "sideload": true,
+      "steps": [
+        "Copy the same supported US big-endian Conker ROM you used for the build into Files on your iPhone or iPad. SquirrelPad needs that ROM in the app too.",
+        "Open SquirrelPad, tap Choose ROM and select that file. In SquirrelPad 0.1.3 or newer, wait for Importing to finish while the app reads and validates it; then tap Play Conker.",
+        "Install updates over your existing SquirrelPad app with the same signing setup to keep your ROM and saves."
+      ],
+      "translations": {
+        "es": {
+          "steps": [
+            "Copia a Archivos en tu iPhone o iPad la misma ROM compatible de Conker de EE. UU. en formato big-endian que usaste para crear la app. SquirrelPad también necesita esa ROM dentro de la app.",
+            "Abre SquirrelPad, pulsa Choose ROM y selecciona ese archivo. En SquirrelPad 0.1.3 o posterior, espera a que termine Importing mientras la app lee y valida la ROM; después pulsa Play Conker.",
+            "Instala las actualizaciones sobre tu app SquirrelPad existente con la misma configuración de firma para conservar la ROM y las partidas."
+          ]
+        },
+        "pt": {
+          "steps": [
+            "Copie para o Arquivos no iPhone ou iPad a mesma ROM compatível de Conker dos EUA em formato big-endian que você usou para criar o app. O SquirrelPad também precisa dessa ROM dentro do app.",
+            "Abra o SquirrelPad, toque em Choose ROM e selecione esse arquivo. No SquirrelPad 0.1.3 ou mais recente, espere Importing terminar enquanto o app lê e valida a ROM; depois toque em Play Conker.",
+            "Instale as atualizações por cima do SquirrelPad existente com a mesma configuração de assinatura para manter a ROM e os saves."
+          ]
+        }
+      }
+    }
   }
 }

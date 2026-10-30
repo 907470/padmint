@@ -10,6 +10,7 @@ from unittest.mock import patch
 import zipfile
 
 from padmint import gate
+from padmint import manifest
 from padmint.cli import doctor, main
 from padmint.manifest import catalog, expand, manifest_for, validate_manifest
 
@@ -47,6 +48,28 @@ def mock_usage(free_gb):
 
 
 class ManifestTests(unittest.TestCase):
+    def test_catalog_and_recipe_preserve_utf8_with_a_legacy_system_encoding(self):
+        entry = copy.deepcopy(catalog()["bellpad"])
+        recipe = minimal()
+        entry["name"] = recipe["name"] = "Café → 日本語"
+        real_open = io.open
+
+        def legacy_open(file, mode="r", buffering=-1, encoding=None, errors=None,
+                        newline=None, closefd=True, opener=None):
+            if encoding is None and "b" not in mode:
+                encoding = "cp1252"
+            return real_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
+
+        with tempfile.TemporaryDirectory() as folder:
+            catalog_dir = Path(folder) / "catalog"
+            catalog_dir.mkdir()
+            (catalog_dir / "bellpad.json").write_text(json.dumps(entry, ensure_ascii=False), encoding="utf-8")
+            recipe_path = Path(folder) / "padmint.json"
+            recipe_path.write_text(json.dumps(recipe, ensure_ascii=False), encoding="utf-8")
+            with patch.object(manifest, "CATALOG", catalog_dir), patch("io.open", side_effect=legacy_open):
+                self.assertEqual(catalog()["bellpad"]["name"], entry["name"])
+                self.assertEqual(manifest.load_manifest(recipe_path)["name"], recipe["name"])
+
     def test_catalog_entries_validate(self):
         entries = catalog()
         self.assertTrue({"bluewake", "kartpad"} <= set(entries))

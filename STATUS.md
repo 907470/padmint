@@ -1,16 +1,26 @@
 # PadMint status
 
-Updated **29 October 2026**. **Next work:** when the owner asks to continue
+Updated **30 October 2026**. **Next work:** when the owner asks to continue
 improving PadMint, start with [Resume work](https://github.com/chrissotraidis/padmint/blob/main/docs/ROADMAP.md#resume-work).
 It records the audit, existing PRs, more Windows/Linux and cloud build options,
 ownership enforcement, preview updates and the validation each route needs.
 The owner requested this documentation handoff and small fixes, then a stop;
 broader implementation resumes on that later request ([D18](https://github.com/chrissotraidis/padmint/blob/main/docs/DECISIONS.md#d18-save-the-improvements-handoff-then-stop-29-oct-2026)).
 
-**Unreleased on main:** host-neutral cloud-build wording for Windows/Linux and
-a **View guide** fallback for existing project routes without a card label,
-including HaloPad. These are label fixes; they add no build route. The published
-app remains **0.5.24**. Cloud-route PR #216 remains separate and unmerged.
+**v0.5.25:** BellPad's iPhone/iPad finishing steps explain its 0.2.3 ISO/GCM
+import and the Files → BellPad → Import fallback, while preserving the normal
+sideloading/update instructions. SquirrelPad finishing steps also explain that
+the same supported ROM used to build the app must be selected inside it after
+installation, with import progress in 0.1.3 or newer. The compatibility record distinguishes five
+projects with selection reports from unconfirmed source risks. Game fixes come
+from rebuilding the corresponding game release; PadMint does not replace the
+apps' own importers. Catalog and recipe JSON is decoded as UTF-8 on every host,
+so Windows displays accented text and folder arrows correctly.
+
+This release also includes host-neutral cloud-build wording for Windows/Linux
+and a **View guide** fallback for existing project routes without a card label,
+including HaloPad, from #217. These label fixes add no build route. Cloud-route
+PR #216 remains separate and unmerged.
 
 **v0.5.24:** Removed Melee PC. It built 999sian/melee-pc, another person's project, and PadMint lists only Chris's own ports (AGENTS.md now says so, and `tests/test_catalog_ownership.py` checks it). MeleePad no longer links to it, and the GitHub workflow no longer offers it.
 

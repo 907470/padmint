@@ -24,6 +24,30 @@
     ]
   },
   "player_next": {
+    "ios": {
+      "sideload": true,
+      "steps": [
+        "Open BellPad and choose your own supported Animal Crossing (USA, GAFE01, Rev 0) raw .iso or .gcm in Files. Convert RVZ, CISO and NKit images back to a supported raw image first.",
+        "If Files will not select the image, BellPad 0.2.3 or newer also lets you copy exactly one supported .iso or .gcm into Files → On My iPhone/iPad → BellPad → Import. Return to BellPad and tap Import from BellPad folder.",
+        "The Import folder is only for incoming images; BellPad keeps its retained game data and saves privately. Install updates over the existing app with the same signing setup to keep your data."
+      ],
+      "translations": {
+        "es": {
+          "steps": [
+            "Abre BellPad y elige en Archivos tu propia imagen compatible de Animal Crossing (USA, GAFE01, Rev 0) en formato .iso o .gcm sin comprimir. Convierte primero las imágenes RVZ, CISO y NKit al formato original compatible.",
+            "Si Archivos no te deja seleccionar la imagen, BellPad 0.2.3 o posterior también permite copiar exactamente un archivo .iso o .gcm compatible a Archivos → En mi iPhone/iPad → BellPad → Import. Vuelve a BellPad y pulsa Import from BellPad folder.",
+            "La carpeta Import solo recibe imágenes; BellPad guarda en privado los datos del juego importados y las partidas. Instala las actualizaciones sobre la app existente con la misma configuración de firma para conservar tus datos."
+          ]
+        },
+        "pt": {
+          "steps": [
+            "Abra o BellPad e escolha no Arquivos sua própria imagem compatível de Animal Crossing (USA, GAFE01, Rev 0) em formato .iso ou .gcm sem compressão. Converta primeiro as imagens RVZ, CISO e NKit para uma imagem original compatível.",
+            "Se o Arquivos não permitir selecionar a imagem, o BellPad 0.2.3 ou mais recente também permite copiar exatamente um arquivo .iso ou .gcm compatível para Arquivos → No Meu iPhone/iPad → BellPad → Import. Volte ao BellPad e toque em Import from BellPad folder.",
+            "A pasta Import serve apenas para receber imagens; o BellPad mantém os dados importados do jogo e os saves em armazenamento privado. Instale as atualizações por cima do app existente com a mesma configuração de assinatura para manter seus dados."
+          ]
+        }
+      }
+    },
     "macos": {
       "steps": [
         "Open {file} and move Bellpad.app to your Applications folder.",

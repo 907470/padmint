@@ -275,7 +275,7 @@ def validate_github_build(entry, recipe):
 
 
 def load_manifest(path):
-    with Path(path).open() as stream:
+    with Path(path).open(encoding="utf-8") as stream:
         return validate_manifest(json.load(stream))
 
 
@@ -283,7 +283,7 @@ def catalog():
     """Return catalog entries keyed by game ID."""
     entries = {}
     for path in sorted(CATALOG.glob("*.json")):
-        with path.open() as stream:
+        with path.open(encoding="utf-8") as stream:
             entry = json.load(stream)
         if not isinstance(entry, dict) or entry.get("id") != path.stem:
             raise ValueError(f"catalog/{path.name}: id must match the file name")
